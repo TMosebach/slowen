@@ -3,13 +3,15 @@ import { Observable, throwError } from 'rxjs';
 import { catchError } from 'rxjs/operators';
 import { Konto } from '../model/konto';
 import { HttpClient, HttpErrorResponse } from '@angular/common/http';
+import { Buchung } from '../model/buchung';
 
 const KONTO_ENDPOINT = 'http://localhost:8080/api/konto';
+const BUCHUNG_ENDPOINT = 'http://localhost:8080/api/buchung';
 
 @Injectable({
   providedIn: 'root'
 })
-export class KontoService {
+export class BuchhaltungService {
 
   constructor(private http: HttpClient) { }
 
@@ -19,6 +21,13 @@ export class KontoService {
 
   createKonto(konto: Konto): Observable<any> {
     return this.http.post(KONTO_ENDPOINT, konto)
+    .pipe(
+      catchError(this.handleError)
+    );
+  }
+
+  createBuchung(buchung: Buchung): Observable<any> {
+    return this.http.post(BUCHUNG_ENDPOINT, buchung)
     .pipe(
       catchError(this.handleError)
     );

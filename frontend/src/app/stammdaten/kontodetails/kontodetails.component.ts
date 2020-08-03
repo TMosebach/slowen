@@ -3,7 +3,7 @@ import { FormBuilder, Validators } from '@angular/forms';
 import { KontoArt } from 'src/app/model/konto-art.enum';
 import { Location } from '@angular/common';
 import { Router } from '@angular/router';
-import { KontoService } from 'src/app/service/konto.service';
+import { BuchhaltungService } from 'src/app/service/buchhaltung.service';
 
 @Component({
   selector: 'app-kontodetails',
@@ -21,7 +21,7 @@ export class KontodetailsComponent implements OnInit {
 
   constructor(
     private fb: FormBuilder,
-    private kontoService: KontoService,
+    private buchhaltungService: BuchhaltungService,
     private router: Router) { }
 
   ngOnInit(): void {
@@ -33,10 +33,9 @@ export class KontodetailsComponent implements OnInit {
   }
 
   onSpeichern(): void {
-    console.log('Speichern');
-    this.kontoService.createKonto(this.kontoForm.value)
+    this.buchhaltungService.createKonto(this.kontoForm.value)
     .subscribe({
-      next: (konto) => this.router.navigate(['stammdaten', 'konten']),
+      next: () => this.router.navigate(['stammdaten', 'konten']),
       error: (msg) => console.log('Fehler', msg)
     });
   }

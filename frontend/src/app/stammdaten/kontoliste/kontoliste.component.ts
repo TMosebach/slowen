@@ -1,6 +1,6 @@
 import { Component, OnInit } from '@angular/core';
 import { Observable, of } from 'rxjs';
-import { KontoService } from '../../service/konto.service';
+import { BuchhaltungService } from '../../service/buchhaltung.service';
 import { Konto } from '../../model/konto';
 import { Router } from '@angular/router';
 
@@ -14,11 +14,11 @@ export class KontolisteComponent implements OnInit {
   konten: Observable<Konto[]>;
 
   constructor(
-    private kontoService: KontoService,
+    private buchhaltungService: BuchhaltungService,
     private router: Router) { }
 
   ngOnInit(): void {
-    this.konten = this.kontoService.findAll();
+    this.konten = this.buchhaltungService.findAll();
   }
 
   onNew(): void {

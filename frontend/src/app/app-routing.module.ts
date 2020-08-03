@@ -4,6 +4,8 @@ import { StammdatenComponent } from './stammdaten/stammdaten.component';
 import { BuchhaltungComponent } from './buchhaltung/buchhaltung.component';
 import { KontolisteComponent } from './stammdaten/kontoliste/kontoliste.component';
 import { KontodetailsComponent } from './stammdaten/kontodetails/kontodetails.component';
+import { BestandskontenComponent } from './buchhaltung/bestandskonten/bestandskonten.component';
+import { BuchenComponent } from './buchhaltung/buchen/buchen.component';
 
 const routes: Routes = [
   {
@@ -19,7 +21,14 @@ const routes: Routes = [
       }
     ]
   },
-  { path: 'buchhaltung', component: BuchhaltungComponent }
+  {
+    path: 'buchhaltung',
+    component: BuchhaltungComponent,
+    children: [
+      { path: 'buchen/:kontoId', component: BuchenComponent },
+      { path: '', component: BestandskontenComponent }
+    ]
+  }
 ];
 
 @NgModule({

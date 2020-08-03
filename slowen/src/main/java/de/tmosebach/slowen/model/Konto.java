@@ -1,6 +1,8 @@
 package de.tmosebach.slowen.model;
 
 import java.math.BigDecimal;
+import java.util.ArrayList;
+import java.util.List;
 
 import javax.persistence.Column;
 import javax.persistence.DiscriminatorColumn;
@@ -12,6 +14,7 @@ import javax.persistence.GeneratedValue;
 import javax.persistence.GenerationType;
 import javax.persistence.Id;
 import javax.persistence.Inheritance;
+import javax.persistence.OneToMany;
 import javax.validation.constraints.Size;
 
 
@@ -38,8 +41,8 @@ public class Konto {
 
 	private BigDecimal saldo = BigDecimal.ZERO;
 
-//	@OneToMany(mappedBy = "konto")
-//	private List<KontoUmsatz> umsaetze = new ArrayList<>();
+	@OneToMany(mappedBy = "konto")
+	private List<KontoUmsatz> umsaetze = new ArrayList<>();
 	
 	public Konto() { }
 
@@ -48,11 +51,11 @@ public class Konto {
 		this.name = name;
 	}
 
-//	public void addKontoUmsatz(KontoUmsatz kontoUmsatz) {
-//		saldo = saldo.add(kontoUmsatz.getBetrag());
-//		getUmsaetze().add(kontoUmsatz);
-//		kontoUmsatz.setKonto(this);
-//	}
+	public void addKontoUmsatz(KontoUmsatz kontoUmsatz) {
+		saldo = saldo.add(kontoUmsatz.getBetrag());
+		getUmsaetze().add(kontoUmsatz);
+		kontoUmsatz.setKonto(this);
+	}
 
 	public Long getId() {
 		return id;
@@ -90,13 +93,13 @@ public class Konto {
 		this.saldo = saldo;
 	}
 
-//	public List<KontoUmsatz> getUmsaetze() {
-//		return umsaetze;
-//	}
-//
-//	public void setUmsaetze(List<KontoUmsatz> umsaetze) {
-//		this.umsaetze = umsaetze;
-//	}
+	public List<KontoUmsatz> getUmsaetze() {
+		return umsaetze;
+	}
+
+	public void setUmsaetze(List<KontoUmsatz> umsaetze) {
+		this.umsaetze = umsaetze;
+	}
 
 	@Override
 	public String toString() {
