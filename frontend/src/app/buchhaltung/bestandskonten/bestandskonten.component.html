@@ -11,7 +11,9 @@
     </thead>
     <tbody>
       <tr *ngFor="let konto of konten | async" class="d-flex">
-        <td class="col-3">{{konto.name}}</td>
+        <td class="col-3">
+          <a routerLink="/buchhaltung/umsatz/{{konto.id}}">{{konto.name}}</a>
+        </td>
         <td class="col-1">{{konto.art}}</td>
         <td class="col-1 text-right">{{konto.saldo}}</td>
         <td class="col-7">

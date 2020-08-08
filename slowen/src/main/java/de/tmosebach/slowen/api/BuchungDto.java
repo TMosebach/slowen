@@ -10,5 +10,5 @@ public class BuchungDto {
 	private String id;
 	private String empfaenger;
 	private String verwendung;
-	private List<UmsatzDto> umsaetze;
+	private List<KontoUmsatzDto> umsaetze;
 }

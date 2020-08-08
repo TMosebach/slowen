@@ -5,6 +5,8 @@ import static java.util.Objects.isNull;
 import java.time.LocalDate;
 import java.util.Optional;
 
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 
 import de.tmosebach.slowen.exception.IllegalDataException;
@@ -75,5 +77,9 @@ public class BuchungService {
 		Konto result = konto.get();
 		result.addKontoUmsatz(u);
 		return result;
+	}
+
+	public Page<Buchung> findByKonto(String name, Pageable pageable) {
+		return buchungRepository.findByKonto(name, pageable);
 	}
 }

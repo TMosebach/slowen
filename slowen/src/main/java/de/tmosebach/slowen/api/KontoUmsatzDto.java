@@ -6,7 +6,7 @@ import java.time.LocalDate;
 import lombok.Data;
 
 @Data
-public class UmsatzDto {
+public class KontoUmsatzDto {
 
 	private LocalDate valuta;
 	private BigDecimal betrag;
