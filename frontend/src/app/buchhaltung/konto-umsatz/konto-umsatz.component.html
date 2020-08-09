@@ -17,7 +17,7 @@
         <td class="col-2">{{buchung.verwendung}}</td>
         <td class="col-1">
             <span *ngFor="let umsatz of reorderedUmsatz(buchung.umsaetze)">
-                {{umsatz.valuta}}<br>
+                {{umsatz.valuta | date:'mediumDate'}}<br>
             </span>
         </td>
         <td class="col-1">
