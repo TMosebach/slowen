@@ -27,12 +27,12 @@
         </td>
         <td class="col-1 text-right">
             <span *ngFor="let umsatz of reorderedUmsatz(buchung.umsaetze)">
-                {{umsatz.betrag<0?-umsatz.betrag:''}}<br>
+                {{ (umsatz.betrag<0?-umsatz.betrag:'') | number:'1.2-2'}}<br>
             </span>
         </td>
         <td class="col-1 text-right">
             <span *ngFor="let umsatz of reorderedUmsatz(buchung.umsaetze)">
-                {{umsatz.betrag>0?umsatz.betrag:''}}<br>
+                {{ (umsatz.betrag>0?umsatz.betrag:'') | number:'1.2-2'}}<br>
             </span>
         </td>
       </tr>
