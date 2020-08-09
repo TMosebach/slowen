@@ -84,7 +84,7 @@ public class BuchhaltungController {
 		return buchungDto;
 	}
 	
-	@GetMapping("/kontos/{id}/buchungen")
+	@GetMapping("/konto/{id}/buchungen")
 	@ApiResponses(value = {
 			@ApiResponse(code = 404, message = "Kein Konto mit der angegenben Id gefunden.")
 		}

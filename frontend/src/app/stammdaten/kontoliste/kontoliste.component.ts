@@ -18,7 +18,7 @@ export class KontolisteComponent implements OnInit {
     private router: Router) { }
 
   ngOnInit(): void {
-    this.konten = this.buchhaltungService.findAll();
+    this.konten = this.buchhaltungService.findAlleKonten();
   }
 
   onNew(): void {

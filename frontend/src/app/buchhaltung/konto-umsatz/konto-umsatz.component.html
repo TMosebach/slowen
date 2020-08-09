@@ -5,39 +5,35 @@
       <tr class="d-flex">
         <th scope="col" class="col-2">Empfänger</th>
         <th scope="col" class="col-2">Verwendung</th>
-        <th scope="col" class="col-2">Konto</th>
         <th scope="col" class="col-1">Valuta</th>
+        <th scope="col" class="col-1">Konto</th>
         <th scope="col" class="col-1 text-right">Auszahlung</th>
         <th scope="col" class="col-1 text-right">Einzahlung</th>
       </tr>
     </thead>
     <tbody>
-      <tr  class="d-flex">
-        <td class="col-2">Moi</td>
-        <td class="col-2"></td>
-        <td class="col-2">Tagesgeld</td>
-        <td class="col-1">01.08.2020</td>
-        <td class="col-1 text-right">150,00</td>
-        <td class="col-1 text-right"></td>
-      </tr>
-      <tr  class="d-flex">
-        <td class="col-2">SWB</td>
-        <td class="col-2">Nebenkosten</td>
-        <td class="col-2">
-            Giro<br>
-            Strom<br>
-            Gas
+      <tr class="d-flex" *ngFor="let buchung of buchungen()">
+        <td class="col-2">{{buchung.empfaenger}}</td>
+        <td class="col-2">{{buchung.verwendung}}</td>
+        <td class="col-1">
+            <span *ngFor="let umsatz of reorderedUmsatz(buchung.umsaetze)">
+                {{umsatz.valuta}}<br>
+            </span>
         </td>
         <td class="col-1">
-            10.08.2020<br>
-            10.08.2020<br>
-            10.08.2020
+            <span *ngFor="let umsatz of reorderedUmsatz(buchung.umsaetze)">
+                {{umsatz.konto.name}}<br>
+            </span>
         </td>
-        <td class="col-1 text-right">120,00</td>
         <td class="col-1 text-right">
-            <br>
-            40,00<br>
-            80,00
+            <span *ngFor="let umsatz of reorderedUmsatz(buchung.umsaetze)">
+                {{umsatz.betrag<0?-umsatz.betrag:''}}<br>
+            </span>
+        </td>
+        <td class="col-1 text-right">
+            <span *ngFor="let umsatz of reorderedUmsatz(buchung.umsaetze)">
+                {{umsatz.betrag>0?umsatz.betrag:''}}<br>
+            </span>
         </td>
       </tr>
     </tbody>

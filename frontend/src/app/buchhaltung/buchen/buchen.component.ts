@@ -46,7 +46,7 @@ export class BuchenComponent implements OnInit {
   ) { }
 
   ngOnInit(): void {
-    this.buchhaltungService.findAll().subscribe({
+    this.buchhaltungService.findAlleKonten().subscribe({
       next: konten => {
         // Neutrales Element hinzufügen
         this.konten = konten;

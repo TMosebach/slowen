@@ -4,6 +4,7 @@ import { catchError } from 'rxjs/operators';
 import { Konto } from '../model/konto';
 import { HttpClient, HttpErrorResponse } from '@angular/common/http';
 import { Buchung } from '../model/buchung';
+import { Page } from '../model/page';
 
 const KONTO_ENDPOINT = 'http://localhost:8080/api/konto';
 const BUCHUNG_ENDPOINT = 'http://localhost:8080/api/buchung';
@@ -15,8 +16,12 @@ export class BuchhaltungService {
 
   constructor(private http: HttpClient) { }
 
-  findAll(): Observable<Konto[]> {
+  findAlleKonten(): Observable<Konto[]> {
     return this.http.get<Konto[]>(KONTO_ENDPOINT);
+  }
+
+  findBuchungenByKonto(id: string): Observable<Page<Buchung>> {
+    return this.http.get<Page<Buchung>>(KONTO_ENDPOINT + `/${id}/buchungen`);
   }
 
   createKonto(konto: Konto): Observable<any> {
