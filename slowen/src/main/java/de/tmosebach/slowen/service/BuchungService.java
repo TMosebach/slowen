@@ -5,9 +5,11 @@ import static java.util.Objects.isNull;
 import java.time.LocalDate;
 import java.util.Optional;
 
+
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import de.tmosebach.slowen.exception.IllegalDataException;
 import de.tmosebach.slowen.exception.UnkownEntityException;
@@ -28,6 +30,7 @@ public class BuchungService {
 		this.buchungRepository = buchungRepository;
 	}
 
+	@Transactional
 	public Buchung buche(Buchung template) throws UnkownEntityException, IllegalDataException {
 		
 		Buchung buchung = new Buchung();

@@ -1,0 +1,37 @@
+<form [formGroup]="buchenForm">
+    <div class="form-row">
+        <div class="form-group col-3">
+            <label for="empfaenger">Empfänger</label>
+            <input type="text" class="form-control" formControlName="empfaenger" id="empfaenger">
+        </div>
+        <div class="form-group col-3">
+            <label for="verwendung">Verwendung</label>
+            <input type="text" class="form-control" formControlName="verwendung" id="verwendung">
+        </div>
+    </div>
+    <div class="form-row">
+        <div class="form-group col-2">
+            <label for="konto">Konto</label>
+            <input type="text" class="form-control" formControlName="konto" id="konto">
+        </div>
+        <div class="form-group col-2">
+            <label for="gegenkonto">Gegenkonto</label>
+            <select class="form-control" formControlName="gegenkonto" id="gegenkonto">
+                <option></option>
+                <option *ngFor="let konto of konten">{{konto.name}}</option>
+            </select>
+        </div>
+        <div class="form-group col-1">
+            <label for="betrag">Auszahlung</label>
+            <input type="text" class="form-control text-right" formControlName="habenbetrag" id="betrag">
+        </div>
+        <div class="form-group col-1">
+            <label for="betrag">Einzahlung</label>
+            <input type="text" class="form-control text-right" formControlName="sollbetrag" id="betrag">
+        </div>
+    </div>
+    
+    <button type="button" class="btn btn-primary mr-3" (click)="onBuchen()" [disabled]="!buchenForm.valid">Speichern</button>
+    <button type="button" class="btn btn-light mr-3" (click)="onSplitten()">Splitten</button>
+    <button type="button" class="btn btn-light" (click)="onAbbrechen()">Abbrechen</button>
+</form>

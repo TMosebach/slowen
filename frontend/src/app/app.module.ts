@@ -12,6 +12,10 @@ import { KontodetailsComponent } from './stammdaten/kontodetails/kontodetails.co
 import { BestandskontenComponent } from './buchhaltung/bestandskonten/bestandskonten.component';
 import { BuchenComponent } from './buchhaltung/buchen/buchen.component';
 import { KontoUmsatzComponent } from './buchhaltung/konto-umsatz/konto-umsatz.component';
+// tslint:disable-next-line: max-line-length
+import { KomplexBuchungFormularComponent } from './buchhaltung/buchung-formular/komplex-buchung-formular/komplex-buchung-formular.component';
+import { SimpleBuchungFormularComponent } from './buchhaltung/buchung-formular/simple-buchung-formular/simple-buchung-formular.component';
+import { BuchungFormularComponent } from './buchhaltung/buchung-formular/buchung-formular.component';
 
 @NgModule({
   declarations: [
@@ -22,7 +26,10 @@ import { KontoUmsatzComponent } from './buchhaltung/konto-umsatz/konto-umsatz.co
     KontodetailsComponent,
     BestandskontenComponent,
     BuchenComponent,
-    KontoUmsatzComponent
+    KontoUmsatzComponent,
+    KomplexBuchungFormularComponent,
+    SimpleBuchungFormularComponent,
+    BuchungFormularComponent
   ],
   imports: [
     BrowserModule,

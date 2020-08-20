@@ -1,0 +1,12 @@
+<app-simple-buchung-formular *ngIf="!splittView"
+    [konten]="konten"
+    [kontoId]="kontoId" 
+    (abbrechen)="onAbbrechen()" 
+    (buchen)="onBuchen($event)"
+    (splitten)="onSplitt($event)"></app-simple-buchung-formular>
+
+<app-komplex-buchung-formular *ngIf="splittView" 
+    [konten]="konten"
+    [buchung]="buchung"
+    (abbrechen)="onAbbrechen()" 
+    (buchen)="onBuchen($event)"></app-komplex-buchung-formular>
