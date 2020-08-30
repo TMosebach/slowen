@@ -3,7 +3,13 @@
 <form [formGroup]="kontoForm">
     <div class="form-group">
         <label for="name">Name</label>
-        <input type="text" class="form-control" formControlName="name" id="name" placeholder="Name">
+        <input 
+            type="text" 
+            class="form-control" 
+            formControlName="name" 
+            id="name" 
+            placeholder="Name"
+            autofocus>
     </div>
     <div class="form-group">
         <label for="kontoart">Kontoart</label>
@@ -12,5 +18,5 @@
         </select>
     </div>
 </form>
-<button class="btn btn-light" (click)="onAbbrechen()">Abbrechen</button>
 <button class="btn btn-primary" (click)="onSpeichern()" [disabled]="!kontoForm.valid">Speichern</button>
+<button class="btn btn-light" (click)="onAbbrechen()">Abbrechen</button>

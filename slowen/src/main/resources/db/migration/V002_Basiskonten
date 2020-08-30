@@ -1,8 +1,0 @@
-/**
- * Basiskonten anlegen
- */
-
-insert into konto (id , art, name, saldo) values (null, 'Ertrag', 'Zinsertrag', 0.0);
-insert into konto (id , art, name, saldo) values (null, 'Aufwand', 'Zinsaufwand', 0.0);
-insert into konto (id , art, name, saldo) values (null, 'Aufwand', 'Bankgebühren', 0.0);
-
