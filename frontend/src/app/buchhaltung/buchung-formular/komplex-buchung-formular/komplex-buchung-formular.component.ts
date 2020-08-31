@@ -39,7 +39,7 @@ export class KomplexBuchungFormularComponent implements OnInit {
     const betrag = umsatz.betrag;
     return this.fb.group( {
         konto: [ umsatz.konto.name, Validators.required],
-        valuta: [new Date().toISOString().slice(0, 10), Validators.required],
+        valuta: [ umsatz.valuta.toISOString().slice(0, 10), Validators.required],
         auszahlung: [betrag && betrag < 0 ? -betrag : ''],
         einzahlung: [betrag && betrag >= 0 ? betrag : '']
       });

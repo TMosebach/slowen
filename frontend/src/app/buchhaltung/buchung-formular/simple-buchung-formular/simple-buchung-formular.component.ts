@@ -29,6 +29,7 @@ export class SimpleBuchungFormularComponent implements OnInit {
     verwendung: ['', [Validators.maxLength(40)]],
     konto: [0, [Validators.required, Validators.minLength(1)]],
     gegenkonto: ['', [Validators.required]],
+    valuta: [new Date().toISOString().slice(0, 10), Validators.required],
     habenbetrag: [''],
     sollbetrag: ['']
   }, { validators: withBetragValidator });
@@ -82,14 +83,14 @@ export class SimpleBuchungFormularComponent implements OnInit {
           konto: {
             name: this.getControl('konto').value
           },
-          valuta: now,
+          valuta: new Date(this.getControl('valuta').value),
           betrag: this.getKontoBetrag()
         },
         {
           konto: {
             name: this.getControl('gegenkonto').value
           },
-          valuta: now,
+          valuta: new Date(this.getControl('valuta').value),
           betrag: -this.getKontoBetrag()
         }
       ]

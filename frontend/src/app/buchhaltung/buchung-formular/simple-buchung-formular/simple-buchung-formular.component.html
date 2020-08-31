@@ -21,6 +21,10 @@
                 <option *ngFor="let konto of konten">{{konto.name}}</option>
             </select>
         </div>
+        <div class="form-group col-2">
+            <label for="valuta">Valuta</label>
+            <input type="date" class="form-control" formControlName="valuta" id="valuta">
+        </div>
         <div class="form-group col-1">
             <label for="betrag">Auszahlung</label>
             <input type="text" class="form-control text-right" formControlName="habenbetrag" id="betrag">
