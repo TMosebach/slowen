@@ -20,8 +20,19 @@ export class BuchhaltungService {
     return this.http.get<Konto[]>(KONTO_ENDPOINT);
   }
 
-  findBuchungenByKonto(id: string): Observable<Page<Buchung>> {
-    return this.http.get<Page<Buchung>>(KONTO_ENDPOINT + `/${id}/buchungen`);
+  /**
+   * Seitenweiess sortiertes Lesen der Buchungen zur Konto-Id.
+   * Die Sortierung liefert die jüngste Buchung zuerst, gemessen an Valuta bzw. Buchung-Id
+   *
+   * @param id Konto-Id
+   * @param page optionale gewünschte Seite, falls nicht angegeben wird Seite 0, die jüngsten Buchungen gelesen
+   */
+  findBuchungenByKonto(id: string, page?: string): Observable<Page<Buchung>> {
+    let endpoint = KONTO_ENDPOINT + `/${id}/buchungen`;
+    if (page) {
+      endpoint = endpoint + `?page=${page}`;
+    }
+    return this.http.get<Page<Buchung>>(endpoint);
   }
 
   createKonto(konto: Konto): Observable<any> {

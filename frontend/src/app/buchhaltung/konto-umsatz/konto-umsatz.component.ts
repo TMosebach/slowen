@@ -2,7 +2,7 @@ import { Component, OnInit } from '@angular/core';
 import { BuchhaltungService } from 'src/app/service/buchhaltung.service';
 import { Page } from 'src/app/model/page';
 import { Buchung } from 'src/app/model/buchung';
-import { ActivatedRoute } from '@angular/router';
+import { ActivatedRoute, Router } from '@angular/router';
 import { KontoUmsatz } from 'src/app/model/konto-umsatz';
 
 @Component({
@@ -14,26 +14,57 @@ export class KontoUmsatzComponent implements OnInit {
 
   buchungsSeite: Page<Buchung>;
   kontoId: string;
+  page: string;
 
   constructor(
     private route: ActivatedRoute,
-    private buchhaltungService: BuchhaltungService) { }
+    private buchhaltungService: BuchhaltungService,
+    private router: Router) { }
 
   ngOnInit(): void {
     this.route.params.subscribe({
       next: (params: { kontoId: string}) => {
         this.kontoId = params.kontoId;
-        this.buchhaltungService.findBuchungenByKonto(this.kontoId).subscribe({
-          next: seite => this.buchungsSeite = seite,
-          error: (err) => console.log(err)
-         });
+        this.route.queryParams.subscribe({
+          next: (query: { page: string }) => {
+            console.log('Page', query.page);
+            if (query.page) {
+              this.page = query.page;
+            }
+            this.buchhaltungService.findBuchungenByKonto(this.kontoId, this.page).subscribe({
+              next: seite => this.buchungsSeite = seite,
+              error: (err) => console.log(err)
+             });
+          }
+        });
       }
     });
   }
 
+  pages(): number[] {
+    const pages = [];
+    if (this.buchungsSeite && this.buchungsSeite.totalPages) {
+      let index = Math.min(9, this.buchungsSeite.totalPages - 1);
+      while (index > 0) {
+        pages.push(index);
+        index--;
+      }
+    }
+    return pages;
+  }
+
+  load(page: number): void {
+    console.log('load', page);
+    this.router.navigate(
+      ['buchhaltung', 'umsatz', this.kontoId],
+      {
+        queryParams: { page }
+      });
+  }
+
   buchungen(): Buchung[] {
     if (this.buchungsSeite && this.buchungsSeite.content) {
-      return this.buchungsSeite.content;
+      return this.buchungsSeite.content.reverse();
     } else {
       return [];
     }
