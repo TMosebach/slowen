@@ -5,4 +5,9 @@
     [kontoId]="kontoId" 
     (loadNewPage)="load($event)"></app-umsatz-tabelle>
 
-<a class="btn btn-light" routerLink="/buchhaltung">Zurück</a>
+<app-buchung-formular 
+    [kontoId]="kontoId" 
+    (abbrechen)="onAbbrechen()" 
+    (buchen)="onBuchen($event)"></app-buchung-formular>
+
+<a class="btn btn-light mt-3" routerLink="/buchhaltung">Zurück</a>

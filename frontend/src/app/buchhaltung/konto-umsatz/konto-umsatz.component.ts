@@ -41,12 +41,25 @@ export class KontoUmsatzComponent implements OnInit {
     });
   }
 
-  load(page: number): void {
-    console.log('load', page);
+  load(page: string): void {
+    this.page = page;
     this.router.navigate(
       ['buchhaltung', 'umsatz', this.kontoId],
       {
         queryParams: { page }
       });
+  }
+
+  onBuchen(buchung: Buchung): void {
+    console.log('buchen');
+    this.buchhaltungService.createBuchung(buchung)
+    .subscribe({
+      next: () => window.location.reload(),
+      error: (msg) => console.log('Fehler', msg)
+    });
+  }
+
+  onAbbrechen(): void {
+    this.router.navigate(['buchhaltung']);
   }
 }
