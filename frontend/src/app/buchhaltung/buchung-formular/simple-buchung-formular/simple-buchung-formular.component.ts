@@ -1,7 +1,6 @@
 import { Component, OnInit, Input, Output, EventEmitter } from '@angular/core';
 import { FormBuilder, Validators, AbstractControl, FormGroup } from '@angular/forms';
 import { Konto } from 'src/app/model/konto';
-import { BuchhaltungService } from 'src/app/service/buchhaltung.service';
 import { Buchung } from 'src/app/model/buchung';
 
 function withBetragValidator(group: FormGroup): any {
@@ -41,20 +40,15 @@ export class SimpleBuchungFormularComponent implements OnInit {
   @Output() abbrechen = new EventEmitter();
   @Output() splitten = new EventEmitter();
 
-  constructor(
-    private fb: FormBuilder,
-    private buchhaltungService: BuchhaltungService) { }
+  constructor(private fb: FormBuilder) { }
 
   ngOnInit(): void {
-    this.buchhaltungService.findAlleKonten().subscribe({
-      next: konten => {
-        // Neutrales Element hinzufügen
-        this.konten = konten;
-        const result = this.konten.filter( konto => konto.id === this.kontoId);
-        this.getControl('konto').setValue(result[0].name);
-      }
-    });
+    if (this.konten) {
+      const result = this.konten.filter( konto => konto.id === this.kontoId);
+      this.getControl('konto').setValue(result[0].name);
+    }
   }
+
   private getControl(name: string): AbstractControl {
     return this.buchenForm.controls[name];
   }

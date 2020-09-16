@@ -2,6 +2,7 @@ import { Component, OnInit, Input, Output, EventEmitter } from '@angular/core';
 import { Buchung } from 'src/app/model/buchung';
 import { BuchhaltungService } from 'src/app/service/buchhaltung.service';
 import { Konto } from 'src/app/model/konto';
+import { map } from 'rxjs/operators';
 
 @Component({
   selector: 'app-buchung-formular',
@@ -20,8 +21,15 @@ export class BuchungFormularComponent implements OnInit {
 
   constructor(private buchhaltungService: BuchhaltungService) { }
 
+  /**
+   * Basisinitialisierung aller Buchungsformulare.
+   *
+   * Die bekannten Konten werden in alphabetischer Reihenfolge sortiert.
+   */
   ngOnInit(): void {
-    this.buchhaltungService.findAlleKonten().subscribe({
+    this.buchhaltungService.findAlleKonten()
+    .pipe( map( (konten) => konten.sort( (a, b) => a.name.localeCompare(b.name))))
+    .subscribe({
       next: konten => this.konten = konten
     });
   }

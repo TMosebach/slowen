@@ -3,7 +3,6 @@ import { BuchhaltungService } from 'src/app/service/buchhaltung.service';
 import { Page } from 'src/app/model/page';
 import { Buchung } from 'src/app/model/buchung';
 import { ActivatedRoute, Router } from '@angular/router';
-import { KontoUmsatz } from 'src/app/model/konto-umsatz';
 
 @Component({
   selector: 'app-konto-umsatz',
@@ -27,7 +26,6 @@ export class KontoUmsatzComponent implements OnInit {
         this.kontoId = params.kontoId;
         this.route.queryParams.subscribe({
           next: (query: { page: string }) => {
-            console.log('Page', query.page);
             if (query.page) {
               this.page = query.page;
             }
@@ -51,7 +49,6 @@ export class KontoUmsatzComponent implements OnInit {
   }
 
   onBuchen(buchung: Buchung): void {
-    console.log('buchen');
     this.buchhaltungService.createBuchung(buchung)
     .subscribe({
       next: () => window.location.reload(),
