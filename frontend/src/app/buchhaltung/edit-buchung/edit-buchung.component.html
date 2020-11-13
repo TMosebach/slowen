@@ -1,0 +1,7 @@
+<h3>Buchung ändern</h3>
+
+<app-komplex-buchung-formular
+    [konten]="konten"
+    [buchung]="buchung"
+    (abbrechen)="onAbbrechen()" 
+    (buchen)="onBuchen($event)"></app-komplex-buchung-formular>

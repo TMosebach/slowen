@@ -18,6 +18,7 @@ public class BuchungMapper {
 	public Buchung buchungDtoToBuchung(BuchungDto buchungDto) {
 		
 		Buchung buchung = new Buchung();
+		buchung.setId(Long.valueOf(buchungDto.getId()));
 		buchung.setEmpfaenger(buchungDto.getEmpfaenger());
 		buchung.setVerwendung(buchungDto.getVerwendung());
 		buchung.setUmsaetze(kontoUmstzDtoTokontoUmsatz(buchungDto.getUmsaetze()));

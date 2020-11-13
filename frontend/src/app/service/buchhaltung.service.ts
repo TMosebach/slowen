@@ -49,6 +49,16 @@ export class BuchhaltungService {
     );
   }
 
+  updateBuchung(buchung: Buchung): Observable<any> {
+    const endpoint = BUCHUNG_ENDPOINT + `/${buchung.id}`;
+    return this.http.put<Buchung>(endpoint, buchung);
+  }
+
+  findBuchungById(buchungId: string): Observable<Buchung> {
+    const endpoint = BUCHUNG_ENDPOINT + `/${buchungId}`;
+    return this.http.get<Buchung>(endpoint);
+  }
+
   private handleError(error: HttpErrorResponse): Observable<never> {
     if (error.error instanceof ErrorEvent) {
       console.error('Fehler beim Aufruf:', error.error.message);

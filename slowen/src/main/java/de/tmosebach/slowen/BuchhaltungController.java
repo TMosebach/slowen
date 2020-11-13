@@ -6,6 +6,8 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.PageRequest;
@@ -14,6 +16,7 @@ import org.springframework.web.bind.annotation.CrossOrigin;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
@@ -37,6 +40,8 @@ import io.swagger.annotations.ApiResponse;
 @RequestMapping("api")
 @CrossOrigin
 public class BuchhaltungController {
+	
+	private static final Logger LOG = LoggerFactory.getLogger(BuchhaltungController.class);
 
 	private KontoRepository kontoRepository;
 	private BuchungMapper buchungMapper;
@@ -107,5 +112,34 @@ public class BuchhaltungController {
 					buchungPage.getPageable(), 
 					buchungPage.getTotalElements());
 		return buchungDtoPage;
+	}
+	
+	@GetMapping("buchung/{id}")
+	@ApiResponses(value = {
+			@ApiResponse(code = 404, message = "Keine Buchung mit der angegenben Id gefunden.")
+		}
+	)
+	public BuchungDto findBuchungById(@PathVariable Long id) throws UnkownEntityException {
+		try {
+			Buchung buchung = buchungService.findById(id);
+			return buchungMapper.buchungToBuchungDto(buchung);
+		} catch (UnkownEntityException e) {
+			throw new ResponseStatusException(NOT_FOUND, e.getMessage());
+		}
+	}
+	
+	@PutMapping("buchung/{id}")
+	public BuchungDto updateBuchung(@RequestBody BuchungDto buchungDto) {
+		try {
+			Buchung buchung = buchungMapper.buchungDtoToBuchung(buchungDto);
+			buchungService.update(buchung);
+		} catch (UnkownEntityException | IllegalDataException e) {
+			throw new ResponseStatusException(NOT_FOUND, e.getMessage());
+		} catch (Exception e) {
+			LOG.error(e.getMessage(), e);
+			throw new ResponseStatusException(NOT_FOUND, e.getMessage());
+		}
+		
+		return buchungDto;
 	}
 }

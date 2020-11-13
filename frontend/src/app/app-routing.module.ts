@@ -7,6 +7,7 @@ import { KontodetailsComponent } from './stammdaten/kontodetails/kontodetails.co
 import { BestandskontenComponent } from './buchhaltung/bestandskonten/bestandskonten.component';
 import { BuchenComponent } from './buchhaltung/buchen/buchen.component';
 import { KontoUmsatzComponent } from './buchhaltung/konto-umsatz/konto-umsatz.component';
+import { EditBuchungComponent } from './buchhaltung/edit-buchung/edit-buchung.component';
 
 const routes: Routes = [
   {
@@ -26,6 +27,7 @@ const routes: Routes = [
     path: 'buchhaltung',
     component: BuchhaltungComponent,
     children: [
+      { path: 'buchen/:kontoId/:buchungId', component: EditBuchungComponent },
       { path: 'buchen/:kontoId', component: BuchenComponent },
       { path: 'umsatz/:kontoId', component: KontoUmsatzComponent },
       { path: '', component: BestandskontenComponent }

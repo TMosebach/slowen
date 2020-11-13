@@ -1,4 +1,5 @@
 import { Component, EventEmitter, Input, OnInit, Output } from '@angular/core';
+import { Router } from '@angular/router';
 import { Buchung } from 'src/app/model/buchung';
 import { KontoUmsatz } from 'src/app/model/konto-umsatz';
 import { Page } from 'src/app/model/page';
@@ -14,7 +15,7 @@ export class UmsatzTabelleComponent implements OnInit {
   @Input() kontoId: string;
   @Output() loadNewPage = new EventEmitter();
 
-  constructor() { }
+  constructor(private router: Router) { }
 
   ngOnInit(): void {
   }
@@ -25,6 +26,11 @@ export class UmsatzTabelleComponent implements OnInit {
     } else {
       return [];
     }
+  }
+
+  doAendern(buchung: Buchung): void {
+    console.log('Ändern', buchung);
+    this.router.navigate(['buchhaltung', 'buchen', this.kontoId, buchung.id]);
   }
 
   reorderedUmsatz(umsaetze: KontoUmsatz[]): KontoUmsatz[] {

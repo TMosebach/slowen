@@ -29,7 +29,7 @@ public class Buchung {
 	*/
 	
 	@ToString.Exclude
-	@OneToMany(mappedBy = "buchung", cascade = CascadeType.ALL, fetch = FetchType.EAGER)
+	@OneToMany(mappedBy = "buchung", cascade = CascadeType.ALL, fetch = FetchType.EAGER, orphanRemoval = true)
 	private List<KontoUmsatz> umsaetze = new ArrayList<>();
 	
 	@Column(length = 40)

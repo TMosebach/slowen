@@ -17,6 +17,7 @@ import { KomplexBuchungFormularComponent } from './buchhaltung/buchung-formular/
 import { SimpleBuchungFormularComponent } from './buchhaltung/buchung-formular/simple-buchung-formular/simple-buchung-formular.component';
 import { BuchungFormularComponent } from './buchhaltung/buchung-formular/buchung-formular.component';
 import { UmsatzTabelleComponent } from './buchhaltung/kontoUmsatz/umsatz-tabelle/umsatz-tabelle.component';
+import { EditBuchungComponent } from './buchhaltung/edit-buchung/edit-buchung.component';
 
 @NgModule({
   declarations: [
@@ -31,7 +32,8 @@ import { UmsatzTabelleComponent } from './buchhaltung/kontoUmsatz/umsatz-tabelle
     KomplexBuchungFormularComponent,
     SimpleBuchungFormularComponent,
     BuchungFormularComponent,
-    UmsatzTabelleComponent
+    UmsatzTabelleComponent,
+    EditBuchungComponent
   ],
   imports: [
     BrowserModule,

@@ -8,6 +8,7 @@
         <th scope="col" class="col-1">Konto</th>
         <th scope="col" class="col-1 text-right">Auszahlung</th>
         <th scope="col" class="col-1 text-right">Einzahlung</th>
+        <th scope="col" class="col-1"></th>
       </tr>
     </thead>
     <tbody>
@@ -34,6 +35,7 @@
                 {{ (umsatz.betrag>0?umsatz.betrag:'') | number:'1.2-2'}}<br>
             </span>
         </td>
+        <td class="col-1 text-center"><button class="btn btn-sm btn-light" (click)="doAendern(buchung)">Ändern</button></td>
       </tr>
     </tbody>
 </table>

@@ -4,6 +4,12 @@ import { Konto } from 'src/app/model/konto';
 import { Buchung } from 'src/app/model/buchung';
 import { THIS_EXPR } from '@angular/compiler/src/output/output_ast';
 import { KontoUmsatz } from 'src/app/model/konto-umsatz';
+import { stringify } from '@angular/compiler/src/util';
+import { defaultThrottleConfig } from 'rxjs/internal/operators/throttle';
+
+function isString(x: string | object): x is string {
+  return typeof x === 'string';
+}
 
 @Component({
   selector: 'app-komplex-buchung-formular',
@@ -15,6 +21,7 @@ export class KomplexBuchungFormularComponent implements OnInit {
   @Input() konten: Konto[];
   @Output() buchen = new EventEmitter();
   @Output() abbrechen = new EventEmitter();
+  buchungId: string;
 
   buchenForm = this.fb.group({
     empfaenger: ['', [Validators.maxLength(40)]],
@@ -29,17 +36,24 @@ export class KomplexBuchungFormularComponent implements OnInit {
 
   @Input()
   set buchung(buchung: Buchung) {
-    this.getControl('empfaenger').setValue(buchung.empfaenger);
-    this.getControl('verwendung').setValue(buchung.verwendung);
+    if (buchung) {
+      this.buchungId = buchung.id;
+      this.getControl('empfaenger').setValue(buchung.empfaenger);
+      this.getControl('verwendung').setValue(buchung.verwendung);
 
-    buchung.umsaetze.forEach(umsatz => this.umsaetze.push(this.createUmsatzGroup(umsatz)));
+      buchung.umsaetze.forEach(umsatz => this.umsaetze.push(this.createUmsatzGroup(umsatz)));
+    }
   }
 
   private createUmsatzGroup(umsatz: KontoUmsatz): FormGroup {
+
+    console.log('valuta ist string', typeof umsatz.valuta === 'string', typeof umsatz.valuta === 'object');
+
     const betrag = umsatz.betrag;
+    const valuta = umsatz.valuta;
     return this.fb.group( {
         konto: [ umsatz.konto.name, Validators.required],
-        valuta: [ umsatz.valuta.toISOString().slice(0, 10), Validators.required],
+        valuta: [ isString(valuta) ? valuta : valuta.toISOString().slice(0, 10), Validators.required],
         auszahlung: [betrag && betrag < 0 ? -betrag : ''],
         einzahlung: [betrag && betrag >= 0 ? betrag : '']
       });
@@ -66,12 +80,17 @@ export class KomplexBuchungFormularComponent implements OnInit {
     this.umsaetze.push(this.createUmsatz());
   }
 
+  removeUmsatz(i: number): void {
+    this.umsaetze.removeAt(i);
+  }
+
   onAbbrechen(): void {
     this.abbrechen.emit();
   }
 
   onBuchen(): void {
     const buchung: Buchung = this.createBuchung();
+    buchung.id = this.buchungId;
     this.buchen.emit(buchung);
   }
 

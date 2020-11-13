@@ -1,5 +1,7 @@
 package de.tmosebach.slowen.model;
 
+import static java.util.Objects.nonNull;
+
 import java.math.BigDecimal;
 import java.time.LocalDate;
 
@@ -43,6 +45,18 @@ public class KontoUmsatz {
 	@ManyToOne
 	@JoinColumn(name = "buchung_id", nullable = false, updatable = false)
 	private Buchung buchung;
+	
+	/**
+	 * Gibt den Namen des zugehörigen Kontos zurück.
+	 * 
+	 * @return Name des Kontos oder {@code null}, falls es kein Konto gibt.
+	 */
+	public String getKontoName() {
+		if (nonNull(konto)) {
+			return konto.getName();
+		}
+		return null;
+	}
 	
 	public boolean isDepotUmsatz() {
 		return false;
