@@ -15,6 +15,7 @@ export class KontodetailsComponent implements OnInit {
   kontoarten = KontoArt;
 
   kontoForm = this.fb.group({
+    type: ['Konto', [Validators.required]],
     name: ['', [Validators.required, Validators.minLength(2), Validators.maxLength(30)]],
     art: [KontoArt.Aufwand, [Validators.required]]
   });
@@ -24,8 +25,7 @@ export class KontodetailsComponent implements OnInit {
     private buchhaltungService: BuchhaltungService,
     private router: Router) { }
 
-  ngOnInit(): void {
-  }
+  ngOnInit(): void {}
 
   onAbbrechen(): void {
     console.log('Abbrechen');

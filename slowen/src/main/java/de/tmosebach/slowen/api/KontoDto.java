@@ -9,6 +9,7 @@ import lombok.Data;
 public class KontoDto {
 
 	private String id;
+	private String type;
 	private String name;
 	private String art;
 	private BigDecimal saldo;

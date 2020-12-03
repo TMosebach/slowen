@@ -30,7 +30,9 @@ import de.tmosebach.slowen.apimapper.BuchungMapper;
 import de.tmosebach.slowen.exception.IllegalDataException;
 import de.tmosebach.slowen.exception.UnkownEntityException;
 import de.tmosebach.slowen.model.Buchung;
+import de.tmosebach.slowen.model.Depot;
 import de.tmosebach.slowen.model.Konto;
+import de.tmosebach.slowen.model.KontoArt;
 import de.tmosebach.slowen.repository.KontoRepository;
 import de.tmosebach.slowen.service.BuchungService;
 import io.swagger.annotations.ApiResponses;
@@ -63,6 +65,7 @@ public class BuchhaltungController {
 			konten.add(
 				KontoDto.builder()
 				.id(Long.toString(k.getId()))
+				.type(k.getType())
 				.name(k.getName())
 				.art(k.getArt().name())
 				.saldo(k.getSaldo())
@@ -73,9 +76,21 @@ public class BuchhaltungController {
 	}
 	
 	@PostMapping("konto")
-	public Konto createKonto(@RequestBody Konto konto) {
+	public KontoDto createKonto(@RequestBody KontoDto kontoDto) {
+		
+		Konto konto = null;
+		if ("Konto".equals(kontoDto.getType())) {
+			konto = new Konto();
+		} else if ("Depot".equals(kontoDto.getType())){
+			konto = new Depot();
+		}
+		konto.setArt(KontoArt.valueOf(kontoDto.getArt()));
+		konto.setName(kontoDto.getName());
+		
 		kontoRepository.save(konto);
-		return konto;
+		
+		kontoDto.setId(Long.toString(konto.getId()));
+		return kontoDto;
 	}
 	
 	@PostMapping("buchung")
