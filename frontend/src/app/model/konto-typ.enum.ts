@@ -1,4 +1,4 @@
 export enum KontoTyp {
-    Konto,
-    Depot
+    Konto = 'K',
+    Depot = 'D'
 }

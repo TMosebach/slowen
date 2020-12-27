@@ -23,11 +23,6 @@ public class Buchung {
 	@GeneratedValue(strategy = GenerationType.IDENTITY)
 	private Long id;
 	
-	/* FIXME
-	@Enumerated(EnumType.STRING)
-	private Vorgang vorgang;
-	*/
-	
 	@ToString.Exclude
 	@OneToMany(mappedBy = "buchung", cascade = CascadeType.ALL, fetch = FetchType.EAGER, orphanRemoval = true)
 	private List<KontoUmsatz> umsaetze = new ArrayList<>();

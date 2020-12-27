@@ -29,7 +29,7 @@ public class Konto {
 	private Long id;
 	
 	@Column(name="KONTO_TYPE", insertable = false, updatable = false)
-	protected String type = "K";
+	protected String type;
 	
 	@Column(length = 15)
 	@Enumerated(EnumType.STRING)
@@ -44,7 +44,9 @@ public class Konto {
 	@OneToMany(mappedBy = "konto")
 	private List<KontoUmsatz> umsaetze = new ArrayList<>();
 	
-	public Konto() { }
+	public Konto() {
+		type = "K";
+	}
 
 	public Konto(KontoArt art, String name) {
 		this.art = art;

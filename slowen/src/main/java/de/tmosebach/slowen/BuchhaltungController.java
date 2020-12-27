@@ -35,6 +35,7 @@ import de.tmosebach.slowen.model.Konto;
 import de.tmosebach.slowen.model.KontoArt;
 import de.tmosebach.slowen.repository.KontoRepository;
 import de.tmosebach.slowen.service.BuchungService;
+import de.tmosebach.slowen.service.DepotService;
 import io.swagger.annotations.ApiResponses;
 import io.swagger.annotations.ApiResponse;
 
@@ -48,14 +49,17 @@ public class BuchhaltungController {
 	private KontoRepository kontoRepository;
 	private BuchungMapper buchungMapper;
 	private BuchungService buchungService;
+	private DepotService depotService;
 
 	public BuchhaltungController(
 			KontoRepository kontoRepository,
 			BuchungMapper buchungMapper,
-			BuchungService buchungService) {
+			BuchungService buchungService,
+			DepotService depotService) {
 		this.kontoRepository = kontoRepository;
 		this.buchungMapper = buchungMapper;
 		this.buchungService = buchungService;
+		this.depotService = depotService;
 	}
 
 	@GetMapping("konto")
@@ -156,5 +160,17 @@ public class BuchhaltungController {
 		}
 		
 		return buchungDto;
+	}
+	
+	@GetMapping("depot/{id}")
+	public Depot findDepotById(@PathVariable Long id) {
+		try {
+			return depotService.findById(id);
+		} catch (UnkownEntityException e) {
+			throw new ResponseStatusException(NOT_FOUND, e.getMessage());
+		} catch (Exception e) {
+			LOG.error(e.getMessage(), e);
+			throw new ResponseStatusException(NOT_FOUND, e.getMessage());
+		}
 	}
 }

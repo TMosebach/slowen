@@ -22,13 +22,17 @@ import javax.validation.constraints.NotNull;
 @DiscriminatorValue("K")
 @Entity
 public class KontoUmsatz {
+	
+	public KontoUmsatz() {
+		type = "K";
+	}
 
 	@Id
 	@GeneratedValue(strategy = GenerationType.IDENTITY)
 	private Long id;
 	
 	@Column(name="UMSATZ_TYPE", insertable = false, updatable = false)
-	protected String type = "K";
+	protected String type;
 
 	@NotNull
 	@Column(nullable = false)

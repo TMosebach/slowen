@@ -2,11 +2,13 @@ import { Injectable } from '@angular/core';
 import { Observable, throwError } from 'rxjs';
 import { catchError } from 'rxjs/operators';
 import { Konto } from '../model/konto';
+import { Depot } from '../model/depot';
 import { HttpClient, HttpErrorResponse } from '@angular/common/http';
 import { Buchung } from '../model/buchung';
 import { Page } from '../model/page';
 
 const KONTO_ENDPOINT = 'http://localhost:8080/api/konto';
+const DEPOT_ENDPOINT = 'http://localhost:8080/api/depot';
 const BUCHUNG_ENDPOINT = 'http://localhost:8080/api/buchung';
 
 @Injectable({
@@ -69,5 +71,10 @@ export class BuchhaltungService {
     }
     return throwError(
       'Fataler Fehler.');
+  }
+
+  findDepotById(id: string): Observable<Depot> {
+    const endpoint = DEPOT_ENDPOINT + `/${id}`;
+    return this.http.get<Depot>(endpoint);
   }
 }

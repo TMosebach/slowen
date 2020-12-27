@@ -1,0 +1,21 @@
+<h3>Depot</h3>
+
+<div *ngIf="!depot">Loading</div>
+<table class="table table-striped table-sm" *ngIf="depot">
+    <thead>
+      <tr class="d-flex">
+        <th scope="col" class="col-2">Name</th>
+        <th scope="col" class="col-1">Bestand</th>
+        <th scope="col" class="col-1">Kaufkurs</th>
+        <th scope="col" class="col-1">Kaufwert</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr class="d-flex" *ngFor="let bestand of depot.bestaende">
+        <td class="col-2">{{bestand.asset.name}}</td>
+        <td class="col-1">{{bestand.stuecke | number:'1.2-2'}}</td>
+        <td class="col-1">{{bestand.kaufPreis | number:'1.2-2'}}</td>
+        <td class="col-1">{{bestand.stuecke*bestand.kaufPreis | number:'1.2-2'}}</td>
+      </tr>
+    </tbody>
+</table>

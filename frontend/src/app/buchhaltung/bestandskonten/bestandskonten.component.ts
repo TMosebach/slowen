@@ -4,6 +4,7 @@ import { BuchhaltungService } from 'src/app/service/buchhaltung.service';
 import { Observable } from 'rxjs';
 import { Konto } from 'src/app/model/konto';
 import { map } from 'rxjs/operators';
+import { KontoTyp } from 'src/app/model/konto-typ.enum';
 
 @Component({
   selector: 'app-bestandskonten',
@@ -32,5 +33,13 @@ export class BestandskontenComponent implements OnInit {
 
   onBuchen(konto: Konto): void {
     this.router.navigate(['buchhaltung', 'buchen', konto.id]);
+  }
+
+  isKonto(konto: Konto): boolean {
+    return konto.type === KontoTyp.Konto;
+  }
+
+  isDepot(konto: Konto): boolean {
+    return konto.type === KontoTyp.Depot;
   }
 }
