@@ -28,7 +28,7 @@ export class BuchenComponent implements OnInit {
     this.buchhaltungService.createBuchung(buchung)
     .subscribe({
       next: () => this.router.navigate(['buchhaltung']),
-      error: (msg) => console.log('Fehler', msg)
+      error: (msg) => console.error('Fehler', msg)
     });
   }
 

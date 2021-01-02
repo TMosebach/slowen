@@ -4,6 +4,8 @@ import { KontoArt } from 'src/app/model/konto-art.enum';
 import { Location } from '@angular/common';
 import { Router } from '@angular/router';
 import { BuchhaltungService } from 'src/app/service/buchhaltung.service';
+import { Konto } from 'src/app/model/konto';
+import { map } from 'rxjs/operators';
 
 @Component({
   selector: 'app-kontodetails',
@@ -13,11 +15,13 @@ import { BuchhaltungService } from 'src/app/service/buchhaltung.service';
 export class KontodetailsComponent implements OnInit {
   keys = Object.keys;
   kontoarten = KontoArt;
+  konten: Konto[];
 
   kontoForm = this.fb.group({
     type: ['Konto', [Validators.required]],
     name: ['', [Validators.required, Validators.minLength(2), Validators.maxLength(30)]],
-    art: [KontoArt.Aufwand, [Validators.required]]
+    art: [KontoArt.Aufwand, [Validators.required]],
+    verrechnungskonto: ['']
   });
 
   constructor(
@@ -25,10 +29,15 @@ export class KontodetailsComponent implements OnInit {
     private buchhaltungService: BuchhaltungService,
     private router: Router) { }
 
-  ngOnInit(): void {}
+  ngOnInit(): void {
+    this.buchhaltungService.findAlleKonten()
+    .pipe( map( (konten) => konten.sort( (a, b) => a.name.localeCompare(b.name))))
+    .subscribe({
+      next: konten => this.konten = konten
+    });
+  }
 
   onAbbrechen(): void {
-    console.log('Abbrechen');
     this.router.navigate(['stammdaten', 'konten']);
   }
 

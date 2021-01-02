@@ -29,7 +29,6 @@ export class UmsatzTabelleComponent implements OnInit {
   }
 
   doAendern(buchung: Buchung): void {
-    console.log('Ändern', buchung);
     this.router.navigate(['buchhaltung', 'buchen', this.kontoId, buchung.id]);
   }
 

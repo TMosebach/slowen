@@ -1,5 +1,7 @@
 package de.tmosebach.slowen;
 
+import static java.util.Objects.nonNull;
+import static org.apache.commons.lang3.StringUtils.isNoneBlank;
 import static org.springframework.http.HttpStatus.NOT_FOUND;
 
 import java.util.ArrayList;
@@ -25,6 +27,7 @@ import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.server.ResponseStatusException;
 
 import de.tmosebach.slowen.api.BuchungDto;
+import de.tmosebach.slowen.api.DepotDto;
 import de.tmosebach.slowen.api.KontoDto;
 import de.tmosebach.slowen.apimapper.BuchungMapper;
 import de.tmosebach.slowen.exception.IllegalDataException;
@@ -36,8 +39,8 @@ import de.tmosebach.slowen.model.KontoArt;
 import de.tmosebach.slowen.repository.KontoRepository;
 import de.tmosebach.slowen.service.BuchungService;
 import de.tmosebach.slowen.service.DepotService;
-import io.swagger.annotations.ApiResponses;
 import io.swagger.annotations.ApiResponse;
+import io.swagger.annotations.ApiResponses;
 
 @RestController
 @RequestMapping("api")
@@ -80,13 +83,13 @@ public class BuchhaltungController {
 	}
 	
 	@PostMapping("konto")
-	public KontoDto createKonto(@RequestBody KontoDto kontoDto) {
+	public KontoDto createKonto(@RequestBody DepotDto kontoDto) {
 		
 		Konto konto = null;
 		if ("Konto".equals(kontoDto.getType())) {
 			konto = new Konto();
 		} else if ("Depot".equals(kontoDto.getType())){
-			konto = new Depot();
+			konto = createDepot(kontoDto.getVerrechnungskonto());
 		}
 		konto.setArt(KontoArt.valueOf(kontoDto.getArt()));
 		konto.setName(kontoDto.getName());
@@ -97,8 +100,19 @@ public class BuchhaltungController {
 		return kontoDto;
 	}
 	
+	private Konto createDepot(KontoDto verrechnungskonto) {
+		final Depot depot = new Depot();
+		if (nonNull(verrechnungskonto) 
+				&& isNoneBlank(verrechnungskonto.getName())) {
+			Optional<Konto> konto = kontoRepository.findByName(verrechnungskonto.getName());
+			konto.ifPresent( k -> depot.setVerrechnungsKonto(k));
+			
+		}
+		return depot;
+	}
+
 	@PostMapping("buchung")
-	public BuchungDto createKonto(@RequestBody BuchungDto buchungDto) throws UnkownEntityException, IllegalDataException {
+	public BuchungDto createBuchung(@RequestBody BuchungDto buchungDto) throws UnkownEntityException, IllegalDataException {
 		
 		Buchung buchung = buchungMapper.buchungDtoToBuchung(buchungDto);
 		Buchung result = buchungService.buche(buchung);

@@ -9,6 +9,7 @@ import javax.persistence.Entity;
 import javax.persistence.FetchType;
 import javax.persistence.JoinColumn;
 import javax.persistence.OneToMany;
+import javax.persistence.OneToOne;
 
 @DiscriminatorValue("D")
 @Entity
@@ -21,6 +22,9 @@ public class Depot extends Konto {
 	@OneToMany(cascade = CascadeType.ALL, fetch = FetchType.EAGER, orphanRemoval = true)
 	@JoinColumn(name = "depot_id")
 	private List<Bestand> bestaende = new ArrayList<>();
+	
+	@OneToOne
+	private Konto verrechnungskonto;
 
 	public List<Bestand> getBestaende() {
 		return bestaende;
@@ -32,5 +36,13 @@ public class Depot extends Konto {
 
 	public void addBestand(Bestand bestand) {
 		getBestaende().add(bestand);
+	}
+
+	public Konto getVerrechnungskonto() {
+		return verrechnungskonto;
+	}
+
+	public void setVerrechnungsKonto(Konto verrechnungskonto) {
+		this.verrechnungskonto = verrechnungskonto;
 	}
 }

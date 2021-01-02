@@ -31,7 +31,7 @@ export class KontoUmsatzComponent implements OnInit {
             }
             this.buchhaltungService.findBuchungenByKonto(this.kontoId, this.page).subscribe({
               next: seite => this.buchungsSeite = seite,
-              error: (err) => console.log(err)
+              error: (err) => console.error(err)
              });
           }
         });
@@ -52,7 +52,7 @@ export class KontoUmsatzComponent implements OnInit {
     this.buchhaltungService.createBuchung(buchung)
     .subscribe({
       next: () => window.location.reload(),
-      error: (msg) => console.log('Fehler', msg)
+      error: (msg) => console.error('Fehler', msg)
     });
   }
 

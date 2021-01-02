@@ -6,9 +6,11 @@ import java.util.List;
 import org.springframework.stereotype.Component;
 
 import de.tmosebach.slowen.api.BuchungDto;
+import de.tmosebach.slowen.api.DepotDto;
 import de.tmosebach.slowen.api.KontoDto;
 import de.tmosebach.slowen.api.KontoUmsatzDto;
 import de.tmosebach.slowen.model.Buchung;
+import de.tmosebach.slowen.model.Depot;
 import de.tmosebach.slowen.model.Konto;
 import de.tmosebach.slowen.model.KontoUmsatz;
 
@@ -39,8 +41,27 @@ public class BuchungMapper {
 		return umsatz;
 	}
 
+	public DepotDto depotToDepotDto(Depot depot) {
+		
+		return new DepotDto(
+				Long.toString(depot.getId()),
+				"Depot", 
+				depot.getName(),
+				depot.getArt().toString(),
+				depot.getSaldo(),
+				kontoToKontoDto(depot.getVerrechnungskonto()));
+	}
+	
 	private Konto kontoDtoToKonto(KontoDto kontoDto) {
-		Konto konto = new Konto();
+		Konto konto;
+		if (kontoDto.getType().equals("Depot")) {
+			Depot depot = new Depot();
+			depot.setVerrechnungsKonto(
+					kontoDtoToKonto(((DepotDto)kontoDto).getVerrechnungskonto()));
+			konto = depot;
+		} else {
+			konto = new Konto();
+		}
 		konto.setName(kontoDto.getName());
 		return konto;
 	}

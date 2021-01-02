@@ -40,7 +40,7 @@ export class EditBuchungComponent implements OnInit {
     this.buchhaltungService.updateBuchung(buchung)
     .subscribe({
       next: () => this.router.navigate(['buchhaltung', 'umsatz', this.kontoId]),
-      error: (msg) => console.log('Fehler', msg)
+      error: (msg) => console.error('Fehler', msg)
     });
   }
 

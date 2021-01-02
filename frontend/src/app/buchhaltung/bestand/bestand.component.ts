@@ -23,8 +23,8 @@ export class BestandComponent implements OnInit {
         const kontoId = params.kontoId;
         this.buchhaltungService.findDepotById(kontoId).subscribe({
           next: depot => this.depot = depot,
-          error: (err) => console.log(err)
-          });
+          error: (err) => console.error(err)
+        });
       }
     });
   }

@@ -22,8 +22,6 @@ export class KontolisteComponent implements OnInit {
   }
 
   onNew(): void {
-    console.log('new Konto');
     this.router.navigate(['stammdaten', 'konten', 'new']);
   }
-
 }

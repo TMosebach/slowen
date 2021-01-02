@@ -3,7 +3,7 @@ insert into konto (konto_type, id , art, name, saldo) values ('K', null, 'Aufwan
 insert into konto (konto_type, id , art, name, saldo) values ('K', null, 'Aufwand', 'Bankgebühren', 30.0);
 
 insert into konto (konto_type, id , art, name, saldo) values ('K', null, 'Kontokorrent', 'Giro', 0.0);
-insert into konto (konto_type, id , art, name, saldo) values ('D', null, 'Aktiv', 'Depot', 0.0);
+insert into konto (konto_type, id , art, name, saldo, verrechnungskonto_id) values ('D', null, 'Aktiv', 'Depot', 0.0, 4);
 
 insert into asset (isin, name, wkn) values ('DE00080320004', 'Commerzbank AG', '803200');
 insert into asset (isin, name, wkn) values ('DE00055550004', 'Dt. Telekom', '555500');

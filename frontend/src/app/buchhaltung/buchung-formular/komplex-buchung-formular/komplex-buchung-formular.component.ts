@@ -46,9 +46,6 @@ export class KomplexBuchungFormularComponent implements OnInit {
   }
 
   private createUmsatzGroup(umsatz: KontoUmsatz): FormGroup {
-
-    console.log('valuta ist string', typeof umsatz.valuta === 'string', typeof umsatz.valuta === 'object');
-
     const betrag = umsatz.betrag;
     const valuta = umsatz.valuta;
     return this.fb.group( {

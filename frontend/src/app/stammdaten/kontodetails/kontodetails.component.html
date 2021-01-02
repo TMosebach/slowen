@@ -17,6 +17,12 @@
             autofocus>
     </div>
     <div class="form-group">
+        <label for="verrechnungskonto">Verrechnungskonto</label>
+        <select class="form-control" formControlName="verrechnungskonto" id="verrechnungskonto">
+            <option *ngFor="let konto of konten" [ngValue]="konto">{{konto.name}}</option>
+        </select>
+    </div>
+    <div class="form-group">
         <label for="kontoart">Kontoart</label>
         <select class="form-control" formControlName="art" id="kontoart">
             <option *ngFor="let art of keys(kontoarten)" [ngValue]="art">{{art}}</option>
