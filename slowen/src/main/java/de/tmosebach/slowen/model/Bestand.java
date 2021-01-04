@@ -23,7 +23,7 @@ public class Bestand {
 	private Asset asset;
 	
 	@Column(nullable = false)
-	private BigDecimal stuecke;
+	private BigDecimal menge;
 	
 	@Column(nullable = false)
 	private BigDecimal kaufPreis;
@@ -36,12 +36,12 @@ public class Bestand {
 		this.id = id;
 	}
 
-	public BigDecimal getStuecke() {
-		return stuecke;
+	public BigDecimal getMenge() {
+		return menge;
 	}
 
-	public void setStuecke(BigDecimal stuecke) {
-		this.stuecke = stuecke;
+	public void setMenge(BigDecimal menge) {
+		this.menge = menge;
 	}
 
 	public BigDecimal getKaufPreis() {

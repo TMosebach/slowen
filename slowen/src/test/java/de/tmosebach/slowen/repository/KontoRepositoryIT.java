@@ -75,7 +75,7 @@ class KontoRepositoryIT {
 		Bestand bestand = new Bestand();
 		bestand.setAsset(asset);
 		bestand.setKaufPreis(BigDecimal.ONE);
-		bestand.setStuecke(BigDecimal.TEN);
+		bestand.setMenge(BigDecimal.TEN);
 		depot.addBestand(bestand);
 		
 		kontoRepository.save(depot);

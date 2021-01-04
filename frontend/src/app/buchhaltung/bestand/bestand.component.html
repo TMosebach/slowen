@@ -20,9 +20,9 @@
     <tbody>
       <tr class="d-flex" *ngFor="let bestand of depot.bestaende">
         <td class="col-2">{{bestand.asset.name}}</td>
-        <td class="col-1">{{bestand.stuecke | number:'1.2-2'}}</td>
+        <td class="col-1">{{bestand.menge | number:'1.2-2'}}</td>
         <td class="col-1">{{bestand.kaufPreis | number:'1.2-2'}}</td>
-        <td class="col-1">{{bestand.stuecke*bestand.kaufPreis | number:'1.2-2'}}</td>
+        <td class="col-1">{{bestand.menge*bestand.kaufPreis | number:'1.2-2'}}</td>
       </tr>
     </tbody>
 </table>
