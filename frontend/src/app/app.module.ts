@@ -19,6 +19,7 @@ import { BuchungFormularComponent } from './buchhaltung/buchung-formular/buchung
 import { UmsatzTabelleComponent } from './buchhaltung/kontoUmsatz/umsatz-tabelle/umsatz-tabelle.component';
 import { EditBuchungComponent } from './buchhaltung/edit-buchung/edit-buchung.component';
 import { BestandComponent } from './buchhaltung/bestand/bestand.component';
+import { KaufFormularComponent } from './buchhaltung/bestand/kauf-formular/kauf-formular.component';
 
 @NgModule({
   declarations: [
@@ -35,7 +36,8 @@ import { BestandComponent } from './buchhaltung/bestand/bestand.component';
     BuchungFormularComponent,
     UmsatzTabelleComponent,
     EditBuchungComponent,
-    BestandComponent
+    BestandComponent,
+    KaufFormularComponent
   ],
   imports: [
     BrowserModule,
