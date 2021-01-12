@@ -9,6 +9,8 @@ import { BuchenComponent } from './buchhaltung/buchen/buchen.component';
 import { KontoUmsatzComponent } from './buchhaltung/konto-umsatz/konto-umsatz.component';
 import { EditBuchungComponent } from './buchhaltung/edit-buchung/edit-buchung.component';
 import { BestandComponent } from './buchhaltung/bestand/bestand.component';
+import { AssetListeComponent } from './stammdaten/asset-liste/asset-liste.component';
+import { AssetDetailsComponent } from './stammdaten/asset-details/asset-details.component';
 
 const routes: Routes = [
   {
@@ -19,7 +21,9 @@ const routes: Routes = [
         path: '',
         children: [
           { path: 'konten/new', component: KontodetailsComponent },
-          { path: 'konten', component: KontolisteComponent }
+          { path: 'konten', component: KontolisteComponent },
+          { path: 'asset/new', component: AssetDetailsComponent },
+          { path: 'asset', component: AssetListeComponent }
         ]
       }
     ]

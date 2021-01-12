@@ -20,6 +20,8 @@ import { UmsatzTabelleComponent } from './buchhaltung/kontoUmsatz/umsatz-tabelle
 import { EditBuchungComponent } from './buchhaltung/edit-buchung/edit-buchung.component';
 import { BestandComponent } from './buchhaltung/bestand/bestand.component';
 import { KaufFormularComponent } from './buchhaltung/bestand/kauf-formular/kauf-formular.component';
+import { AssetListeComponent } from './stammdaten/asset-liste/asset-liste.component';
+import { AssetDetailsComponent } from './stammdaten/asset-details/asset-details.component';
 
 @NgModule({
   declarations: [
@@ -37,7 +39,9 @@ import { KaufFormularComponent } from './buchhaltung/bestand/kauf-formular/kauf-
     UmsatzTabelleComponent,
     EditBuchungComponent,
     BestandComponent,
-    KaufFormularComponent
+    KaufFormularComponent,
+    AssetListeComponent,
+    AssetDetailsComponent
   ],
   imports: [
     BrowserModule,

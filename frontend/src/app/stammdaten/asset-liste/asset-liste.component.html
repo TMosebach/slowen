@@ -1,0 +1,19 @@
+<table class="table table-striped">
+    <thead>
+      <tr>
+        <th scope="col">Name</th>
+        <th scope="col">ISIN</th>
+        <th scope="col">WKN</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr *ngFor="let asset of assets | async">
+        <td>{{asset.name}}</td>
+        <td>{{asset.isin}}</td>
+        <td>{{asset.wkn}}</td>
+      </tr>
+    </tbody>
+    <tfoot>
+        <button class="btn btn-primary" (click)="onNew()">+</button>
+    </tfoot>
+</table>
