@@ -1,0 +1,38 @@
+
+.eingabe70 {
+    width: 46em;
+    margin-bottom: 5px;
+}
+
+input, select, button {
+    margin-right: 5px;
+}
+
+select {
+    height: 24px;
+}
+
+// Valuta
+input[type=date] {
+    width: 130px;
+}
+
+.konto {
+    width: 20em;
+}
+
+.betrag {
+    height: 14pt;
+    width: 95px;
+    text-align: right;
+}
+
+.button {
+    width: 24px;
+    display: inline-block;
+}
+
+.umsatz {
+    margin-left: 81px;
+    margin-top: 5px;
+}

@@ -1,0 +1,44 @@
+<form>
+    <div>
+        <label>Verwendung</label>
+        <input class="eingabe70" placeholder="Verwendung">
+    </div>
+    <div>
+        <label for="empfaenger">Empfänger</label>
+        <input class="eingabe70" id="empfaenger" placeholder="Empfänger">
+    </div>
+    <div class="umsatz"></div>
+    <div class="umsatz">
+        <span class="button">
+            <button>-</button>
+        </span>
+        <select class="konto" name="Konto" id="Konto">
+            <option value="1">Giro</option>
+            <option value="1">Tagesgeld</option>
+            <option value="1">Depot</option>
+        </select>
+        <input type="date" placeholder="Valuta" value="2021-04-14">
+        <input class="betrag" type="text" placeholder="Auszahlung">
+        <input class="betrag" type="text" placeholder="Einzahlung" value="1000,00">
+    </div>
+
+    <div class="umsatz">
+        <span class="button"></span>
+        <select class="konto" name="Konto" id="Konto">
+            <option value="1">Giro</option>
+            <option value="1" selected>Tagesgeld</option>
+            <option value="1">Depot</option>
+        </select>
+        <input type="date" placeholder="Valuta">
+        <input class="betrag" type="text" placeholder="Auszahlung" value="1000,00">
+        <input class="betrag" type="text" placeholder="Einzahlung">
+        <span class="button">
+            <button>+</button>
+        </span>
+    </div>
+
+    <div class="buttonPanel">
+        <button>Buchen</button>
+        <button>Abbrechen</button>
+    </div>
+</form>
