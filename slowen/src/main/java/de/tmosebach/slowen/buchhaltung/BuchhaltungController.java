@@ -7,12 +7,14 @@ import java.util.List;
 import javax.validation.Valid;
 
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.hateoas.CollectionModel;
 import org.springframework.hateoas.EntityModel;
 import org.springframework.hateoas.PagedModel;
 import org.springframework.hateoas.PagedModel.PageMetadata;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.web.bind.annotation.CrossOrigin;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
@@ -29,8 +31,10 @@ import de.tmosebach.slowen.buchhaltung.api.mapper.BuchungMapper;
 import de.tmosebach.slowen.buchhaltung.api.mapper.KontoMapper;
 import de.tmosebach.slowen.buchhaltung.model.BuchungService;
 import de.tmosebach.slowen.buchhaltung.model.KontoService;
+import de.tmosebach.slowen.exceptions.NichtEindeutigException;
 import de.tmosebach.slowen.exceptions.UnkownEntityException;
 
+@CrossOrigin
 @RestController
 @RequestMapping("api/buchhaltung")
 public class BuchhaltungController {
@@ -73,19 +77,26 @@ public class BuchhaltungController {
 	
 	@PostMapping("konten")
 	public EntityModel<Konto> kontoAnlegen(@RequestBody @Valid  Konto konto) {		
-		de.tmosebach.slowen.buchhaltung.model.Konto domainKonto =
-				kontoMapper.apiKontoToDomainKonto(konto);
-		domainKonto = kontoService.createKonto(domainKonto);
-		return EntityModel.of(kontoMapper.domainKontoToApiKonto(domainKonto));
+		try {
+			de.tmosebach.slowen.buchhaltung.model.Konto domainKonto =
+					kontoMapper.apiKontoToDomainKonto(konto);
+			domainKonto = kontoService.createKonto(domainKonto);
+			return EntityModel.of(kontoMapper.domainKontoToApiKonto(domainKonto));
+		} catch (DataIntegrityViolationException e) {
+			throw new NichtEindeutigException(e.getMessage());
+		}
 	}
 	
 	@PostMapping("depots")
 	public EntityModel<Konto> depotAnlegen(@RequestBody @Valid Depot depot) {
-		
-		de.tmosebach.slowen.buchhaltung.model.Depot domainDepot =
-				kontoMapper.apiDepotToDomainDepot(depot);
-		domainDepot = kontoService.createDepot(domainDepot);
-		return EntityModel.of(kontoMapper.domainKontoToApiKonto(domainDepot));
+		try {
+			de.tmosebach.slowen.buchhaltung.model.Depot domainDepot =
+					kontoMapper.apiDepotToDomainDepot(depot);
+			domainDepot = kontoService.createDepot(domainDepot);
+			return EntityModel.of(kontoMapper.domainKontoToApiKonto(domainDepot));
+		} catch (Exception e) {
+			throw new NichtEindeutigException(e.getMessage());
+		}
 	}
 
 	@PostMapping("buchungen")

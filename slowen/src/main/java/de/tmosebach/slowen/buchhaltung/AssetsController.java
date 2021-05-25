@@ -7,6 +7,7 @@ import javax.transaction.Transactional;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.hateoas.CollectionModel;
+import org.springframework.web.bind.annotation.CrossOrigin;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
@@ -17,6 +18,7 @@ import de.tmosebach.slowen.buchhaltung.api.Asset;
 import de.tmosebach.slowen.buchhaltung.api.mapper.AssetMapper;
 import de.tmosebach.slowen.buchhaltung.model.AssetsRepository;
 
+@CrossOrigin
 @RestController
 @RequestMapping("api/assets")
 public class AssetsController {

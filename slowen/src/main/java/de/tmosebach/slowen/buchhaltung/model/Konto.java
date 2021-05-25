@@ -14,11 +14,16 @@ import javax.persistence.GenerationType;
 import javax.persistence.Id;
 import javax.persistence.Inheritance;
 import javax.persistence.OneToMany;
+import javax.persistence.Table;
+import javax.persistence.UniqueConstraint;
 import javax.validation.constraints.Size;
 
 @Inheritance
 @DiscriminatorValue("Konto")
 @Entity
+@Table(uniqueConstraints = {
+		@UniqueConstraint(name = "eindeutigerKontoname", columnNames = "name")
+})
 public class Konto {
 
 	@Id
@@ -29,7 +34,7 @@ public class Konto {
 	@Enumerated(EnumType.STRING)
 	private KontoArt art;
 	
-	@Column(unique = true, length = 30)
+	@Column(name="name", length = 30)
 	@Size(min = 2, max = 30)
 	private String name;
 	
