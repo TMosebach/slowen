@@ -1,28 +1,21 @@
 import { NgModule } from '@angular/core';
 import { CommonModule } from '@angular/common';
+import { HttpClientModule } from '@angular/common/http';
 
 import { BuchhaltungRoutingModule } from './buchhaltung-routing.module';
-import { BuchhaltungComponent } from './buchhaltung.component';
-import { KontoUebersichtComponent } from './konto-uebersicht/konto-uebersicht.component';
-import { ComponentsModule } from '../components/components.module';
-import { BuchenComponent } from './buchen/buchen.component';
-import { KontoUmsatzComponent } from './konto-umsatz/konto-umsatz.component';
-import { AssethandelComponent } from './assethandel/assethandel.component';
-import { AsseteinnahmenComponent } from './asseteinnahmen/asseteinnahmen.component';
+import { KontoListComponent } from './common/konto-list/konto-list.component';
 
 @NgModule({
   declarations: [
-    BuchhaltungComponent,
-    KontoUebersichtComponent,
-    BuchenComponent,
-    KontoUmsatzComponent,
-    AssethandelComponent,
-    AsseteinnahmenComponent
+    KontoListComponent
   ],
   imports: [
     CommonModule,
-    BuchhaltungRoutingModule,
-    ComponentsModule
+    HttpClientModule,
+    BuchhaltungRoutingModule
+  ],
+  exports: [
+    KontoListComponent
   ]
 })
 export class BuchhaltungModule { }

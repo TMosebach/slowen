@@ -1,0 +1,24 @@
+<h3>Assets</h3>
+
+<table class="table table-striped">
+    <thead>
+      <tr>
+        <th scope="col">Name</th>
+        <th scope="col">WPK</th>
+        <th scope="col">ISIN</th>
+        <th></th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr *ngFor="let asset of assets | async">
+        <td>{{asset.name}}</td>
+        <td>{{asset.wpk}}</td>
+        <td>{{asset.isin}}</td>
+        <td>
+            <button class="btn btn-light" (click)="onEdit(asset.id)">Ändern</button>
+        </td>
+      </tr>
+    </tbody>
+</table>
+
+<button class="btn btn-light" (click)="onNeu()">Neu</button>

@@ -1,21 +1,41 @@
-<h2>Assetdetails</h2>
+<h3>Assetdetails - {{ modus }}</h3>
 
-<form>
-    <div class="formControl">
-        <label for="Name">Name</label>
-        <input id="Name" placeholder="Name">
-    </div>
-    <div class="formControl"> 
-        <label for="WPK">WPK</label>
-        <input id="WPK" placeholder="WPK">
-    </div>
-    <div class="formControl"> 
-        <label for="ISIN">ISIN</label>
-        <input id="ISIN" placeholder="ISIN">
-    </div>
+<div class="text-danger">
+    {{ errorMessage }}
+</div>
 
-    <div class="buttonPanel">
-        <button>Speichern</button>
-        <button>Abbrechen</button>
+<form [formGroup]="assetForm">
+    <div class="mb-3">
+        <label for="Name" class="form-label">Name</label>
+        <input
+            type="text"
+            class="form-control"
+            id="Name"
+            autofocus
+            placeholder="Assetname"
+            formControlName="name">
+    </div>
+    <div class="mb-3">
+        <label for="WPK" class="form-label">WPK</label>
+        <input
+            type="text"
+            class="form-control"
+            id="WPK"
+            placeholder="WPK"
+            formControlName="wpk">
+    </div>
+    <div class="mb-3">
+        <label for="ISIN" class="form-label">ISIN</label>
+        <input
+            type="text"
+            class="form-control"
+            id="ISIN"
+            placeholder="ISIN"
+            formControlName="isin">
     </div>
 </form>
+
+<div>
+    <button class="btn btn-light" (click)="onZurueck()">Zurück</button>
+    <button class="btn btn-primary ms-3" (click)="onSave()" [disabled]="!assetForm.valid">Speichern</button>
+</div>

@@ -1,10 +1,10 @@
 import { NgModule } from '@angular/core';
-import { Routes, RouterModule } from '@angular/router';
+import { RouterModule, Routes } from '@angular/router';
 import { AssetDetailsComponent } from './asset-details/asset-details.component';
-import { AssetVerwaltungComponent } from './asset-verwaltung/asset-verwaltung.component';
+import { AssetListComponent } from './asset-list/asset-list.component';
 import { KontoDetailsComponent } from './konto-details/konto-details.component';
-import { KontoVerwaltungComponent } from './konto-verwaltung/konto-verwaltung.component';
-import { VerwaltungComponent } from './verwaltung.component';
+import { KontorahmenComponent } from './kontorahmen/kontorahmen.component';
+import { VerwaltungComponent } from './verwaltung/verwaltung.component';
 
 const routes: Routes = [
   {
@@ -12,21 +12,28 @@ const routes: Routes = [
     component: VerwaltungComponent,
     children: [
       {
-        path: 'konto/:id',
+        path: 'kontorahmen',
+        component: KontorahmenComponent
+      },
+      {
+        path: 'kontorahmen/new',
         component: KontoDetailsComponent
       },
       {
-        path: 'konto',
-        component: KontoVerwaltungComponent
-      }
-      ,
+        path: 'kontorahmen/:id',
+        component: KontoDetailsComponent
+      },
       {
-        path: 'asset/:id',
+        path: 'assets',
+        component: AssetListComponent
+      },
+      {
+        path: 'assets/new',
         component: AssetDetailsComponent
       },
       {
-        path: 'asset',
-        component: AssetVerwaltungComponent
+        path: 'assets/:id',
+        component: AssetDetailsComponent
       }
     ]
   }

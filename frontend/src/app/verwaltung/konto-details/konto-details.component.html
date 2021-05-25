@@ -1,3 +1,47 @@
-<h2>Kontodetails</h2>
+<h3>Kontodetails - {{ modus }}</h3>
 
-<app-konto-details-formular></app-konto-details-formular>
+<div class="text-danger">
+    {{ errorMessage }}
+</div>
+
+<form [formGroup]="kontoForm">
+    <div class="mb-3">
+        <label for="Type" class="form-label">Type</label>
+        <select 
+            class="form-control"
+            id="Type"
+            formControlName="type">
+            <option>Konto</option>
+            <option>Depot</option>
+        </select>
+    </div>
+    <div class="mb-3">
+        <label for="Art" class="form-label">Art</label>
+        <select
+            class="form-control"
+            id="Art"
+            formControlName="art">
+            <option>Aufwand</option>
+            <option>Ertrag</option>
+            <option>CPD</option>
+            <option>Aktiv</option>
+            <option>Passiv</option>
+            <option>Kontokorrent</option>
+        </select>
+    </div>
+    <div class="mb-3">
+        <label for="Name" class="form-label">Name</label>
+        <input
+            type="text"
+            class="form-control"
+            id="Name"
+            autofocus
+            placeholder="Kontoname"
+            formControlName="name">
+    </div>
+</form>
+
+<div>
+    <button class="btn btn-light" (click)="onZurueck()">Zurück</button>
+    <button class="btn btn-primary ms-3" (click)="onSave()" [disabled]="!kontoForm.valid">Speichern</button>
+</div>

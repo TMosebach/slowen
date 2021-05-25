@@ -1,13 +1,10 @@
-import { BrowserModule } from '@angular/platform-browser';
-import { RouterModule } from '@angular/router';
 import { NgModule } from '@angular/core';
+import { BrowserModule } from '@angular/platform-browser';
 
 import { AppRoutingModule } from './app-routing.module';
 import { AppComponent } from './app.component';
 import { DashboardComponent } from './dashboard/dashboard.component';
 import { VerwaltungModule } from './verwaltung/verwaltung.module';
-import { BuchhaltungModule } from './buchhaltung/buchhaltung.module';
-import { ComponentsModule } from './components/components.module';
 
 @NgModule({
   declarations: [
@@ -16,10 +13,7 @@ import { ComponentsModule } from './components/components.module';
   ],
   imports: [
     BrowserModule,
-    RouterModule,
     VerwaltungModule,
-    BuchhaltungModule,
-    ComponentsModule,
     AppRoutingModule
   ],
   providers: [],
