@@ -2,8 +2,8 @@ import { HttpClient } from '@angular/common/http';
 import { Injectable } from '@angular/core';
 import { Observable } from 'rxjs';
 import { map } from 'rxjs/operators';
-import { Asset } from './model/asset';
-import { Konto } from './model/konto';
+import { Asset } from '../buchhaltung/model/asset';
+import { Konto } from '../buchhaltung/model/konto';
 
 @Injectable({
   providedIn: 'root'

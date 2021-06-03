@@ -1,0 +1,16 @@
+<table class="table table-striped">
+    <thead>
+      <tr>
+        <th scope="col">Name</th>
+        <th scope="col">Art</th>
+        <th scope="col">Saldo</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr *ngFor="let konto of konten | async">
+        <td><a routerLink="/buchhaltung/konten/{{konto.id}}">{{konto.name}}</a></td>
+        <td>{{konto.art}}</td>
+        <td>{{konto.saldo}}</td>
+      </tr>
+    </tbody>
+  </table>

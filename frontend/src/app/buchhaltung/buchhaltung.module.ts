@@ -3,11 +3,18 @@ import { CommonModule } from '@angular/common';
 import { HttpClientModule } from '@angular/common/http';
 
 import { BuchhaltungRoutingModule } from './buchhaltung-routing.module';
-import { KontoListComponent } from './common/konto-list/konto-list.component';
+import { BuchhaltungComponent } from './buchhaltung/buchhaltung.component';
+import { KontoListeComponent } from './konto-liste/konto-liste.component';
+import { BuchenComponent } from './buchen/buchen.component';
+import { KontoBuchungenComponent } from './konto-buchungen/konto-buchungen.component';
 
 @NgModule({
   declarations: [
-    KontoListComponent
+  
+    BuchhaltungComponent,
+       KontoListeComponent,
+       BuchenComponent,
+       KontoBuchungenComponent
   ],
   imports: [
     CommonModule,
@@ -15,7 +22,6 @@ import { KontoListComponent } from './common/konto-list/konto-list.component';
     BuchhaltungRoutingModule
   ],
   exports: [
-    KontoListComponent
   ]
 })
 export class BuchhaltungModule { }

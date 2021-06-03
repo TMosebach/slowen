@@ -9,6 +9,7 @@ import { BuchhaltungModule } from '../buchhaltung/buchhaltung.module';
 import { KontoDetailsComponent } from '../verwaltung/konto-details/konto-details.component';
 import { AssetListComponent } from './asset-list/asset-list.component';
 import { AssetDetailsComponent } from './asset-details/asset-details.component';
+import { KontoListeComponent } from './konto-liste/konto-liste.component';
 
 
 @NgModule({
@@ -17,7 +18,8 @@ import { AssetDetailsComponent } from './asset-details/asset-details.component';
     KontorahmenComponent,
     KontoDetailsComponent,
     AssetListComponent,
-    AssetDetailsComponent
+    AssetDetailsComponent,
+    KontoListeComponent
   ],
   imports: [
     CommonModule,

@@ -3,4 +3,5 @@ export interface Konto {
     type: string;
     name: string;
     art: string;
+    saldo?: number;
 }

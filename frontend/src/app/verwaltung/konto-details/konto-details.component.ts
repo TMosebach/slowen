@@ -4,7 +4,7 @@ import { Router } from '@angular/router';
 import { Observable } from 'rxjs';
 import { ObserveOnSubscriber } from 'rxjs/internal/operators/observeOn';
 import { catchError } from 'rxjs/operators';
-import { BuchhaltungService } from 'src/app/buchhaltung/buchhaltung.service';
+import { BuchhaltungService } from 'src/app/services/buchhaltung.service';
 import { Konto } from 'src/app/buchhaltung/model/konto';
 @Component({
   selector: 'app-konto-details',

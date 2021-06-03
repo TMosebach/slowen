@@ -1,7 +1,7 @@
 import { Component, OnInit } from '@angular/core';
 import { FormBuilder, FormGroup, Validators } from '@angular/forms';
 import { Router } from '@angular/router';
-import { BuchhaltungService } from 'src/app/buchhaltung/buchhaltung.service';
+import { BuchhaltungService } from 'src/app/services/buchhaltung.service';
 import { Asset } from 'src/app/buchhaltung/model/asset';
 
 @Component({

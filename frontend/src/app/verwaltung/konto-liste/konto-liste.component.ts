@@ -1,15 +1,15 @@
 import { Component, EventEmitter, OnInit } from '@angular/core';
 import { Router } from '@angular/router';
 import { Observable } from 'rxjs';
-import { BuchhaltungService } from '../../buchhaltung.service';
-import { Konto } from '../../model/konto';
+import { BuchhaltungService } from '../../services/buchhaltung.service';
+import { Konto } from '../../buchhaltung/model/konto';
 
 @Component({
-  selector: 'app-konto-list',
-  templateUrl: './konto-list.component.html',
-  styleUrls: ['./konto-list.component.scss']
+  selector: 'app-konto-liste',
+  templateUrl: './konto-liste.component.html',
+  styleUrls: ['./konto-liste.component.scss']
 })
-export class KontoListComponent implements OnInit {
+export class KontoListeComponent implements OnInit {
 
   editKonto = new EventEmitter();
   kontorahmen: Observable<Konto[]> | undefined;
