@@ -3,6 +3,7 @@ import { Injectable } from '@angular/core';
 import { Observable } from 'rxjs';
 import { map } from 'rxjs/operators';
 import { Asset } from '../buchhaltung/model/asset';
+import { Buchung } from '../buchhaltung/model/buchung';
 import { Konto } from '../buchhaltung/model/konto';
 
 @Injectable({
@@ -34,5 +35,9 @@ export class BuchhaltungService {
 
   createAsset(asset: Asset): Observable<Asset> {
     return this.http.post<Asset>(`${this.server}assets`, asset);
+  }
+
+  buche(buchung: Buchung): Observable<Buchung> {
+    return this.http.post<Buchung>(`${this.server}buchhaltung/buchungen`, buchung);
   }
 }

@@ -1,7 +1,7 @@
 export interface Konto {
     id?: string;
-    type: string;
-    name: string;
-    art: string;
+    type?: string;
+    name?: string;
+    art?: string;
     saldo?: number;
 }

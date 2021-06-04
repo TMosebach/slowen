@@ -1,1 +1,92 @@
-<p>buchen works!</p>
+<h3>Buchen</h3>
+
+<form [formGroup]="buchungForm">
+    <div class="col-5">
+        <label for="Verwendung" class="form-label">Verwendung</label>
+        <input 
+            type="text" 
+            class="form-control" 
+            id="Verwendung" 
+            formControlName="verwendung" 
+            placeholder="Verwendung"
+            autofocus>
+    </div>
+    <div class="col-5">
+        <label for="Empfaenger" class="form-label">Empfänger</label>
+        <input 
+            type="text" 
+            class="form-control" 
+            id="Empfaenger"
+            formControlName="empfaenger" 
+            placeholder="Empfänger">
+    </div>
+    <div class="row mt-3">
+        <div class="col-md-3">
+            <label for="Konto" class="form-label">Konto</label>
+        </div>
+        <div class="col-md-2">
+            <label for="Valuta" class="form-label">Valuta</label>
+        </div>
+        <div class="col-md-2">
+            <label for="Ausgabe" class="form-label">Ausgabe</label>
+        </div>
+        <div class="col-md-2">
+            <label for="Einnahme" class="form-label">Einnahme</label>
+        </div>
+        <div class="col-md-3"></div>
+    </div>
+    <div *ngFor="let buchung as FormGroup of buchungen.controls; index as i">
+        <div class="row mt-2" [formGroup]="buchung">
+            <div class="col-md-3">
+                <select 
+                    class="form-select"
+                    id="Konto"
+                    formControlName="konto">
+                    <option 
+                        *ngFor="let konto of konten" 
+                        [ngValue]="konto">{{konto.name}}</option>
+                </select>
+            </div>
+            <div class="col-md-2">
+                <input 
+                    type="date"
+                    class="form-control"
+                    id="Valuta"
+                    formControlName="valuta">
+            </div>
+            <div class="col-md-2">
+                <input 
+                    type="text" 
+                    class="form-control text-end" 
+                    id="Ausgabe"
+                    formControlName="ausgabe">
+                <div *ngIf="buchung.errors">
+                    <div *ngFor="let error of getFehler(buchung.errors)">{{error}}</div>
+                </div>
+            </div>
+            <div class="col-md-2">
+                <input 
+                    type="text" 
+                    class="form-control text-end"
+                    id="Einnahme"
+                    formControlName="einnahme">
+            </div>
+            <div class="col-md-1">
+                <button 
+                    class="btn btn-info" 
+                    *ngIf="i !== buchungen.length-1"
+                    (click)="removeBuchung(i)">-</button>
+                <button 
+                    class="btn btn-info"
+                    *ngIf="i === buchungen.length-1"
+                    (click)="addBuchung()">+</button>
+            </div>
+        </div>
+    </div>
+    <div>
+        <button 
+            class="btn btn-primary mt-5" 
+            [disabled]="! buchungForm.valid"
+            (click)="onBuchen()">Buchen</button>
+    </div>
+</form>

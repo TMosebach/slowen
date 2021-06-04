@@ -2,6 +2,7 @@
 {
   "compileOnSave": false,
   "compilerOptions": {
+    /* Uninitialisierte Attribute sind ok */
     "strictPropertyInitialization": false,
     "baseUrl": "./",
     "outDir": "./dist/out-tsc",
@@ -23,9 +24,10 @@
     ]
   },
   "angularCompilerOptions": {
+    /* wegen FormArray sind laschere Templates erst mal ok */
+    "strictTemplates": false,
     "enableI18nLegacyMessageIdFormat": false,
     "strictInjectionParameters": true,
-    "strictInputAccessModifiers": true,
-    "strictTemplates": true
+    "strictInputAccessModifiers": true
   }
 }

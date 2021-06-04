@@ -1,6 +1,5 @@
 # TODO-Liste
 
-* Buchung
 * Kontoumsatzview
 * Kauf/Verkauf
 * Depotumsatzview inkl. Bestand

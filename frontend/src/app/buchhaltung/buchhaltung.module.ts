@@ -1,6 +1,7 @@
 import { NgModule } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { HttpClientModule } from '@angular/common/http';
+import { ReactiveFormsModule } from '@angular/forms';
 
 import { BuchhaltungRoutingModule } from './buchhaltung-routing.module';
 import { BuchhaltungComponent } from './buchhaltung/buchhaltung.component';
@@ -10,16 +11,16 @@ import { KontoBuchungenComponent } from './konto-buchungen/konto-buchungen.compo
 
 @NgModule({
   declarations: [
-  
     BuchhaltungComponent,
-       KontoListeComponent,
-       BuchenComponent,
-       KontoBuchungenComponent
+    KontoListeComponent,
+    BuchenComponent,
+    KontoBuchungenComponent
   ],
   imports: [
     CommonModule,
     HttpClientModule,
-    BuchhaltungRoutingModule
+    BuchhaltungRoutingModule,
+    ReactiveFormsModule
   ],
   exports: [
   ]
