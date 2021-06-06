@@ -5,6 +5,7 @@ import { map } from 'rxjs/operators';
 import { Asset } from '../buchhaltung/model/asset';
 import { Buchung } from '../buchhaltung/model/buchung';
 import { Konto } from '../buchhaltung/model/konto';
+import { PagedModel } from '../model/pagedModel';
 
 @Injectable({
   providedIn: 'root'
@@ -39,5 +40,9 @@ export class BuchhaltungService {
 
   buche(buchung: Buchung): Observable<Buchung> {
     return this.http.post<Buchung>(`${this.server}buchhaltung/buchungen`, buchung);
+  }
+
+  findKontobuchungen(kontoId: string): Observable<PagedModel<Buchung>> {
+    return this.http.get<PagedModel<Buchung>>(`${this.server}buchhaltung/konten/${kontoId}/umsatz`);
   }
 }

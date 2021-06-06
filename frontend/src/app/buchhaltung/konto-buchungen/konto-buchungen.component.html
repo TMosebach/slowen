@@ -1,1 +1,24 @@
-<p>konto-buchungen works!</p>
+<h3>Buchungen</h3>
+
+<table class="table table-striped">
+    <thead>
+      <tr>
+        <th scope="col">Verwendung</th>
+        <th scope="col">Empfänger</th>
+        <th scope="col">Konto</th>
+        <th scope="col">Valuta</th>
+        <th scope="col">Ausgabe</th>
+        <th scope="col">Einnahme</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr *ngFor="let buchung of kontobuchungen">
+        <td>{{buchung.verwendung}}</td>
+        <td>{{buchung.empfaenger}}</td>
+        <td>{{buchung.konto}}</td>
+        <td>{{buchung.valuta}}</td>
+        <td>{{buchung.ausgabe}}</td>
+        <td>{{buchung.einnahme}}</td>    
+      </tr>
+    </tbody>
+  </table>

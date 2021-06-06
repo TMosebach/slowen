@@ -146,9 +146,20 @@ export class BuchenComponent implements OnInit {
     });
 
     this.buchhaltungService.buche(buchung).subscribe({
-      next: a => this.router.navigate(['buchhaltung', 'buchen']),
+      next: a => {
+        this.clearFormular();
+        this.router.navigate(['buchhaltung', 'buchen']);
+      },
       error: err => console.error(err)
     });
+  }
+
+  private clearFormular(): void {
+    this.buchungForm.get('verwendung')?.setValue('');
+    this.buchungForm.get('empfaenger')?.setValue('');
+
+    this.buchungen.clear();
+    this.addBuchung();
   }
 
   getFehler(errors: { msg: string }): string[] {
