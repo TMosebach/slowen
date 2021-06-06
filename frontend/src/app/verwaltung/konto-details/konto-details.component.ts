@@ -64,12 +64,8 @@ export class KontoDetailsComponent implements OnInit {
 
     createObservable
     .subscribe({
-      next: k => {
-        console.log('Erstellt: ', k);
-        this.router.navigate(['verwaltung', 'kontorahmen']);
-      },
+      next: k => this.router.navigate(['verwaltung', 'kontorahmen']),
       error: err => {
-        console.log('Fehler: ', err);
         if (err.status === 412) {
           this.errorMessage = 'Kontoname ist schon vergeben.';
         } else {

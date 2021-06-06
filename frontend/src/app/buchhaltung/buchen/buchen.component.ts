@@ -1,5 +1,6 @@
 import { Component, OnInit } from '@angular/core';
 import { FormArray, FormBuilder, FormControl, FormGroup, ValidatorFn, Validators } from '@angular/forms';
+import { Router } from '@angular/router';
 import { Observable, of } from 'rxjs';
 import { BuchhaltungService } from 'src/app/services/buchhaltung.service';
 import { Buchung } from '../model/buchung';
@@ -71,7 +72,8 @@ export class BuchenComponent implements OnInit {
 
   constructor(
     private fb: FormBuilder,
-    private buchhaltungService: BuchhaltungService) { }
+    private buchhaltungService: BuchhaltungService,
+    private router: Router) { }
 
   ngOnInit(): void {
 
@@ -130,8 +132,6 @@ export class BuchenComponent implements OnInit {
       const einzahlung = control.get('einnahme')?.value;
       const auszahlung = control.get('ausgabe')?.value;
 
-      console.log(control.get('auszahlung'));
-
       const betrag = (auszahlung ? -Number.parseFloat(auszahlung) : Number.parseFloat(einzahlung));
       const kontoId = control.get('konto')?.value.id;
       const valutaStr = '2021-06-04';
@@ -146,7 +146,7 @@ export class BuchenComponent implements OnInit {
     });
 
     this.buchhaltungService.buche(buchung).subscribe({
-      next: b => console.log('Gebucht: ', b),
+      next: a => this.router.navigate(['buchhaltung', 'buchen']),
       error: err => console.error(err)
     });
   }

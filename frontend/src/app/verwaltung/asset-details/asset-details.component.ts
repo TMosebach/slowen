@@ -45,12 +45,8 @@ export class AssetDetailsComponent implements OnInit {
     this.buchhaltungService
       .createAsset(asset)
       .subscribe({
-        next: a => {
-          console.log('Erstellt: ', a);
-          this.router.navigate(['verwaltung', 'assets']);
-        },
+        next: a => this.router.navigate(['verwaltung', 'assets']),
         error: err => {
-          console.log('Fehler: ', err);
           this.errorMessage = err.message;
         }
     });
