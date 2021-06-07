@@ -6,9 +6,9 @@
         <th scope="col">Verwendung</th>
         <th scope="col">Empfänger</th>
         <th scope="col">Konto</th>
-        <th scope="col">Valuta</th>
-        <th scope="col">Ausgabe</th>
-        <th scope="col">Einnahme</th>
+        <th scope="col" class="text-center">Valuta</th>
+        <th scope="col" class="text-end">Ausgabe</th>
+        <th scope="col" class="text-end">Einnahme</th>
       </tr>
     </thead>
     <tbody>
@@ -16,9 +16,9 @@
         <td>{{buchung.verwendung}}</td>
         <td>{{buchung.empfaenger}}</td>
         <td>{{buchung.konto}}</td>
-        <td>{{buchung.valuta}}</td>
-        <td>{{buchung.ausgabe}}</td>
-        <td>{{buchung.einnahme}}</td>    
+        <td class="text-center">{{buchung.valuta | date:'mediumDate'}}</td>
+        <td class="text-end">{{buchung.ausgabe | number:'.2'}}</td>
+        <td class="text-end">{{buchung.einnahme | number:'.2'}}</td>    
       </tr>
     </tbody>
   </table>
