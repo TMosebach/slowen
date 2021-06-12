@@ -70,6 +70,7 @@ public class KontoMapper {
 		de.tmosebach.slowen.buchhaltung.model.Depot domainDepot =
 				new de.tmosebach.slowen.buchhaltung.model.Depot();
 		domainDepot.setName(depot.getName());
+		domainDepot.setArt(depot.getArt());
 		return domainDepot;
 	}
 }
