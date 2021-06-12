@@ -3,6 +3,7 @@ package de.tmosebach.slowen.buchhaltung;
 import static org.springframework.hateoas.server.mvc.WebMvcLinkBuilder.linkTo;
 
 import java.util.List;
+import java.util.Optional;
 
 import javax.validation.Valid;
 
@@ -59,22 +60,37 @@ public class BuchhaltungController {
 		return CollectionModel.of(result);
 	}
 	
+	@GetMapping("konten/{id}")
+	public Konto findKonto(@PathVariable("id") String id) throws UnkownEntityException {
+		Optional<de.tmosebach.slowen.buchhaltung.model.Konto> domainKonto =
+				kontoService.findById(Long.valueOf(id));
+		
+		if (domainKonto.isEmpty()) {
+			throw new UnkownEntityException(id);
+		}
+		Konto apiKonto = kontoMapper.domainKontoToApiKonto(domainKonto.get());
+		
+		return apiKonto;
+	}
+	
 	@GetMapping("konten/{kontoId}/umsatz")
-	public PagedModel<Buchung> findKontoBuchungenByKontoName(@PathVariable("kontoId") String kontoId) {
+	public PagedModel<Buchung> findKontoBuchungenByKontoName(
+			@PathVariable("kontoId") String kontoId,
+			@RequestParam(name = "page", defaultValue = "0") Long page,
+			@RequestParam(name = "size", defaultValue = "10") Long size) {
 		
 		Long id = Long.valueOf(kontoId);
-		
-		long size = 10;
-		long page = 1;
+
 		long totalElements = buchungService.countKontoBuchungenByKonto(id);
 		
 		PageMetadata pageMetadata = new PageMetadata(size, page, totalElements);
+		
 		List<Buchung> content = buchungMapper.domainBuchungListToApiBuchungListe(
 				buchungService.findKontoBuchungenByKonto(id, page, size));
-		
-		return PagedModel.of(content, pageMetadata);
+
+		return PagedModel.of( content, pageMetadata );
 	}
-	
+
 	@PostMapping("konten")
 	public EntityModel<Konto> kontoAnlegen(@RequestBody @Valid  Konto konto) {		
 		try {

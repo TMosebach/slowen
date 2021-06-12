@@ -21,6 +21,10 @@ export class BuchhaltungService {
     .pipe(map( response => response.content ));
   }
 
+  findKontoById(kontoId: string): Observable<Konto> {
+    return this.http.get<Konto>(`${this.server}buchhaltung/konten/${kontoId}`);
+  }
+
   createKonto(konto: Konto): Observable<Konto> {
     return this.http.post<Konto>(`${this.server}buchhaltung/konten`, konto);
   }
@@ -42,7 +46,7 @@ export class BuchhaltungService {
     return this.http.post<Buchung>(`${this.server}buchhaltung/buchungen`, buchung);
   }
 
-  findKontobuchungen(kontoId: string): Observable<PagedModel<Buchung>> {
-    return this.http.get<PagedModel<Buchung>>(`${this.server}buchhaltung/konten/${kontoId}/umsatz`);
+  findKontobuchungen(kontoId: string, page: number, size: number): Observable<PagedModel<Buchung>> {
+    return this.http.get<PagedModel<Buchung>>(`${this.server}buchhaltung/konten/${kontoId}/umsatz?page=${page}&size=${size}`);
   }
 }

@@ -178,7 +178,7 @@ public class BuchungService {
 
 	public List<Buchung> findKontoBuchungenByKonto(Long kontoId, long pageNr, long size) {
 
-		Pageable pageable = PageRequest.of((int)pageNr - 1, (int)size);
+		Pageable pageable = PageRequest.of((int)pageNr, (int)size);
 		Page<Buchung> page = buchungRepository.findByKonto(kontoId, pageable);
 		return page.getContent();
 	}

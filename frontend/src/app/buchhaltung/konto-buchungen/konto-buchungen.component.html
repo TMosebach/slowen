@@ -1,5 +1,25 @@
 <h3>Buchungen</h3>
 
+<h4>Konto: {{konto?.name}}</h4>
+
+<nav aria-label="Page navigation example">
+    <ul class="pagination">
+      <li class="page-item">
+        <button class="btn btn-info me-1" [disabled]="isFirst()" (click)="onFirst()">
+          <span>&laquo;</span>
+        </button>
+      </li>
+      <li class="page-item"><button class="btn btn-info me-1" [disabled]="isFirst()" (click)="onPrev()">&lsaquo;</button></li>
+      <li class="page-item"><input class="form-control text-primary text-center" type="text" value="{{page.number + 1}}"></li>
+      <li class="page-item"><button class="btn btn-info me-1 ms-1" [disabled]="isLast()" (click)="onNext()">&rsaquo;</button></li>
+      <li class="page-item">
+        <button class="btn btn-info me-1" [disabled]="isLast()" (click)="onLast()">
+          <span>&raquo;</span>
+        </button>
+      </li>
+    </ul>
+  </nav>
+
 <table class="table table-striped">
     <thead>
       <tr>
