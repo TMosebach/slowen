@@ -134,7 +134,7 @@ export class BuchenComponent implements OnInit {
 
       const betrag = (auszahlung ? -Number.parseFloat(auszahlung) : Number.parseFloat(einzahlung));
       const kontoId = control.get('konto')?.value.id;
-      const valutaStr = '2021-06-04';
+      const valutaStr = control.get('valuta')?.value;
 
       buchung.umsaetze.push({
         betrag,

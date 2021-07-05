@@ -8,13 +8,15 @@ import { BuchhaltungComponent } from './buchhaltung/buchhaltung.component';
 import { KontoListeComponent } from './konto-liste/konto-liste.component';
 import { BuchenComponent } from './buchen/buchen.component';
 import { KontoBuchungenComponent } from './konto-buchungen/konto-buchungen.component';
+import { HandelComponent } from './handel/handel.component';
 
 @NgModule({
   declarations: [
     BuchhaltungComponent,
     KontoListeComponent,
     BuchenComponent,
-    KontoBuchungenComponent
+    KontoBuchungenComponent,
+    HandelComponent
   ],
   imports: [
     CommonModule,

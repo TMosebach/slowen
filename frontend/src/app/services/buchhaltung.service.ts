@@ -46,6 +46,20 @@ export class BuchhaltungService {
     return this.http.post<Buchung>(`${this.server}buchhaltung/buchungen`, buchung);
   }
 
+  kaufen(buchung: Buchung): Observable<Buchung> {
+    console.log(this.server);
+    const url = `${this.server}buchhaltung/buchungen?typ=kauf`;
+    return this.http.post<Buchung>(url, buchung);
+  }
+
+  verkaufen(buchung: Buchung): Observable<Buchung> {
+    return this.http.post<Buchung>(`${this.server}buchhaltung/buchungen?typ=verkauf`, buchung);
+  }
+
+  einnahme(buchung: Buchung): Observable<Buchung> {
+    return this.http.post<Buchung>(`${this.server}buchhaltung/buchungen?einnahme`, buchung);
+  }
+
   findKontobuchungen(kontoId: string, page: number, size: number): Observable<PagedModel<Buchung>> {
     return this.http.get<PagedModel<Buchung>>(`${this.server}buchhaltung/konten/${kontoId}/umsatz?page=${page}&size=${size}`);
   }

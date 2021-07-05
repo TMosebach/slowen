@@ -1,0 +1,116 @@
+<h3>Handel</h3>
+
+<form [formGroup]="kaufForm">
+    <div class="row mb-2">
+        <label class="col-2 text-end col-form-label"></label>
+        <div class="col-4">
+            <select class="form-control" formControlName="vorgang">
+                <option>Kauf</option>
+                <option>Verkauf</option>
+            </select>
+        </div>
+    </div>
+    <div class="row mb-2">
+        <label class="col-2 text-end col-form-label">Verrechnungskonto</label>
+        <div class="col-4">
+            <select 
+                class="form-control"
+                formControlName="verrechnungskonto">
+                <option 
+                    *ngFor="let k of konten" 
+                    [ngValue]="k">{{k.name}}</option>
+            </select>
+        </div>
+    </div>
+    <div class="row mb-2">
+        <label class="col-2 text-end col-form-label">Depot</label>
+        <div class="col-4">
+            <select class="form-control" formControlName="depot">
+                <option 
+                    *ngFor="let d of depots" 
+                    [ngValue]="d">{{d.name}}</option>
+            </select>
+        </div>
+    </div>
+    <div class="row mb-2">
+        <label class="col-2 text-end col-form-label">Asset</label>
+        <div class="col-4">
+            <div class="input-group">
+                <select class="form-control" formControlName="asset">
+                    <option 
+                        *ngFor="let asset of assets$ | async" 
+                        [ngValue]="asset">{{asset.name}}</option>
+                </select>
+                <button class="input-group-text">...</button>
+            </div>
+        </div>
+    </div>
+    <div class="row mb-2">
+        <label class="col-2 text-end col-form-label">Valuta</label>
+        <div class="col-4">
+            <input 
+            type="date"
+            class="form-control"
+            id="Valuta"
+            placeholder="Valuta"
+            formControlName="valuta">
+        </div>
+    </div>
+    <div class="row mb-2">
+        <label class="col-2 col-form-label"></label>
+        <div class="row col-4">
+            <div class="col-3">
+                <input 
+                    type="text"
+                    class="form-control text-end"
+                    placeholder="Menge"
+                    formControlName="menge">
+            </div>
+            <div class="col-3">
+                <input 
+                    type="text"
+                    class="form-control text-end"
+                    placeholder="Preis"
+                    formControlName="preis">
+            </div>
+            <div class="col-6 row">
+                <label class="col-form-label col-5">Kaufpreis</label>
+                <div class="col-7">
+                    <input type="text"
+                    class="form-control text-end"
+                    disabled
+                    value="{{kaufpreis | number:'1.2-7':'de'}}">
+                </div>
+            </div>
+        </div>
+    </div>
+    <div class="row mb-2">
+        <label class="col-2 text-end col-form-label">Ordergebühr</label>
+        <div class="col-1">
+            <input 
+            type="text"
+            class="form-control text-end"
+            id="Provision"
+            formControlName="ordergebuehr">
+        </div>
+    </div>
+    <div class="row mb-2">
+        <label class="col-2 text-end col-form-label">Ausmachender Betrag</label>
+        <div class="col-1">
+            <input 
+            type="text"
+            class="form-control text-end text-danger"
+            disabled
+            value="{{ausmachenderBetrag  | number:'1.2-7':'de'}}">
+        </div>
+    </div>
+    <div class="row mb-2">
+        <label class="col-2 col-form-label"></label>
+        <div class="col-2">
+            <button 
+                class="btn btn-primary mt-5" 
+                [disabled]="! kaufForm.valid"
+                (click)="doOrder()">Ordern</button>
+        </div>
+    </div>
+</form>
