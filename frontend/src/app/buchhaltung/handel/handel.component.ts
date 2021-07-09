@@ -59,12 +59,13 @@ export class HandelComponent implements OnInit {
     preis: string,
     ordergebuehr: string  }): void {
 
+      const vorgang = this.kaufForm.value[`vorgang`];
       const menge = value.menge ? Number.parseFloat(value.menge) : 0.0;
       const preis = value.preis ? Number.parseFloat(value.preis) : 0.0;
       const ordergebuehr = value.ordergebuehr ? Number.parseFloat(value.ordergebuehr) : 0.0;
 
       this.kaufpreis = menge * preis;
-      this.ausmachenderBetrag = this.kaufpreis - ordergebuehr;
+      this.ausmachenderBetrag = this.kaufpreis + (vorgang === 'Kauf' ? 1 : -1) * ordergebuehr;
     }
 
   doOrder(): void {
@@ -86,12 +87,14 @@ export class HandelComponent implements OnInit {
 
   toBuchung(): Buchung {
     const form = this.kaufForm.value;
+
+    const vorgang = form[`vorgang`];
     const asset: Asset = form[`asset`];
     const valutaStr = form[`valuta`];
     const valuta = new Date(valutaStr).toISOString();
 
     const buchung = {
-      verwendung: form[`vorgang`] + ' - ' + asset.name,
+      verwendung: vorgang + ' - ' + asset.name,
       umsaetze: [
         this.createDepotUmsatz(asset, valuta)
       ]
@@ -99,7 +102,8 @@ export class HandelComponent implements OnInit {
 
     const verrechnungskonto = form[`verrechnungskonto`];
     if (verrechnungskonto) {
-      buchung.umsaetze.push( this.createKontoumsatz(verrechnungskonto, valuta, this.ausmachenderBetrag));
+      const betrag = (vorgang === 'Kauf' ? -1 : 1) * this.ausmachenderBetrag;
+      buchung.umsaetze.push( this.createKontoumsatz(verrechnungskonto, valuta, betrag));
     }
     const gebuehr = form[`ordergebuehr`];
     if (gebuehr) {
@@ -119,6 +123,7 @@ export class HandelComponent implements OnInit {
   }
 
   private createDepotUmsatz(asset: Asset, valuta: string): Umsatz {
+    const vorgang = this.kaufForm.get('vorgang')?.value;
     const depot: Konto = this.kaufForm.get('depot')?.value;
     const menge = this.kaufForm.get('menge')?.value;
 
@@ -126,11 +131,11 @@ export class HandelComponent implements OnInit {
       asset: {
         id: asset.id
       },
-      betrag: this.kaufpreis,
+      betrag: vorgang === 'Kauf' ? this.kaufpreis : -this.kaufpreis,
       konto: {
         id: depot.id
       },
-      menge,
+      menge: vorgang === 'Kauf' ? menge : -menge,
       valuta
     };
   }
