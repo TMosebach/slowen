@@ -2,6 +2,8 @@
 // Definition der Basiskonten
 //
 insert into konto (dtype, art, name, saldo) values ('Konto', 'Aufwand', 'Ordergebühr', 0);
+insert into konto (dtype, art, name, saldo) values ('Konto', 'Aufwand', 'Kursverlust', 0);
+insert into konto (dtype, art, name, saldo) values ('Konto', 'Ertrag', 'Kursgewinn', 0);
 
 //
 // Testkonten

@@ -100,23 +100,28 @@ public class BuchungService {
 			BigDecimal abgehenderKaufwert = bestand.getKaufwert().multiply(verkaufsanteil);
 			bestand.addKaufwert(abgehenderKaufwert);
 			bestand.addMenge(umsatz.getMenge());
-			
+
 			/*
 			 *  Gewinn und Verlust ergänzen
 			 *  für die Gegenbuchung auf dem Erfolgskonto ist der Betrag zu negieren
 			 */
-			BigDecimal gewinnVerlust = umsatz.getBetrag().subtract(abgehenderKaufwert).negate();
+			BigDecimal gewinnVerlust = umsatz.getBetrag().subtract(abgehenderKaufwert);
 			
 			KontoUmsatz guv = new KontoUmsatz();
 			umsatz.getBuchung().addUmsatz(guv);
-			
-			guv.setBetrag(gewinnVerlust);
 			guv.setValuta(umsatz.getValuta());
 			if (gewinnVerlust.compareTo(BigDecimal.ZERO) > 0) {
+				guv.setBetrag(gewinnVerlust);
 				kontoService.getKursgewinn().addKontoUmsatz(guv);
 			} else {
+				guv.setBetrag(gewinnVerlust.negate());
 				kontoService.getKursverlust().addKontoUmsatz(guv);
 			}
+			
+			/*
+			 * Justieren des Depotwertes nach G/V-Verbuchung
+			 */
+			umsatz.setBetrag(abgehenderKaufwert);
 		}
 	}
 

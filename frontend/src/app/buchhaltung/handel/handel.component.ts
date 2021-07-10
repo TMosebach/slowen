@@ -107,7 +107,7 @@ export class HandelComponent implements OnInit {
     }
     const gebuehr = form[`ordergebuehr`];
     if (gebuehr) {
-      buchung.umsaetze.push( this.createKontoumsatz(this.ordergebuehr, valuta, -gebuehr));
+      buchung.umsaetze.push( this.createKontoumsatz(this.ordergebuehr, valuta, gebuehr));
     }
     return buchung;
   }
