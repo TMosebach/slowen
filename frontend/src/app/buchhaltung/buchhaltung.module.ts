@@ -9,6 +9,7 @@ import { KontoListeComponent } from './konto-liste/konto-liste.component';
 import { BuchenComponent } from './buchen/buchen.component';
 import { KontoBuchungenComponent } from './konto-buchungen/konto-buchungen.component';
 import { HandelComponent } from './handel/handel.component';
+import { DepotBuchungenComponent } from './depot-buchungen/depot-buchungen.component';
 
 @NgModule({
   declarations: [
@@ -16,7 +17,8 @@ import { HandelComponent } from './handel/handel.component';
     KontoListeComponent,
     BuchenComponent,
     KontoBuchungenComponent,
-    HandelComponent
+    HandelComponent,
+    DepotBuchungenComponent
   ],
   imports: [
     CommonModule,

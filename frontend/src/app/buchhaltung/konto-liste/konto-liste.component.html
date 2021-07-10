@@ -10,7 +10,10 @@
     </thead>
     <tbody>
       <tr *ngFor="let konto of konten | async">
-        <td><a routerLink="/buchhaltung/konten/{{konto.id}}">{{konto.name}}</a></td>
+        <td>
+          <a *ngIf="konto.type ==='Konto'" routerLink="/buchhaltung/konten/{{konto.id}}">{{konto.name}}</a>
+          <a *ngIf="konto.type ==='Depot'" routerLink="/buchhaltung/depots/{{konto.id}}">{{konto.name}}</a>
+        </td>
         <td>{{konto.art}}</td>
         <td>{{konto.saldo}}</td>
       </tr>
