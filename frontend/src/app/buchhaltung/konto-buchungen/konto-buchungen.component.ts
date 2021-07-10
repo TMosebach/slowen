@@ -136,9 +136,9 @@ function komplexBuchung2kontobuchungen(buchung: Buchung, sourceKontoId: string):
       kontobuchung.verwendung = buchung.verwendung;
       kontobuchung.empfaenger = buchung.empfaenger;
 
-      kontobuchungen.unshift( kontobuchung );
-    } else {
       kontobuchungen.push( kontobuchung );
+    } else {
+      kontobuchungen.unshift( kontobuchung );
     }
   });
   return kontobuchungen;
