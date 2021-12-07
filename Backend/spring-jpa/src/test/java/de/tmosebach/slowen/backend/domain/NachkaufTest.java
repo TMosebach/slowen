@@ -24,7 +24,7 @@ class NachkaufTest {
 		
 		Depot neuDepot = new Depot();
 		neuDepot.setName("Depot");
-		final Depot depot = impl.depotAnlegen(neuDepot);
+		final Depot depot = (Depot)impl.kontoAnlegen(neuDepot);
 
 		Konto giro = new Konto();
 		giro.setName("Giro");

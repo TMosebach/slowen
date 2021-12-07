@@ -44,12 +44,6 @@ public class BuchhaltungServiceJpa implements BuchhaltungService {
 	
 	@Override
 	@Transactional
-	public Depot depotAnlegen(Depot depot) {
-		return depotRepository.save(depot);
-	}
-	
-	@Override
-	@Transactional
 	public Buchung buchen(Buchung buchung) {
 		kontoSaldenAnpassen(buchung.getUmsaetze());
 		

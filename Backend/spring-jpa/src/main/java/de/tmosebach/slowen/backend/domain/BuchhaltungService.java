@@ -10,8 +10,6 @@ public interface BuchhaltungService {
 
 	Konto kontoAnlegen(Konto konto);
 
-	Depot depotAnlegen(Depot depot);
-
 	Buchung buchen(Buchung buchung);
 
 	Page<Buchung> findBuchungenByKonto(Long id, int number, int size);

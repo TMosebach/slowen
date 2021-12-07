@@ -8,9 +8,17 @@ import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
+import de.tmosebach.slowen.backend.domain.BuchhaltungService;
+
 @RestController
 @RequestMapping("api/buchhaltung")
 public class BuchhaltungController {
+	
+	private BuchhaltungService service;
+
+	public BuchhaltungController(BuchhaltungService service) {
+		this.service = service;
+	}
 
 	@GetMapping("konten")
 	public List<ApiKonto> findKonten() {

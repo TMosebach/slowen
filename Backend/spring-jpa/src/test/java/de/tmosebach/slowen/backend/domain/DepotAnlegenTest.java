@@ -24,9 +24,10 @@ class DepotAnlegenTest {
 		Depot neuesDepot = new Depot();
 		neuesDepot.setName("Neues Depot");
 		
-		Depot result = impl.depotAnlegen(neuesDepot);
+		Konto result = impl.kontoAnlegen(neuesDepot);
 		
 		assertNotNull(result);
+		assertTrue(result instanceof Depot);
 		
 		List<Konto> konten = impl.findKonten();
 		assertTrue(konten.size() == count + 1);
