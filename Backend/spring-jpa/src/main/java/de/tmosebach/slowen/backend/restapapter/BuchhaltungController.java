@@ -22,28 +22,8 @@ public class BuchhaltungController {
 		throw new UnsupportedOperationException();
 	}
 
-	@GetMapping("depots")
-	public ApiKonto depotAnlegen(ApiKonto depot) {
-		throw new UnsupportedOperationException();
-	}
-
 	@PostMapping("buchungen")
 	public ApiBuchung buchen(ApiBuchung buchung) {
-		throw new UnsupportedOperationException();
-	}
-
-	@PostMapping("buchungen?kauf")
-	public ApiBuchung kauf(ApiBuchung buchung) {
-		throw new UnsupportedOperationException();
-	}
-
-	@PostMapping("buchungen?verkauf")
-	public ApiBuchung verkauf(ApiBuchung buchung) {
-		throw new UnsupportedOperationException();
-	}
-
-	@PostMapping("buchungen?ertrag")
-	public ApiBuchung ertrag(ApiBuchung buchung) {
 		throw new UnsupportedOperationException();
 	}
 
@@ -59,11 +39,6 @@ public class BuchhaltungController {
 
 	@GetMapping("assets")
 	public List<ApiAsset> findAssets() {
-		throw new UnsupportedOperationException();
-	}
-
-	@PostMapping("buchungen?einlieferung")
-	public ApiBuchung einlieferung(ApiBuchung buchung) {
 		throw new UnsupportedOperationException();
 	}
 }

@@ -17,14 +17,14 @@ public class KontoFactory {
 	public static Konto kursVerlust() {
 		Konto konto = new Konto();
 		konto.setName(KURS_VERLUST);
-		konto.setKategorie(Kategorie.Aufwand);
+		konto.setBilanzTyp(BilanzTyp.Aufwand);
 		return konto;
 	}
 	
 	public static Konto kursGewinn() {
 		Konto konto = new Konto();
 		konto.setName(KURS_GEWINN);
-		konto.setKategorie(Kategorie.Aufwand);
+		konto.setBilanzTyp(BilanzTyp.Ertrag);
 		return konto;
 	}
 }

@@ -17,6 +17,8 @@ import org.apache.commons.lang3.builder.HashCodeBuilder;
 
 public class Depot extends Konto {
 
+	private String nummer;
+	
 	@OneToMany(cascade = CascadeType.ALL, fetch = FetchType.EAGER, orphanRemoval = true)
 	@JoinColumn(name = "depot_id")
 	private List<Bestand> bestaende = new ArrayList<>();
@@ -55,4 +57,12 @@ public class Depot extends Konto {
 	 */
 	@Override
 	public void setSaldo(BigDecimal saldo) {}
+
+	public String getNummer() {
+		return nummer;
+	}
+
+	public void setNummer(String nummer) {
+		this.nummer = nummer;
+	}
 }
