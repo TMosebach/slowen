@@ -1,5 +1,6 @@
 package de.tmosebach.slowen.backend.domain;
 
+import static de.tmosebach.slowen.backend.domain.BuchungArt.*;
 import static de.tmosebach.slowen.backend.domain.KontoFactory.*;
 import static java.math.BigDecimal.valueOf;
 
@@ -16,7 +17,6 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 @Service
-@Transactional
 public class BuchhaltungServiceJpa implements BuchhaltungService {
 	
 	@Autowired
@@ -37,21 +37,52 @@ public class BuchhaltungServiceJpa implements BuchhaltungService {
 	}
 	
 	@Override
+	@Transactional
 	public Konto kontoAnlegen(Konto konto) {
 		return kontoRepository.save(konto);
 	}
 	
 	@Override
+	@Transactional
 	public Depot depotAnlegen(Depot depot) {
 		return depotRepository.save(depot);
 	}
 	
 	@Override
+	@Transactional
 	public Buchung buchen(Buchung buchung) {
 		kontoSaldenAnpassen(buchung.getUmsaetze());
+		
+		if (isBestandsrelevant(buchung)) {
+			bucheSkontro(buchung);
+		}
+		
 		return buchungRepository.save(buchung);
 	}
 	
+	private void bucheSkontro(Buchung buchung) {
+		Umsatz depotUmsatz = findDepotUmsatz(buchung.getUmsaetze());
+		BuchungArt art = buchung.getArt();
+		if (art == Kauf || art == Einlieferung) {
+			handleZugangBestand(depotUmsatz);
+		} else { // Verkauf
+			Umsatz guvUmsatz = handleVerkaufBestandAndGuV(depotUmsatz);
+			buchung.addUmsatz(guvUmsatz); // in der Buchung berücksichtigen
+		}
+	}
+
+	/**
+	 * Verändert die Buchungsart den Bestand?
+	 * @param buchung
+	 * @return {@code true}, Bestand wird verändert
+	 */
+	private boolean isBestandsrelevant(Buchung buchung) {
+		BuchungArt art = buchung.getArt();
+		return art == Kauf
+				|| art == Verkauf
+				|| art == Einlieferung;
+	}
+
 	private void kontoSaldenAnpassen(List<Umsatz> umsaetze) {
 		umsaetze.forEach( umsatz -> {
 			Konto konto = findKontoById(umsatz.getKonto().getId());
@@ -64,15 +95,6 @@ public class BuchhaltungServiceJpa implements BuchhaltungService {
 		return kontoRepository.findById(id)
 				.orElseThrow( 
 					() -> new IllegalStateException("Unbekanntes Konto: "+id));
-	}
-
-	@Override
-	public Buchung kauf(Buchung buchung) {
-		List<Umsatz> umsaetze = buchung.getUmsaetze();
-		kontoSaldenAnpassen(umsaetze);
-		Umsatz depotUmsatz = findDepotUmsatz(umsaetze);
-		handleZugangBestand(depotUmsatz);
-		return buchungRepository.save(buchung);
 	}
 	
 	private void handleZugangBestand(Umsatz umsatz) {
@@ -94,16 +116,6 @@ public class BuchhaltungServiceJpa implements BuchhaltungService {
 			bestand.setMenge( bestand.getMenge().add(umsatz.getMenge()) );
 		}
 		depotRepository.save(depot);
-	}
-	
-	@Override
-	public Buchung verkauf(Buchung buchung) {
-		List<Umsatz> umsaetze = buchung.getUmsaetze();
-		kontoSaldenAnpassen(umsaetze);
-		Umsatz depotUmsatz = findDepotUmsatz(umsaetze);
-		Umsatz guvUmsatz = handleVerkaufBestandAndGuV(depotUmsatz);
-		buchung.addUmsatz(guvUmsatz);
-		return buchungRepository.save(buchung);
 	}
 	
 	private Umsatz handleVerkaufBestandAndGuV(Umsatz umsatz) {
@@ -171,11 +183,6 @@ public class BuchhaltungServiceJpa implements BuchhaltungService {
 				.filter( u -> (u.getKonto() instanceof Depot) )
 				.findFirst().get();
 	}
-
-	@Override
-	public Buchung ertrag(Buchung buchung) {
-		return buchen(buchung);
-	}
 	
 	@Override
 	public Page<Buchung> findBuchungenByKonto(Long id, int number, int size) {
@@ -185,21 +192,13 @@ public class BuchhaltungServiceJpa implements BuchhaltungService {
 	}
 	
 	@Override
-	public Asset neuesAsset(Asset asset) {
+	@Transactional
+	public Asset assetAnlegen(Asset asset) {
 		return assetRepository.save(asset);
 	}
 	
 	@Override
 	public List<Asset> findAssets() {
 		return assetRepository.findAll();
-	}
-
-	@Override
-	public Buchung einlieferung(Buchung buchung) {
-		Umsatz depotUmsatz = findDepotUmsatz(buchung.getUmsaetze());
-		
-		handleZugangBestand(depotUmsatz);
-		
-		return buchungRepository.save(buchung);
 	}
 }

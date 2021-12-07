@@ -22,7 +22,7 @@ class EinliefernVorhandenerBestandTest {
 	void testKauf() {
 		Asset newAsset = new Asset();
 		newAsset.setName("Telekom AG");
-		final Asset asset = impl.neuesAsset(newAsset);
+		final Asset asset = impl.assetAnlegen(newAsset);
 		
 		Depot neuDepot = new Depot();
 		neuDepot.setName("Depot");
@@ -36,11 +36,12 @@ class EinliefernVorhandenerBestandTest {
 		depotUmsatz.setMenge(valueOf(100.0));
 		
 		Buchung einlieferung = new Buchung();
+		einlieferung.setArt(BuchungArt.Einlieferung);
 		einlieferung.addUmsatz(depotUmsatz);
 
-		impl.einlieferung(einlieferung);
+		impl.buchen(einlieferung);
 		
-		impl.einlieferung(einlieferung);
+		impl.buchen(einlieferung);
 		
 		List<Konto> konten = impl.findKonten();
 		Depot result = (Depot)konten.stream().filter( k -> (k instanceof Depot) ).findFirst().get();

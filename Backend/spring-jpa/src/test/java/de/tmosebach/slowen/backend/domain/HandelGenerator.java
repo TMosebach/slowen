@@ -15,7 +15,7 @@ public class HandelGenerator {
 		this.verrechnungskonto = verrechnungskonto;
 	}
 	
-	public Buchung erzeugeHandel(String art, BigDecimal menge, BigDecimal wert) {
+	public Buchung erzeugeHandel(BuchungArt art, BigDecimal menge, BigDecimal wert) {
 		
 		Umsatz depotUmsatz = new Umsatz();
 		depotUmsatz.setAsset(asset);
@@ -30,6 +30,7 @@ public class HandelGenerator {
 		verrechnungsUmsatz.setBetrag(wert.negate());
 		
 		Buchung buchung = new Buchung();
+		buchung.setArt(art);
 		buchung.setVerwendung(art + " " + asset.getName());
 		buchung.addUmsatz(depotUmsatz);
 		buchung.addUmsatz(verrechnungsUmsatz);

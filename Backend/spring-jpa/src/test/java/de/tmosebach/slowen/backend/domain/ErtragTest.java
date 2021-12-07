@@ -22,7 +22,7 @@ class ErtragTest {
 	void testDividendenzahlung() {
 		Asset newAsset = new Asset();
 		newAsset.setName("Telekom AG");
-		final Asset asset = impl.neuesAsset(newAsset);
+		final Asset asset = impl.assetAnlegen(newAsset);
 		
 		Konto dividente = new Konto();
 		dividente.setName(KontoFactory.DIVIDENDE);
@@ -44,11 +44,12 @@ class ErtragTest {
 		giroUmsatz.setBetrag(BigDecimal.TEN);
 
 		Buchung ertrag = new Buchung();
+		ertrag.setArt(BuchungArt.Ertrag);
 		ertrag.setVerwendung("Dividendenzahlung");
 		ertrag.addUmsatz(giroUmsatz);
 		ertrag.addUmsatz(dividendenUmsatz);
 
-		impl.ertrag(ertrag);
+		impl.buchen(ertrag);
 		
 		List<Konto> konten = impl.findKonten();
 		Konto result = konten.stream().filter( k -> k.getName().equals(KontoFactory.DIVIDENDE)).findFirst().get();

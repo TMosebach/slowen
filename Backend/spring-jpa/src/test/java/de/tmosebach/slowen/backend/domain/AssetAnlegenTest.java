@@ -23,7 +23,7 @@ class AssetAnlegenTest {
 		Asset asset = new Asset();
 		asset.setName("Telekom AG");
 		
-		Asset result = impl.neuesAsset(asset);
+		Asset result = impl.assetAnlegen(asset);
 		
 		assertNotNull(result);
 		

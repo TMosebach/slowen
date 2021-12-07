@@ -21,7 +21,7 @@ class KaufTest {
 	void testKauf() {
 		Asset newAsset = new Asset();
 		newAsset.setName("Telekom AG");
-		final Asset asset = impl.neuesAsset(newAsset);
+		final Asset asset = impl.assetAnlegen(newAsset);
 		
 		Depot neuDepot = new Depot();
 		neuDepot.setName("Depot");
@@ -32,9 +32,9 @@ class KaufTest {
 		giro = impl.kontoAnlegen(giro);
 
 		HandelGenerator generator = new HandelGenerator(asset, depot, giro);
-		Buchung kauf = generator.erzeugeHandel("Kauf", valueOf(100.0), valueOf(1500.0));
+		Buchung kauf = generator.erzeugeHandel(BuchungArt.Kauf, valueOf(100.0), valueOf(1500.0));
 
-		impl.kauf(kauf);
+		impl.buchen(kauf);
 		
 		List<Konto> konten = impl.findKonten();
 		Depot result = (Depot)konten.stream().filter( k -> (k instanceof Depot) ).findFirst().get();

@@ -14,18 +14,9 @@ public interface BuchhaltungService {
 
 	Buchung buchen(Buchung buchung);
 
-	Buchung kauf(Buchung buchung);
-
-	Buchung verkauf(Buchung buchung);
-
-	Buchung ertrag(Buchung buchung);
-
 	Page<Buchung> findBuchungenByKonto(Long id, int number, int size);
 
-	Asset neuesAsset(Asset asset);
+	Asset assetAnlegen(Asset asset);
 
 	List<Asset> findAssets();
-
-	Buchung einlieferung(Buchung buchung);
-
 }

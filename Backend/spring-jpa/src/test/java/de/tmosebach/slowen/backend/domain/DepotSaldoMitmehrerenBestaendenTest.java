@@ -21,7 +21,7 @@ public class DepotSaldoMitmehrerenBestaendenTest {
 	void testKauf() {
 		Asset newAsset = new Asset();
 		newAsset.setName("Telekom AG");
-		final Asset asset1 = impl.neuesAsset(newAsset);
+		final Asset asset1 = impl.assetAnlegen(newAsset);
 		
 		Depot neuDepot = new Depot();
 		neuDepot.setName("Depot");
@@ -32,19 +32,19 @@ public class DepotSaldoMitmehrerenBestaendenTest {
 		giro = impl.kontoAnlegen(giro);
 
 		HandelGenerator generator = new HandelGenerator(asset1, depot, giro);
-		Buchung kauf1 = generator.erzeugeHandel("Kauf", valueOf(100.0), valueOf(1500.0));
+		Buchung kauf1 = generator.erzeugeHandel(BuchungArt.Kauf, valueOf(100.0), valueOf(1500.0));
 
-		impl.kauf(kauf1);
+		impl.buchen(kauf1);
 		//
 		
 		Asset newAsset2 = new Asset();
 		newAsset2.setName("Telekom AG");
-		final Asset asset2 = impl.neuesAsset(newAsset2);
+		final Asset asset2 = impl.assetAnlegen(newAsset2);
 		
 		generator = new HandelGenerator(asset2, depot, giro);
-		Buchung kauf2 = generator.erzeugeHandel("Kauf", valueOf(50.0), valueOf(2000.0));
+		Buchung kauf2 = generator.erzeugeHandel(BuchungArt.Kauf, valueOf(50.0), valueOf(2000.0));
 
-		impl.kauf(kauf2);
+		impl.buchen(kauf2);
 		
 		//
 		
