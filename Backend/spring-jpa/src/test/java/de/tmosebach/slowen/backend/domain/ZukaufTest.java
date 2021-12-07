@@ -13,7 +13,7 @@ import org.springframework.boot.test.context.SpringBootTest;
 class ZukaufTest {
 
 	@Autowired
-	private BuchhaltungService impl;
+	private BuchhaltungServiceJpa impl;
 	
 	@Test
 	void testZukauf() {

@@ -14,7 +14,7 @@ import org.springframework.boot.test.context.SpringBootTest;
 class TeilVerkaufTest {
 
 	@Autowired
-	private BuchhaltungService impl;
+	private BuchhaltungServiceJpa impl;
 	
 	@Test
 	void testTeilverkauf_beruecksitigt_Anteilige_Bestandsreduktion() {

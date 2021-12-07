@@ -19,7 +19,7 @@ class BuchungPageProKontoTest {
 	private final LocalDate valutaBasis = LocalDate.of(2021, 10, 1);
 	
 	@Autowired
-	private BuchhaltungService impl;
+	private BuchhaltungServiceJpa impl;
 
 	@Test
 	void testBuchungsseite_in_korrekter_Reihenfolge_lesen() {

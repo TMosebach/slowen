@@ -12,7 +12,7 @@ import org.springframework.boot.test.context.SpringBootTest;
 class AssetAnlegenTest {
 
 	@Autowired
-	private BuchhaltungService impl;
+	private BuchhaltungServiceJpa impl;
 	
 	@Test
 	void test() {

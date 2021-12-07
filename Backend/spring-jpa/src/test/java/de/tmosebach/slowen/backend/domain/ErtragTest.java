@@ -14,7 +14,7 @@ import org.springframework.boot.test.context.SpringBootTest;
 class ErtragTest {
 
 	@Autowired
-	private BuchhaltungService impl;
+	private BuchhaltungServiceJpa impl;
 	
 	@Test
 	void testDividendenzahlung() {
