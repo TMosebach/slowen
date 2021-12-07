@@ -14,6 +14,7 @@ import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
 
 @SpringBootTest
+@Transactional
 class BuchungPageProKontoTest {
 	
 	private final LocalDate valutaBasis = LocalDate.of(2021, 10, 1);
