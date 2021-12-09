@@ -3,11 +3,9 @@ package de.tmosebach.slowen.backend.restapapter;
 import java.math.BigDecimal;
 import java.util.List;
 
-import de.tmosebach.slowen.backend.domain.Bestand;
-
 public class ApiKonto {
 
-	private Long id;
+	private String id;
 	private String name;
 	private ApiKontoTyp typ;
 	private ApiBilanzTyp bilanzTyp;
@@ -16,12 +14,12 @@ public class ApiKonto {
 	private String bic;
 	private String bank;
 	private String nummer;
-	private List<ApiUmsatz> umsaetze;
-	private List<Bestand> bestaende;
-	public Long getId() {
+	private String gueltigBis;
+	private List<ApiBestand> bestaende;
+	public String getId() {
 		return id;
 	}
-	public void setId(Long id) {
+	public void setId(String id) {
 		this.id = id;
 	}
 	public String getName() {
@@ -72,16 +70,16 @@ public class ApiKonto {
 	public void setNummer(String nummer) {
 		this.nummer = nummer;
 	}
-	public List<ApiUmsatz> getUmsaetze() {
-		return umsaetze;
+	public String getGueltigBis() {
+		return gueltigBis;
 	}
-	public void setUmsaetze(List<ApiUmsatz> umsaetze) {
-		this.umsaetze = umsaetze;
+	public void setGueltigBis(String gueltigBis) {
+		this.gueltigBis = gueltigBis;
 	}
-	public List<Bestand> getBestaende() {
+	public List<ApiBestand> getBestaende() {
 		return bestaende;
 	}
-	public void setBestaende(List<Bestand> bestaende) {
+	public void setBestaende(List<ApiBestand> bestaende) {
 		this.bestaende = bestaende;
 	}
 }

@@ -2,12 +2,10 @@ package de.tmosebach.slowen.backend.restapapter;
 
 import java.math.BigDecimal;
 
-import de.tmosebach.slowen.backend.domain.Asset;
-
 public class ApiBestand {
 
 	private String id;
-	private Asset asset;
+	private ApiAsset asset;
 	private BigDecimal wert;
 	private BigDecimal menge;
 	public String getId() {
@@ -16,10 +14,10 @@ public class ApiBestand {
 	public void setId(String id) {
 		this.id = id;
 	}
-	public Asset getAsset() {
+	public ApiAsset getAsset() {
 		return asset;
 	}
-	public void setAsset(Asset asset) {
+	public void setAsset(ApiAsset asset) {
 		this.asset = asset;
 	}
 	public BigDecimal getWert() {
