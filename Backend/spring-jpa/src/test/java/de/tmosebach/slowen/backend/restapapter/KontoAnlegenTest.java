@@ -29,6 +29,7 @@ import de.tmosebach.slowen.backend.domain.BuchhaltungService;
 import de.tmosebach.slowen.backend.domain.Depot;
 import de.tmosebach.slowen.backend.domain.Konto;
 import de.tmosebach.slowen.backend.domain.Kreditkarte;
+import de.tmosebach.slowen.backend.domain.Versicherung;
 
 @WebMvcTest
 class KontoAnlegenTest {
@@ -99,17 +100,80 @@ class KontoAnlegenTest {
 	}
 
 	@Test
-	void testDepotAnlegen() {
-		fail();
+	void testDepotAnlegen() throws Exception {
+		Depot depot = new Depot();
+		depot.setNummer("815");
+		depot.setBilanzTyp(BilanzTyp.Vermoegen);
+		
+		Depot response = new Depot();
+		response.setId(4711L);
+		response.setNummer("815");
+		response.setBilanzTyp(BilanzTyp.Vermoegen);
+		
+		when(serviceMock.kontoAnlegen(eq(depot)))
+		.thenReturn(response);
+
+		mockMvc.perform(post("/api/buchhaltung/konten")
+                .contentType("application/json")
+                .content(
+                	"{ \"typ\":\"Depot\", "
+                	+ "\"nummer\":\"815\", "
+                	+ "\"bilanzTyp\":\"Vermoegen\" }")
+			)
+            .andExpect(jsonPath("$.id", is("4711")))
+            .andExpect(jsonPath("$.nummer", is("815")))
+            .andExpect(jsonPath("$.bilanzTyp", is("Vermoegen")));
 	}
 
 	@Test
-	void testKreditkarteAnlegen() {
-		fail();
+	void testKreditkarteAnlegen() throws Exception {
+		Kreditkarte depot = new Kreditkarte();
+		depot.setGueltigBis("07/21");
+		depot.setBilanzTyp(BilanzTyp.Verbindlichkeit);
+		
+		Kreditkarte response = new Kreditkarte();
+		response.setId(4711L);
+		response.setGueltigBis("07/21");
+		response.setBilanzTyp(BilanzTyp.Verbindlichkeit);
+		
+		when(serviceMock.kontoAnlegen(eq(depot)))
+		.thenReturn(response);
+
+		mockMvc.perform(post("/api/buchhaltung/konten")
+                .contentType("application/json")
+                .content(
+                	"{ \"typ\":\"Kreditkarte\", "
+                	+ "\"gueltigBis\":\"07/21\", "
+                	+ "\"bilanzTyp\":\"Verbindlichkeit\" }")
+			)
+            .andExpect(jsonPath("$.id", is("4711")))
+            .andExpect(jsonPath("$.gueltigBis", is("07/21")))
+            .andExpect(jsonPath("$.bilanzTyp", is("Verbindlichkeit")));
 	}
 
 	@Test
-	void testVersicherungAnlegen() {
-		fail();
+	void testVersicherungAnlegen() throws Exception {
+		Versicherung depot = new Versicherung();
+		depot.setNummer("815");
+		depot.setBilanzTyp(BilanzTyp.Vermoegen);
+		
+		Versicherung response = new Versicherung();
+		response.setId(4711L);
+		response.setNummer("815");
+		response.setBilanzTyp(BilanzTyp.Vermoegen);
+		
+		when(serviceMock.kontoAnlegen(eq(depot)))
+		.thenReturn(response);
+
+		mockMvc.perform(post("/api/buchhaltung/konten")
+                .contentType("application/json")
+                .content(
+                	"{ \"typ\":\"Versicherung\", "
+                	+ "\"nummer\":\"815\", "
+                	+ "\"bilanzTyp\":\"Vermoegen\" }")
+			)
+            .andExpect(jsonPath("$.id", is("4711")))
+            .andExpect(jsonPath("$.nummer", is("815")))
+            .andExpect(jsonPath("$.bilanzTyp", is("Vermoegen")));
 	}
 }

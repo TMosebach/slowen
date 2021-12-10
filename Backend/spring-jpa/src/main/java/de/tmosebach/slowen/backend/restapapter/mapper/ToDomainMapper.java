@@ -31,21 +31,22 @@ public class ToDomainMapper {
 			break;
 		case Depot:
 			Depot depot = new Depot();
-			// TODO
+			depot.setNummer(apiKonto.getNummer());
 			result = depot;
 	
 			break;
 		case Kreditkarte:
 			
 			Kreditkarte kreditkarte = new Kreditkarte();
-			// TODO
+			kreditkarte.setNummer(apiKonto.getNummer());
+			kreditkarte.setGueltigBis(apiKonto.getGueltigBis());
 			result = kreditkarte;
 		
 			break;
 		case Versicherung:
 			
 			Versicherung versicherung = new Versicherung();
-			// TODO
+			versicherung.setNummer(apiKonto.getNummer());
 			result = versicherung;
 			
 			break;
