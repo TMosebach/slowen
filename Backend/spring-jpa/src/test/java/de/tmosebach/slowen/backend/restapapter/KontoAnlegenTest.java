@@ -6,6 +6,8 @@ import static org.mockito.Mockito.when;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 
+import java.math.BigDecimal;
+
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
@@ -35,6 +37,7 @@ class KontoAnlegenTest {
 		Konto konto = new Konto();
 		konto.setName("Giro");
 		konto.setBilanzTyp(BilanzTyp.Kontokorrent);
+		konto.setSaldo(BigDecimal.ZERO);
 		
 		Konto response = new Konto();
 		response.setId(4711L);
@@ -61,6 +64,7 @@ class KontoAnlegenTest {
 		konto.setBic("INGXXX");
 		konto.setIban("DE0500");
 		konto.setBilanzTyp(BilanzTyp.Vermoegen);
+		konto.setSaldo(BigDecimal.ZERO);
 		
 		Bankkonto response = new Bankkonto();
 		response.setId(4711L);
@@ -116,16 +120,17 @@ class KontoAnlegenTest {
 
 	@Test
 	void testKreditkarteAnlegen() throws Exception {
-		Kreditkarte depot = new Kreditkarte();
-		depot.setGueltigBis("07/21");
-		depot.setBilanzTyp(BilanzTyp.Verbindlichkeit);
+		Kreditkarte kreditkarte = new Kreditkarte();
+		kreditkarte.setGueltigBis("07/21");
+		kreditkarte.setBilanzTyp(BilanzTyp.Verbindlichkeit);
+		kreditkarte.setSaldo(BigDecimal.ZERO);
 		
 		Kreditkarte response = new Kreditkarte();
 		response.setId(4711L);
 		response.setGueltigBis("07/21");
 		response.setBilanzTyp(BilanzTyp.Verbindlichkeit);
 		
-		when(serviceMock.kontoAnlegen(eq(depot)))
+		when(serviceMock.kontoAnlegen(eq(kreditkarte)))
 		.thenReturn(response);
 
 		mockMvc.perform(post("/api/buchhaltung/konten")
@@ -142,16 +147,17 @@ class KontoAnlegenTest {
 
 	@Test
 	void testVersicherungAnlegen() throws Exception {
-		Versicherung depot = new Versicherung();
-		depot.setNummer("815");
-		depot.setBilanzTyp(BilanzTyp.Vermoegen);
+		Versicherung versicherung = new Versicherung();
+		versicherung.setNummer("815");
+		versicherung.setBilanzTyp(BilanzTyp.Vermoegen);
+		versicherung.setSaldo(BigDecimal.ZERO);
 		
 		Versicherung response = new Versicherung();
 		response.setId(4711L);
 		response.setNummer("815");
 		response.setBilanzTyp(BilanzTyp.Vermoegen);
 		
-		when(serviceMock.kontoAnlegen(eq(depot)))
+		when(serviceMock.kontoAnlegen(eq(versicherung)))
 		.thenReturn(response);
 
 		mockMvc.perform(post("/api/buchhaltung/konten")

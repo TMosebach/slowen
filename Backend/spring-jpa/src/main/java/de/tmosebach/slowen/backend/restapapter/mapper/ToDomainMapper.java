@@ -64,7 +64,7 @@ public class ToDomainMapper {
 		case Versicherung:
 			
 			Versicherung versicherung = new Versicherung();
-			versicherung.setNummer(null);
+			versicherung.setNummer(apiKonto.getNummer());
 			result = versicherung;
 			
 			break;
@@ -75,7 +75,11 @@ public class ToDomainMapper {
 		result.setId(stringToId(apiKonto.getId()));
 		result.setName(apiKonto.getName());
 		result.setBilanzTyp( apiBilanzTypToDomainBilanzTyp(apiKonto.getBilanzTyp()));
-		result.setSaldo(apiKonto.getSaldo());
+		if (isNull(apiKonto.getSaldo())) {
+			result.setSaldo(BigDecimal.ZERO);
+		} else {
+			result.setSaldo(apiKonto.getSaldo());
+		}
 		return result;
 	}
 

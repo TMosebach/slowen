@@ -179,10 +179,17 @@ public class BuchhaltungServiceJpa implements BuchhaltungService {
 	}
 	
 	@Override
-	public Page<Buchung> findBuchungenByKonto(Long id, int number, int size) {
+	public de.tmosebach.slowen.backend.domain.Page<Buchung> findBuchungenByKonto(Long id, int number, int size) {
 		Pageable pageable = PageRequest.of((int)number, (int)size);
 		Page<Buchung> page = buchungRepository.findByKonto(id, pageable);
-		return page;
+		
+		return new de.tmosebach.slowen.backend.domain.Page<Buchung>(
+				page.getContent(), 
+				page.getTotalPages(),
+				page.getTotalElements(),
+				page.getSize(),
+				page.getNumber()
+			);
 	}
 	
 	@Override

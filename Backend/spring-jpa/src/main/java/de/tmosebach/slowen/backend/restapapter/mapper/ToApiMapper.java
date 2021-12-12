@@ -13,6 +13,7 @@ import de.tmosebach.slowen.backend.domain.BuchungArt;
 import de.tmosebach.slowen.backend.domain.Depot;
 import de.tmosebach.slowen.backend.domain.Konto;
 import de.tmosebach.slowen.backend.domain.Kreditkarte;
+import de.tmosebach.slowen.backend.domain.Page;
 import de.tmosebach.slowen.backend.domain.Umsatz;
 import de.tmosebach.slowen.backend.domain.Versicherung;
 import de.tmosebach.slowen.backend.restapapter.ApiAsset;
@@ -22,6 +23,7 @@ import de.tmosebach.slowen.backend.restapapter.ApiBuchung;
 import de.tmosebach.slowen.backend.restapapter.ApiBuchungArt;
 import de.tmosebach.slowen.backend.restapapter.ApiKonto;
 import de.tmosebach.slowen.backend.restapapter.ApiKontoTyp;
+import de.tmosebach.slowen.backend.restapapter.ApiPage;
 import de.tmosebach.slowen.backend.restapapter.ApiUmsatz;
 
 public class ToApiMapper {
@@ -184,5 +186,14 @@ public class ToApiMapper {
 			return ApiBuchungArt.valueOf(art.toString());
 		}
 		return null;
+	}
+
+	public static ApiPage<ApiBuchung> pageToApiPage(Page<Buchung> page) {
+		return new ApiPage<>(
+				ToApiMapper.buchungListToApiList(page.getContent()),
+				page.getTotalPages(),
+				page.getTotalElements(),
+				page.getSize(),
+				page.getNumber());
 	}
 }

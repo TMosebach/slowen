@@ -2,8 +2,6 @@ package de.tmosebach.slowen.backend.domain;
 
 import java.util.List;
 
-import org.springframework.data.domain.Page;
-
 public interface BuchhaltungService {
 
 	List<Konto> findKonten();

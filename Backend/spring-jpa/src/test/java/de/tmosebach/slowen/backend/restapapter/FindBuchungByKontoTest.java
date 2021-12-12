@@ -15,10 +15,6 @@ import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
 import org.springframework.boot.test.mock.mockito.MockBean;
-import org.springframework.data.domain.Page;
-import org.springframework.data.domain.PageImpl;
-import org.springframework.data.domain.PageRequest;
-import org.springframework.data.domain.Pageable;
 import org.springframework.http.MediaType;
 import org.springframework.test.web.servlet.MockMvc;
 
@@ -28,6 +24,7 @@ import de.tmosebach.slowen.backend.domain.Buchung;
 import de.tmosebach.slowen.backend.domain.BuchungArt;
 import de.tmosebach.slowen.backend.domain.Depot;
 import de.tmosebach.slowen.backend.domain.Konto;
+import de.tmosebach.slowen.backend.domain.Page;
 import de.tmosebach.slowen.backend.domain.Umsatz;
 
 @WebMvcTest
@@ -36,7 +33,8 @@ public class FindBuchungByKontoTest {
 	private static final Long KTO_ID = 4711L;
 	private static final Integer PAGE_NUMMER = 1;
 	private static final Integer PAGE_SIZE = 20;
-	private static final Integer TOTAL_COUNT = 1;
+	private static final Long TOTAL_ELEMENTS = 1L;
+	private static final Integer TOTAL_PAGES = 2;
 	private static final LocalDate VALUTA = LocalDate.of(2021, 10, 10);
 	
 	@Autowired
@@ -73,9 +71,8 @@ public class FindBuchungByKontoTest {
 		buchung.setArt(BuchungArt.Kauf);
 		buchung.setVerwendung("Aktienkauf");
 		buchung.setUmsaetze( Arrays.asList( kontoUmsatz, depotUmsatz ));
-		
-		Pageable pageable = PageRequest.of(PAGE_NUMMER, PAGE_SIZE);
-		Page<Buchung> page = new PageImpl<>(Arrays.asList(buchung), pageable, TOTAL_COUNT);
+
+		Page<Buchung> page = new Page<>(Arrays.asList(buchung), TOTAL_PAGES, TOTAL_ELEMENTS, PAGE_SIZE, PAGE_NUMMER);
 		
 		when(serviceMock.findBuchungenByKonto(KTO_ID, PAGE_NUMMER, PAGE_SIZE))
 		.thenReturn(page);

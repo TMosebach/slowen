@@ -3,10 +3,6 @@ package de.tmosebach.slowen.backend.restapapter;
 import java.net.URI;
 import java.util.List;
 
-import org.springframework.data.domain.Page;
-import org.springframework.data.domain.PageImpl;
-import org.springframework.data.domain.PageRequest;
-import org.springframework.data.domain.Pageable;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
@@ -20,6 +16,7 @@ import de.tmosebach.slowen.backend.domain.Asset;
 import de.tmosebach.slowen.backend.domain.BuchhaltungService;
 import de.tmosebach.slowen.backend.domain.Buchung;
 import de.tmosebach.slowen.backend.domain.Konto;
+import de.tmosebach.slowen.backend.domain.Page;
 import de.tmosebach.slowen.backend.restapapter.mapper.ToApiMapper;
 import de.tmosebach.slowen.backend.restapapter.mapper.ToDomainMapper;
 
@@ -59,18 +56,14 @@ public class BuchhaltungController {
 	}
 
 	@GetMapping("buchungen/konto/{id}")
-	public Page<ApiBuchung> findBuchungenByKonto(
+	public ApiPage<ApiBuchung> findBuchungenByKonto(
 			@PathVariable Long id, 
 			@RequestParam(name = "number", defaultValue = "1") int number,
 			@RequestParam(name = "size", defaultValue = "20") int size) {
-		
-		// TODO Page ins Lib-neutrale Model übernehmen
-		Pageable pageable = PageRequest.of((int)number, (int)size);
+
 		Page<Buchung> page = service.findBuchungenByKonto(id, number, size);
-		List<ApiBuchung> content = 
-			ToApiMapper.buchungListToApiList(
-					page.getContent());
-		return new PageImpl<>(content, pageable, page.getTotalElements());
+			
+		return ToApiMapper.pageToApiPage(page);
 	}
 
 	@PostMapping("assets")

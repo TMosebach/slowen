@@ -2,7 +2,6 @@ package de.tmosebach.slowen.backend.restapapter;
 
 import static org.hamcrest.Matchers.hasSize;
 import static org.hamcrest.Matchers.is;
-import static org.hamcrest.Matchers.nullValue;
 import static org.mockito.Mockito.when;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.content;
@@ -43,6 +42,7 @@ class FindeKontenTest {
 		bankkonto.setIban("DE4711");
 		bankkonto.setBic("BICXXX");
 		bankkonto.setId(815L);
+		bankkonto.setSaldo(BigDecimal.ZERO);
 		
 		Asset asset = new Asset();
 		asset.setName("Aktie");
@@ -71,8 +71,7 @@ class FindeKontenTest {
                 .andExpect(jsonPath("$[0].bilanzTyp", is("Kontokorrent")))
                 .andExpect(jsonPath("$[0].bic", is("BICXXX")))
                 .andExpect(jsonPath("$[0].iban", is("DE4711")))
-                
-                .andExpect(jsonPath("$[1].bic", nullValue()))
+
                 .andExpect(jsonPath("$[1].nummer", is("4712")))
                 .andExpect(jsonPath("$[1].bestaende[0].id", is("817")))
                 .andExpect(jsonPath("$[1].bestaende[0].asset.id", is("816")))
