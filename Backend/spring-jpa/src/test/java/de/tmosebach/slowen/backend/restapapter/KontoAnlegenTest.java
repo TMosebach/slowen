@@ -1,29 +1,18 @@
 package de.tmosebach.slowen.backend.restapapter;
 
-import static org.mockito.Mockito.*;
-
-import static org.hamcrest.Matchers.hasSize;
 import static org.hamcrest.Matchers.is;
-import static org.hamcrest.Matchers.nullValue;
+import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.when;
-import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
-import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.content;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 
-import java.math.BigDecimal;
-import java.util.Arrays;
-
 import org.junit.jupiter.api.Test;
-import static org.junit.jupiter.api.Assertions.*;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
 import org.springframework.boot.test.mock.mockito.MockBean;
-import org.springframework.http.MediaType;
 import org.springframework.test.web.servlet.MockMvc;
 
-import de.tmosebach.slowen.backend.domain.Asset;
 import de.tmosebach.slowen.backend.domain.Bankkonto;
-import de.tmosebach.slowen.backend.domain.Bestand;
 import de.tmosebach.slowen.backend.domain.BilanzTyp;
 import de.tmosebach.slowen.backend.domain.BuchhaltungService;
 import de.tmosebach.slowen.backend.domain.Depot;

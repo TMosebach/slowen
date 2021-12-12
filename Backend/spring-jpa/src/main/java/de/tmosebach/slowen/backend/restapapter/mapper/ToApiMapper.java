@@ -1,29 +1,35 @@
 package de.tmosebach.slowen.backend.restapapter.mapper;
 
+import static java.util.stream.Collectors.toList;
 import static java.util.Objects.*;
 import java.util.List;
-import java.util.stream.Collectors;
 
 import de.tmosebach.slowen.backend.domain.Asset;
 import de.tmosebach.slowen.backend.domain.Bankkonto;
 import de.tmosebach.slowen.backend.domain.Bestand;
 import de.tmosebach.slowen.backend.domain.BilanzTyp;
+import de.tmosebach.slowen.backend.domain.Buchung;
+import de.tmosebach.slowen.backend.domain.BuchungArt;
 import de.tmosebach.slowen.backend.domain.Depot;
 import de.tmosebach.slowen.backend.domain.Konto;
 import de.tmosebach.slowen.backend.domain.Kreditkarte;
+import de.tmosebach.slowen.backend.domain.Umsatz;
 import de.tmosebach.slowen.backend.domain.Versicherung;
 import de.tmosebach.slowen.backend.restapapter.ApiAsset;
 import de.tmosebach.slowen.backend.restapapter.ApiBestand;
 import de.tmosebach.slowen.backend.restapapter.ApiBilanzTyp;
+import de.tmosebach.slowen.backend.restapapter.ApiBuchung;
+import de.tmosebach.slowen.backend.restapapter.ApiBuchungArt;
 import de.tmosebach.slowen.backend.restapapter.ApiKonto;
 import de.tmosebach.slowen.backend.restapapter.ApiKontoTyp;
+import de.tmosebach.slowen.backend.restapapter.ApiUmsatz;
 
 public class ToApiMapper {
 
 	public static List<ApiKonto> kontoListToApiKontoList(List<Konto> kontoList) {
 		return kontoList.stream()
 				.map( konto -> kontoToApiKonto(konto))
-				.collect(Collectors.toList());
+				.collect(toList());
 	}
 
 	public static ApiKonto kontoToApiKonto(Konto konto) {
@@ -80,7 +86,7 @@ public class ToApiMapper {
 	private static List<ApiBestand> bestandListeToApiBestandListe(List<Bestand> bestaende) {
 		return bestaende.stream()
 				.map( bestand -> bestandToApiBestand(bestand))
-				.collect(Collectors.toList());
+				.collect(toList());
 	}
 
 	private static ApiBestand bestandToApiBestand(Bestand bestand) {
@@ -92,11 +98,14 @@ public class ToApiMapper {
 		return apiBestand;
 	}
 
-	private static ApiAsset assetToApiAsset(Asset asset) {
-		ApiAsset apiAsset = new ApiAsset();
-		apiAsset.setId(idToString(asset.getId()));
-		apiAsset.setName(asset.getName());
-		return apiAsset;
+	public static ApiAsset assetToApiAsset(Asset asset) {
+		if (nonNull(asset)) {
+			ApiAsset apiAsset = new ApiAsset();
+			apiAsset.setId(idToString(asset.getId()));
+			apiAsset.setName(asset.getName());
+			return apiAsset;
+		}
+		return null;
 	}
 
 	private static ApiKontoTyp getApiKontoTyp(Konto konto) {
@@ -120,5 +129,60 @@ public class ToApiMapper {
 			return null;
 		}
 		return ApiBilanzTyp.valueOf(bilanzTyp.toString());
+	}
+
+	public static List<ApiAsset> assetListToApiAssetlist(List<Asset> assetList) {
+		return assetList.stream()
+				.map( asset -> assetToApiAsset(asset))
+				.collect(toList());
+	}
+
+	public static List<ApiBuchung> buchungListToApiList(List<Buchung> buchungList) {
+		return buchungList.stream()
+				.map( buchung -> buchungToApiBuchung(buchung))
+				.collect(toList());
+	}
+	
+	public static ApiBuchung buchungToApiBuchung(Buchung buchung) {
+		ApiBuchung apiBuchung = new ApiBuchung();
+		apiBuchung.setArt(buchungArtToApiBuchungArt(buchung.getArt()));
+		apiBuchung.setEmpfaenger(buchung.getEmpfaenger());
+		apiBuchung.setId(idToString(buchung.getId()));
+		apiBuchung.setVerwendung(buchung.getVerwendung());
+		
+		apiBuchung.setUmsaetze(umsatzListToApiUmsatzListe(buchung.getUmsaetze()));
+		
+		return apiBuchung;
+	}
+
+	private static List<ApiUmsatz> umsatzListToApiUmsatzListe(List<Umsatz> umsatzList) {
+		return umsatzList.stream()
+				.map( umsatz -> umsatzToApiUmsatz(umsatz) )
+				.collect(toList());
+	}
+
+	private static ApiUmsatz umsatzToApiUmsatz(Umsatz umsatz) {
+		ApiUmsatz apiUmsatz = new ApiUmsatz();
+		apiUmsatz.setAsset(assetToApiAsset(umsatz.getAsset()));
+		apiUmsatz.setBetrag(umsatz.getBetrag());
+		apiUmsatz.setId(idToString(umsatz.getId()));
+		apiUmsatz.setKonto(kontoToApiKontoRef(umsatz.getKonto()));
+		apiUmsatz.setMenge(umsatz.getMenge());
+		apiUmsatz.setValuta(umsatz.getValuta());
+		return apiUmsatz;
+	}
+
+	private static ApiKonto kontoToApiKontoRef(Konto konto) {
+		ApiKonto apiKonto = new ApiKonto();
+		apiKonto.setId(idToString(konto.getId()));
+		apiKonto.setName(konto.getName());
+		return apiKonto;
+	}
+
+	private static ApiBuchungArt buchungArtToApiBuchungArt(BuchungArt art) {
+		if (nonNull(art)) {
+			return ApiBuchungArt.valueOf(art.toString());
+		}
+		return null;
 	}
 }

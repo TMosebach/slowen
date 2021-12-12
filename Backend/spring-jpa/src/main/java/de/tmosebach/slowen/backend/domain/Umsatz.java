@@ -21,7 +21,6 @@ public class Umsatz {
 	private Long id;
 	private BigDecimal betrag;
 	private LocalDate valuta;
-	
 	private BigDecimal menge;
 	
 	@OneToOne

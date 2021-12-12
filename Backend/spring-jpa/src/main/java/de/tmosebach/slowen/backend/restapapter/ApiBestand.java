@@ -1,7 +1,12 @@
 package de.tmosebach.slowen.backend.restapapter;
 
+import static com.fasterxml.jackson.annotation.JsonInclude.Include.NON_NULL;
+
 import java.math.BigDecimal;
 
+import com.fasterxml.jackson.annotation.JsonInclude;
+
+@JsonInclude(NON_NULL)
 public class ApiBestand {
 
 	private String id;

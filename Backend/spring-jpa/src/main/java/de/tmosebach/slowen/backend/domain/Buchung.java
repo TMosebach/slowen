@@ -65,7 +65,7 @@ public class Buchung {
 	}
 	@Override
 	public boolean equals(Object obj) {
-		return EqualsBuilder.reflectionEquals(this, obj);
+		return EqualsBuilder.reflectionEquals(this, obj, "umsaetze", "bestaende", "saldo");
 	}
 	public void addUmsatz(Umsatz umsatz) {
 		umsaetze.add(umsatz);

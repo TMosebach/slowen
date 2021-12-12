@@ -1,15 +1,18 @@
 package de.tmosebach.slowen.backend.restapapter;
 
+import static com.fasterxml.jackson.annotation.JsonInclude.Include.*;
 import java.math.BigDecimal;
 import java.time.LocalDate;
 
+import com.fasterxml.jackson.annotation.JsonInclude;
+
+@JsonInclude(NON_NULL)
 public class ApiUmsatz {
 	private String id;
 	private BigDecimal betrag;
 	private LocalDate valuta;
 	private BigDecimal menge;
 	private ApiAsset asset;
-	private ApiBuchung buchung;
 	private ApiKonto konto;
 	public String getId() {
 		return id;
@@ -40,12 +43,6 @@ public class ApiUmsatz {
 	}
 	public void setAsset(ApiAsset asset) {
 		this.asset = asset;
-	}
-	public ApiBuchung getBuchung() {
-		return buchung;
-	}
-	public void setBuchung(ApiBuchung buchung) {
-		this.buchung = buchung;
 	}
 	public ApiKonto getKonto() {
 		return konto;

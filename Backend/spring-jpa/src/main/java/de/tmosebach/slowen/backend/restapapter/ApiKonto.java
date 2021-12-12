@@ -1,15 +1,20 @@
 package de.tmosebach.slowen.backend.restapapter;
 
+import static com.fasterxml.jackson.annotation.JsonInclude.Include.NON_NULL;
+
 import java.math.BigDecimal;
 import java.util.List;
 
+import com.fasterxml.jackson.annotation.JsonInclude;
+
+@JsonInclude(NON_NULL)
 public class ApiKonto {
 
 	private String id;
 	private String name;
 	private ApiKontoTyp typ;
 	private ApiBilanzTyp bilanzTyp;
-	private BigDecimal saldo = BigDecimal.ZERO;
+	private BigDecimal saldo;
 	private String iban;
 	private String bic;
 	private String bank;

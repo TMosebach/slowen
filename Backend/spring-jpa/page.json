@@ -1,0 +1,53 @@
+{
+	"content": [
+		{
+			"art": "Kauf",
+			"verwendung": "Aktienkauf",
+			"umsaetze": [
+				{
+					"betrag": -10,
+					"valuta": "2021-10-10",
+					"konto": {
+						"name": "Giro"
+					}
+				},
+				{
+					"betrag": 10,
+					"valuta": "2021-10-10",
+					"menge": 1,
+					"asset": {
+						"name": "Aktie"
+					},
+					"konto": {
+						"name": "Depot"
+					}
+				}
+			]
+		}
+	],
+	"pageable": {
+		"sort": {
+			"sorted": false,
+			"empty": true,
+			"unsorted": true
+		},
+		"pageNumber": 1,
+		"pageSize": 20,
+		"offset": 20,
+		"paged": true,
+		"unpaged": false
+	},
+	"last": true,
+	"totalPages": 2,
+	"totalElements": 21,
+	"numberOfElements": 1,
+	"sort": {
+		"sorted": false,
+		"empty": true,
+		"unsorted": true
+	},
+	"first": false,
+	"number": 1,
+	"size": 20,
+	"empty": false
+}
