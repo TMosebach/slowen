@@ -1,41 +1,27 @@
 package de.tmosebach.slowen.backend.domain;
 
-import java.math.BigDecimal;
 import java.util.List;
+import java.util.Optional;
 
-import javax.persistence.CascadeType;
-import javax.persistence.Column;
 import javax.persistence.Entity;
-import javax.persistence.FetchType;
-import javax.persistence.GeneratedValue;
 import javax.persistence.Id;
-import javax.persistence.JoinColumn;
-import javax.persistence.OneToMany;
 
 import org.apache.commons.lang3.builder.EqualsBuilder;
 import org.apache.commons.lang3.builder.HashCodeBuilder;
+
+import de.tmosebach.slowen.backend.values.Betrag;
 
 @Entity
 public class Konto {
 
 	@Id
-	@GeneratedValue
-	private Long id;
-	
-	@Column(unique = true)
 	private String name;
-	private BilanzTyp bilanzTyp;
-	private BigDecimal saldo = BigDecimal.ZERO;
-	
-	@OneToMany(cascade = CascadeType.ALL, fetch = FetchType.LAZY)
-	@JoinColumn(name = "konto_id")
-	private List<Umsatz> umsaetze;
-	
-	public Long getId() {
-		return id;
-	}
-	public void setId(Long id) {
-		this.id = id;
+	private Betrag saldo = Betrag.ZERO;
+	private transient List<Bestand> bestaende;
+
+	public Konto() {}
+	public Konto(String name) {
+		this.name = name;
 	}
 	public String getName() {
 		return name;
@@ -43,23 +29,24 @@ public class Konto {
 	public void setName(String name) {
 		this.name = name;
 	}
-	public BilanzTyp getBilanzTyp() {
-		return bilanzTyp;
-	}
-	public void setBilanzTyp(BilanzTyp bilanzTyp) {
-		this.bilanzTyp = bilanzTyp;
-	}
-	public BigDecimal getSaldo() {
+	public Betrag getSaldo() {
 		return saldo;
 	}
-	public void setSaldo(BigDecimal saldo) {
+	public void setSaldo(Betrag saldo) {
 		this.saldo = saldo;
 	}
-	public List<Umsatz> getUmsaetze() {
-		return umsaetze;
+	public List<Bestand> getBestaende() {
+		return bestaende;
 	}
-	public void setUmsaetze(List<Umsatz> umsaetze) {
-		this.umsaetze = umsaetze;
+	public void setBestaende(List<Bestand> bestaende) {
+		this.bestaende = bestaende;
+	}
+	public void addBestand(Bestand bestand) {
+		this.bestaende.add(bestand);
+	}
+	
+	public Optional<Bestand> getBestandByAssetName(String assetName) {
+		return bestaende.stream().filter( bestand -> assetName.equals(bestand.getAssetName())).findFirst();
 	}
 	@Override
 	public int hashCode() {

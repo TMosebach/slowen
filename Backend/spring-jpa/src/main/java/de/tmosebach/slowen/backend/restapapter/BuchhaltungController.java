@@ -2,83 +2,83 @@ package de.tmosebach.slowen.backend.restapapter;
 
 import java.net.URI;
 import java.util.List;
+import java.util.Optional;
+import java.util.Set;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.http.ResponseEntity;
+import org.springframework.web.bind.annotation.CrossOrigin;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
-import de.tmosebach.slowen.backend.domain.Asset;
-import de.tmosebach.slowen.backend.domain.BuchhaltungService;
 import de.tmosebach.slowen.backend.domain.Buchung;
 import de.tmosebach.slowen.backend.domain.Konto;
-import de.tmosebach.slowen.backend.domain.Page;
-import de.tmosebach.slowen.backend.restapapter.mapper.ToApiMapper;
-import de.tmosebach.slowen.backend.restapapter.mapper.ToDomainMapper;
+import de.tmosebach.slowen.backend.domain.Asset;
+import de.tmosebach.slowen.backend.domain.BuchhaltungService;
 
 @RestController
+@CrossOrigin
 @RequestMapping("api/buchhaltung")
 public class BuchhaltungController {
 	
-	private BuchhaltungService service;
+	private static final Logger LOG = LoggerFactory.getLogger(BuchhaltungController.class);
+	
+	private BuchhaltungService buchungService;
 
-	public BuchhaltungController(BuchhaltungService service) {
-		this.service = service;
-	}
-
-	@GetMapping("konten")
-	public ResponseEntity<List<ApiKonto>> findKonten() {
-		return ResponseEntity.ok(
-				ToApiMapper.kontoListToApiKontoList(
-						service.findKonten()));
-	}
-
-	@PostMapping("konten")
-	public ResponseEntity<ApiKonto> kontoAnlegen(@RequestBody ApiKonto apiKonto) {
-		Konto konto = service.kontoAnlegen(ToDomainMapper.apiKontoToKonto(apiKonto));
-		
-		return ResponseEntity
-				.created(URI.create("api/buchhaltung/konten/"+konto.getId()))
-				.body(ToApiMapper.kontoToApiKonto(konto));
+	public BuchhaltungController(BuchhaltungService buchungService) {
+		this.buchungService = buchungService;
 	}
 
 	@PostMapping("buchungen")
-	public ResponseEntity<ApiBuchung> buchen(@RequestBody ApiBuchung apiBuchung) {
-		Buchung buchung = service.buchen(ToDomainMapper.apiBuchungToBuchung(apiBuchung));
-		
+	public ResponseEntity<ApiBuchung> buche(@RequestBody ApiBuchung apiBuchung) {
+		Buchung buchung = 
+			buchungService.buche(
+					Api2DomainMapper.apiBuchung2Buchung(apiBuchung));
 		return ResponseEntity
-				.created(URI.create("api/buchhaltung/buchungen/"+buchung.getId()))
-				.body(ToApiMapper.buchungToApiBuchung(buchung));
+				.created(URI.create("api/buchhaltung/buchung/"+buchung.hashCode()))
+				.body(Domain2ApiMapper.buchung2ApiBuchung(buchung));
 	}
-
-	@GetMapping("buchungen/konto/{id}")
-	public ApiPage<ApiBuchung> findBuchungenByKonto(
-			@PathVariable Long id, 
-			@RequestParam(name = "number", defaultValue = "1") int number,
-			@RequestParam(name = "size", defaultValue = "20") int size) {
-
-		Page<Buchung> page = service.findBuchungenByKonto(id, number, size);
-			
-		return ToApiMapper.pageToApiPage(page);
-	}
-
-	@PostMapping("assets")
-	public ResponseEntity<ApiAsset> neuesAsset(@RequestBody ApiAsset apiAsset) {
-		Asset asset = service.assetAnlegen(ToDomainMapper.apiAssetToAsset(apiAsset));
+	
+	@GetMapping("buchungen/{name}")
+	public ResponseEntity<List<ApiBuchung>> getBuchungen4Konto(@PathVariable String name) {
+		LOG.debug("getBuchungen4Konto({})", name);
 		
-		return ResponseEntity
-				.created(URI.create("api/buchhaltung/assets/"+asset.getId()))
-				.body(ToApiMapper.assetToApiAsset(asset));
+		List<Buchung> buchungen = buchungService.findBuchungenByKontoname(name);
+		
+		return ResponseEntity.ok(Domain2ApiMapper.buchungList2ApiBuchungList(buchungen));
 	}
-
+	
+	@GetMapping("konten/{name}")
+	public ResponseEntity<ApiKonto> getKontoByName(@PathVariable String name) {
+		
+		LOG.debug("Lese Konto {}", name);
+		
+		Optional<Konto> kontoResult = buchungService.findKontoByName(name);
+		if (kontoResult.isPresent()) {
+			return ResponseEntity.ok(Domain2ApiMapper.konto2ApiKonto(kontoResult.get()));
+		}
+		return ResponseEntity.notFound().build();
+	}
+	
+	@GetMapping("konten")
+	public ResponseEntity<List<ApiKonto>> getKonten() {
+		
+		LOG.debug("Lese Konten.");
+		
+		List<Konto> kontorahmen = buchungService.getKontorahmen();
+		return ResponseEntity.ok(Domain2ApiMapper.kontoList2ApiKontoList(kontorahmen));
+	}
+	
 	@GetMapping("assets")
-	public ResponseEntity<List<ApiAsset>> findAssets() {
-		return ResponseEntity.ok(
-				ToApiMapper.assetListToApiAssetlist(
-						service.findAssets()));
+	public ResponseEntity<List<ApiAsset>> getAssets() {
+		LOG.debug("Lese Assets.");
+		
+		Set<Asset> assetList = buchungService.getAssets();
+		return ResponseEntity.ok(Domain2ApiMapper.assetList2ApiAssetList(assetList));
 	}
 }

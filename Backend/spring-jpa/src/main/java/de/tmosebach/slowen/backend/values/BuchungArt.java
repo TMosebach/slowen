@@ -1,4 +1,4 @@
-package de.tmosebach.slowen.backend.domain;
+package de.tmosebach.slowen.backend.values;
 
 public enum BuchungArt {
 	/**

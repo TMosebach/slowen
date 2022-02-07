@@ -1,24 +1,44 @@
 package de.tmosebach.slowen.backend.restapapter;
 
-import static com.fasterxml.jackson.annotation.JsonInclude.Include.NON_NULL;
+import java.util.Objects;
 
-import com.fasterxml.jackson.annotation.JsonInclude;
-
-@JsonInclude(NON_NULL)
 public class ApiAsset {
 
-	private String id;
+	public ApiAsset() {}
+	
+	public ApiAsset(String name) {
+		this.name = name;
+	}
+
 	private String name;
-	public String getId() {
-		return id;
-	}
-	public void setId(String id) {
-		this.id = id;
-	}
+
 	public String getName() {
 		return name;
 	}
+
 	public void setName(String name) {
 		this.name = name;
+	}
+
+	@Override
+	public String toString() {
+		return "ApiAsset [name=" + name + "]";
+	}
+
+	@Override
+	public int hashCode() {
+		return Objects.hash(name);
+	}
+
+	@Override
+	public boolean equals(Object obj) {
+		if (this == obj)
+			return true;
+		if (obj == null)
+			return false;
+		if (getClass() != obj.getClass())
+			return false;
+		ApiAsset other = (ApiAsset) obj;
+		return Objects.equals(name, other.name);
 	}
 }

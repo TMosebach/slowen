@@ -1,10 +1,13 @@
 package de.tmosebach.slowen.backend.domain;
 
+import java.time.LocalDate;
 import java.util.ArrayList;
 import java.util.List;
 
 import javax.persistence.CascadeType;
 import javax.persistence.Entity;
+import javax.persistence.EnumType;
+import javax.persistence.Enumerated;
 import javax.persistence.FetchType;
 import javax.persistence.GeneratedValue;
 import javax.persistence.Id;
@@ -14,6 +17,8 @@ import javax.persistence.OneToMany;
 import org.apache.commons.lang3.builder.EqualsBuilder;
 import org.apache.commons.lang3.builder.HashCodeBuilder;
 
+import de.tmosebach.slowen.backend.values.BuchungArt;
+
 @Entity
 public class Buchung {
 
@@ -21,8 +26,10 @@ public class Buchung {
 	@GeneratedValue
 	private Long id;
 	
+	@Enumerated(EnumType.STRING)
 	private BuchungArt art = BuchungArt.Buchung;
-	private String verwendung;
+	private LocalDate datum;
+	private String beschreibung;
 	private String empfaenger;
 	
 	@OneToMany(cascade = CascadeType.ALL, fetch = FetchType.EAGER)
@@ -35,17 +42,23 @@ public class Buchung {
 	public void setId(Long id) {
 		this.id = id;
 	}
+	public LocalDate getDatum() {
+		return datum;
+	}
+	public void setDatum(LocalDate datum) {
+		this.datum = datum;
+	}
 	public BuchungArt getArt() {
 		return art;
 	}
 	public void setArt(BuchungArt art) {
 		this.art = art;
 	}
-	public String getVerwendung() {
-		return verwendung;
+	public String getBeschreibung() {
+		return beschreibung;
 	}
-	public void setVerwendung(String verwendung) {
-		this.verwendung = verwendung;
+	public void setBeschreibung(String beschreibung) {
+		this.beschreibung = beschreibung;
 	}
 	public String getEmpfaenger() {
 		return empfaenger;

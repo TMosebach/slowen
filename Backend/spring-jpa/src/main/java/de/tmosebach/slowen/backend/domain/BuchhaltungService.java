@@ -1,18 +1,18 @@
 package de.tmosebach.slowen.backend.domain;
 
 import java.util.List;
+import java.util.Optional;
+import java.util.Set;
 
 public interface BuchhaltungService {
 
-	List<Konto> findKonten();
+	Buchung buche(Buchung apiBuchung2Buchung);
 
-	Konto kontoAnlegen(Konto konto);
+	List<Buchung> findBuchungenByKontoname(String name);
 
-	Buchung buchen(Buchung buchung);
+	Optional<Konto> findKontoByName(String name);
 
-	Page<Buchung> findBuchungenByKonto(Long id, int number, int size);
+	List<Konto> getKontorahmen();
 
-	Asset assetAnlegen(Asset asset);
-
-	List<Asset> findAssets();
+	Set<Asset> getAssets();
 }

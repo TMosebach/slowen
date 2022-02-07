@@ -1,5 +1,6 @@
 package de.tmosebach.slowen.backend.domain;
 
+import java.util.List;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
@@ -22,6 +23,9 @@ public interface BuchungRepository extends JpaRepository<Buchung, Long>{
 	 */
 	@Query("select b from Buchung b join b.umsaetze u where u.konto.id = :kontoId order by u.valuta desc, b.id desc ")
 	Page<Buchung> findByKonto(Long kontoId, Pageable pageable );
+	
+	@Query("select b from Buchung b join b.umsaetze u order by b.datum asc, u.valuta asc ")
+	List<Buchung> findBuchungen();
 
 	@Query("select count(b) from Buchung b join b.umsaetze u where u.konto.id = :kontoId")
 	int countKontoBuchungenByKonto(Long kontoId);

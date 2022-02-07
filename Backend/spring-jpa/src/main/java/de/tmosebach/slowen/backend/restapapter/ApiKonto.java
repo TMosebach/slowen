@@ -1,90 +1,55 @@
 package de.tmosebach.slowen.backend.restapapter;
 
-import static com.fasterxml.jackson.annotation.JsonInclude.Include.NON_NULL;
+import java.util.Objects;
 
-import java.math.BigDecimal;
-import java.util.List;
+import de.tmosebach.slowen.backend.values.Betrag;
 
-import com.fasterxml.jackson.annotation.JsonInclude;
-
-@JsonInclude(NON_NULL)
 public class ApiKonto {
 
-	private String id;
 	private String name;
-	private ApiKontoTyp typ;
-	private ApiBilanzTyp bilanzTyp;
-	private BigDecimal saldo;
-	private String iban;
-	private String bic;
-	private String bank;
-	private String nummer;
-	private String gueltigBis;
-	private List<ApiBestand> bestaende;
-	public String getId() {
-		return id;
+	private Betrag saldo;
+
+	public ApiKonto() {}
+	
+	public ApiKonto(String name) {
+		this.name = name;
 	}
-	public void setId(String id) {
-		this.id = id;
-	}
+
 	public String getName() {
 		return name;
 	}
+
 	public void setName(String name) {
 		this.name = name;
 	}
-	public ApiKontoTyp getTyp() {
-		return typ;
-	}
-	public void setTyp(ApiKontoTyp typ) {
-		this.typ = typ;
-	}
-	public ApiBilanzTyp getBilanzTyp() {
-		return bilanzTyp;
-	}
-	public void setBilanzTyp(ApiBilanzTyp bilanzTyp) {
-		this.bilanzTyp = bilanzTyp;
-	}
-	public BigDecimal getSaldo() {
+
+	public Betrag getSaldo() {
 		return saldo;
 	}
-	public void setSaldo(BigDecimal saldo) {
+
+	public void setSaldo(Betrag saldo) {
 		this.saldo = saldo;
 	}
-	public String getIban() {
-		return iban;
+
+	@Override
+	public String toString() {
+		return "ApiKonto [name=" + name + "]";
 	}
-	public void setIban(String iban) {
-		this.iban = iban;
+
+	@Override
+	public int hashCode() {
+		return Objects.hash(name);
 	}
-	public String getBic() {
-		return bic;
-	}
-	public void setBic(String bic) {
-		this.bic = bic;
-	}
-	public String getBank() {
-		return bank;
-	}
-	public void setBank(String bank) {
-		this.bank = bank;
-	}
-	public String getNummer() {
-		return nummer;
-	}
-	public void setNummer(String nummer) {
-		this.nummer = nummer;
-	}
-	public String getGueltigBis() {
-		return gueltigBis;
-	}
-	public void setGueltigBis(String gueltigBis) {
-		this.gueltigBis = gueltigBis;
-	}
-	public List<ApiBestand> getBestaende() {
-		return bestaende;
-	}
-	public void setBestaende(List<ApiBestand> bestaende) {
-		this.bestaende = bestaende;
+
+	@Override
+	public boolean equals(Object obj) {
+		if (this == obj)
+			return true;
+		if (obj == null)
+			return false;
+		if (getClass() != obj.getClass())
+			return false;
+		ApiKonto other = (ApiKonto) obj;
+		return Objects.equals(name, other.name);
 	}
 }

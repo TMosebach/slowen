@@ -1,64 +1,66 @@
 package de.tmosebach.slowen.backend.domain;
 
-import java.math.BigDecimal;
+import static java.util.Objects.nonNull;
 
-import javax.persistence.Entity;
-import javax.persistence.GeneratedValue;
-import javax.persistence.Id;
-import javax.persistence.OneToOne;
+import java.util.Objects;
 
-import org.apache.commons.lang3.builder.EqualsBuilder;
-import org.apache.commons.lang3.builder.HashCodeBuilder;
+import de.tmosebach.slowen.backend.values.Menge;
 
-@Entity
 public class Bestand {
-
-	@Id
-	@GeneratedValue
-	private Long id;
 	
-	@OneToOne
 	private Asset asset;
-	private BigDecimal wert;
-	private BigDecimal menge;
-	
-	public Long getId() {
-		return id;
+	private Menge menge = Menge.NULL_MENGE;
+
+	public Bestand(Asset asset) {
+		this.asset = asset;
 	}
 
-	public void setId(Long id) {
-		this.id = id;
+	public String getAssetName() {
+		if (nonNull(asset)) {
+			return asset.getName();
+		}
+		return null;
 	}
-	
+
 	public Asset getAsset() {
 		return asset;
 	}
-	
+
 	public void setAsset(Asset asset) {
 		this.asset = asset;
 	}
 
-	public BigDecimal getWert() {
-		return wert;
-	}
-
-	public void setWert(BigDecimal wert) {
-		this.wert = wert;
-	}
-
-	public BigDecimal getMenge() {
+	public Menge getMenge() {
 		return menge;
 	}
-	
-	public void setMenge(BigDecimal menge) {
+
+	public void setMenge(Menge menge) {
 		this.menge = menge;
 	}
+
 	@Override
 	public int hashCode() {
-		return HashCodeBuilder.reflectionHashCode(this);
+		return Objects.hash(asset);
 	}
+
 	@Override
 	public boolean equals(Object obj) {
-		return EqualsBuilder.reflectionEquals(this, obj);
+		if (this == obj)
+			return true;
+		if (obj == null)
+			return false;
+		if (getClass() != obj.getClass())
+			return false;
+		Bestand other = (Bestand) obj;
+		return Objects.equals(asset, other.asset);
+	}
+
+	@Override
+	public String toString() {
+		return "Bestand [asset=" + asset + ", menge=" + menge + "]";
+	}
+
+	public void addMenge(Menge menge) {
+		this.menge = this.menge.add(menge);
 	}
 }
