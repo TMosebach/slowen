@@ -1,0 +1,13 @@
+<h2>Konto: <span *ngIf="name$">{{ name$ | async }}</span></h2>
+
+<div *ngIf="konto$ | async as konto">
+    Saldo: <app-betrag-label [betrag]="konto.saldo"></app-betrag-label>
+
+    <div>
+        <a [routerLink]="['../../buchen']">Buchen</a>
+    </div>
+
+    <app-buchung-liste [buchungen$]="buchungen$" [viewKonto]="konto"></app-buchung-liste>
+</div>
+
+<a [routerLink]="['']">Zurück</a>

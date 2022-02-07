@@ -1,0 +1,23 @@
+{
+  "art": "Buchung",
+  "datum": "2021-12-31",
+  "beschreibung": "Eröffnungsbuchung",
+  "umsaetze": [
+    {
+      "konto": "ING-Giro",
+      "valuta": "2021-12-31",
+      "betrag": {
+        "betrag": 3380.90,
+        "waehrung": "EUR"
+      }
+    },
+    {
+      "konto": "Eröffnungskonto",
+      "valuta": "2021-12-31",
+      "betrag": {
+        "betrag": -3380.90,
+        "waehrung": "EUR"
+      }
+    }
+  ]
+}
