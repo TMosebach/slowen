@@ -24,3 +24,4 @@ hs_err_pid*
 /.metadata/
 /code-with-quarkus/
 /code-with-springboot/
+/Backend/spring-jpa/target/
