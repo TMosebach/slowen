@@ -6,6 +6,7 @@ import java.util.Set;
 import java.util.stream.Collectors;
 
 import de.tmosebach.slowen.backend.domain.Asset;
+import de.tmosebach.slowen.backend.domain.Bestand;
 import de.tmosebach.slowen.backend.domain.Buchung;
 import de.tmosebach.slowen.backend.domain.Konto;
 import de.tmosebach.slowen.backend.domain.Umsatz;
@@ -41,7 +42,7 @@ public class Domain2ApiMapper {
 			apiUmsatz.setBetrag(umsatz.getBetrag());
 		}
 		if (nonNull(umsatz.getAsset())) {
-			apiUmsatz.setAsset(asset2ApiAsset(umsatz.getAsset()));
+			apiUmsatz.setAsset(umsatz.getAsset());
 		}
 		if (nonNull(umsatz.getMenge())) {
 			apiUmsatz.setMenge(umsatz.getMenge());
@@ -59,7 +60,22 @@ public class Domain2ApiMapper {
 		ApiKonto apiKonto = new ApiKonto();
 		apiKonto.setName(konto.getName());
 		apiKonto.setSaldo(konto.getSaldo());
+		if (konto.hasBestaende()) {
+			apiKonto.setBestaende(
+				konto.getBestaende().stream()
+				.map(bestand -> bestand2ApiBestand(bestand))
+				.collect(Collectors.toList())
+			);
+		}
 		return apiKonto;
+	}
+
+	private static ApiBestand bestand2ApiBestand(Bestand bestand) {
+		ApiBestand apiBestand = new ApiBestand();
+		apiBestand.setAsset(bestand.getAsset());
+		apiBestand.setEinstandsWert(bestand.getEinstandsWert());
+		apiBestand.setMenge(bestand.getMenge());
+		return apiBestand;
 	}
 
 	public static List<ApiKonto> kontoList2ApiKontoList(List<Konto> kontoList) {

@@ -7,6 +7,6 @@ export interface Umsatz {
     konto: string;
     valuta: string;
     betrag: Betrag;
-    asset?: Asset;
+    asset?: string;
     menge?: Menge;
 }

@@ -1,53 +1,37 @@
-package de.tmosebach.slowen.backend.domain;
+package de.tmosebach.slowen.backend.restapapter;
 
 import java.util.Objects;
 
 import de.tmosebach.slowen.backend.values.Betrag;
 import de.tmosebach.slowen.backend.values.Menge;
 
-public class Bestand {
-	
+public class ApiBestand {
+
 	private String asset;
-	private Menge menge = Menge.NULL_MENGE;
-	private Betrag einstandsWert = Betrag.ZERO;
-
-	public Betrag getEinstandsWert() {
-		return einstandsWert;
-	}
-
-	public void setEinstandsWert(Betrag einstandsWert) {
-		this.einstandsWert = einstandsWert;
-	}
-	
-	public void addEinstandswert(Betrag wert) {
-		einstandsWert = einstandsWert.add(wert);
-	}
-
-	public Bestand(String asset) {
-		this.asset = asset;
-	}
-
+	private Betrag einstandsWert;
+	private Menge menge;
 	public String getAsset() {
 		return asset;
 	}
-
 	public void setAsset(String asset) {
 		this.asset = asset;
 	}
-
+	public Betrag getEinstandsWert() {
+		return einstandsWert;
+	}
+	public void setEinstandsWert(Betrag einstandsWert) {
+		this.einstandsWert = einstandsWert;
+	}
 	public Menge getMenge() {
 		return menge;
 	}
-
 	public void setMenge(Menge menge) {
 		this.menge = menge;
 	}
-
 	@Override
 	public int hashCode() {
 		return Objects.hash(asset);
 	}
-
 	@Override
 	public boolean equals(Object obj) {
 		if (this == obj)
@@ -56,16 +40,11 @@ public class Bestand {
 			return false;
 		if (getClass() != obj.getClass())
 			return false;
-		Bestand other = (Bestand) obj;
+		ApiBestand other = (ApiBestand) obj;
 		return Objects.equals(asset, other.asset);
 	}
-
 	@Override
 	public String toString() {
-		return "Bestand [asset=" + asset + ", menge=" + menge + "]";
-	}
-
-	public void addMenge(Menge menge) {
-		this.menge = this.menge.add(menge);
+		return "ApiBestand [asset=" + asset + ", einstandsWert=" + einstandsWert + ", menge=" + menge + "]";
 	}
 }

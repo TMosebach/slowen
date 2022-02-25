@@ -6,9 +6,13 @@ import static java.math.BigDecimal.valueOf;
 import java.time.LocalDate;
 import java.util.Objects;
 
+import com.fasterxml.jackson.annotation.JsonInclude;
+import com.fasterxml.jackson.annotation.JsonInclude.Include;
+
 import de.tmosebach.slowen.backend.values.Betrag;
 import de.tmosebach.slowen.backend.values.Menge;
 
+@JsonInclude(Include.NON_NULL)
 public class ApiUmsatz {
 	
 	public static class ApiUmsatzBuilder {
@@ -40,8 +44,7 @@ public class ApiUmsatz {
 		}
 
 		public ApiUmsatzBuilder asset(String assetName) {
-			ApiAsset asset = new ApiAsset(assetName);
-			umsatz.setAsset(asset);
+			umsatz.setAsset(assetName);
 			return this;
 		}
 
@@ -55,7 +58,7 @@ public class ApiUmsatz {
 	private String konto;
 	private LocalDate valuta;
 	private Betrag betrag;
-	private ApiAsset asset;
+	private String asset;
 	private Menge menge;
 	
 	public String getKonto() {
@@ -76,10 +79,10 @@ public class ApiUmsatz {
 	public void setBetrag(Betrag betrag) {
 		this.betrag = betrag;
 	}
-	public ApiAsset getAsset() {
+	public String getAsset() {
 		return asset;
 	}
-	public void setAsset(ApiAsset asset) {
+	public void setAsset(String asset) {
 		this.asset = asset;
 	}
 	public Menge getMenge() {

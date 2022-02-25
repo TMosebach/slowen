@@ -13,6 +13,7 @@ import javax.persistence.GeneratedValue;
 import javax.persistence.Id;
 import javax.persistence.JoinColumn;
 import javax.persistence.OneToMany;
+import javax.validation.constraints.NotNull;
 
 import org.apache.commons.lang3.builder.EqualsBuilder;
 import org.apache.commons.lang3.builder.HashCodeBuilder;
@@ -27,6 +28,7 @@ public class Buchung {
 	private Long id;
 	
 	@Enumerated(EnumType.STRING)
+	@NotNull
 	private BuchungArt art = BuchungArt.Buchung;
 	private LocalDate datum;
 	private String beschreibung;

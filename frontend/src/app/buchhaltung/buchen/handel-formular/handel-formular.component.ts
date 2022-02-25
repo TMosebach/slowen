@@ -1,6 +1,7 @@
 import { Component, OnInit } from '@angular/core';
 import { AbstractControl, FormArray, FormBuilder, FormGroup, Validators } from '@angular/forms';
 import { BuchhaltungService } from '../../buchhaltung.service';
+import { transformToBuchung } from './to-buchung-conversion';
 
 @Component({
   selector: 'app-handel-formular',
@@ -45,6 +46,7 @@ export class HandelFormularComponent implements OnInit {
     });
 
     this.buchenForm = this.fb.group({
+      art: [ 'Kauf', Validators.required ],
       datum: [ this.heute() ],
       asset: ['', Validators.required],
       depot: ['', Validators.required],
@@ -90,6 +92,17 @@ export class HandelFormularComponent implements OnInit {
   }
 
   doBuche() {
-    console.log(this.buchenForm?.value);
+    let buchung = transformToBuchung(this.buchenForm?.value);
+    console.log('Buche: ', buchung);
+    this.service.buche(buchung).subscribe( 
+      () => this.clearFormular());
+  }
+
+  private clearFormular(): void {
+    this.buchenForm!.get('beschreibung')?.setValue('');
+    this.buchenForm!.get('empfaenger')?.setValue('');
+
+    this.umsaetze.clear();
+    this.addUmsatz();
   }
 }

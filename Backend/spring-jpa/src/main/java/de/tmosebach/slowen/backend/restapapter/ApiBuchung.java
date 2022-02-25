@@ -5,10 +5,14 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
 
+import com.fasterxml.jackson.annotation.JsonInclude;
+import com.fasterxml.jackson.annotation.JsonInclude.Include;
+
 import de.tmosebach.slowen.backend.Utils;
 import de.tmosebach.slowen.backend.domain.Buchung;
 import de.tmosebach.slowen.backend.values.BuchungArt;
 
+@JsonInclude(Include.NON_NULL)
 public class ApiBuchung {
 	
 	public static class ApiBuchungBuilder extends Buchung {

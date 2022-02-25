@@ -1,5 +1,6 @@
 package de.tmosebach.slowen.backend.domain;
 
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
 
@@ -17,7 +18,7 @@ public class Konto {
 	@Id
 	private String name;
 	private Betrag saldo = Betrag.ZERO;
-	private transient List<Bestand> bestaende;
+	private transient List<Bestand> bestaende = new ArrayList<>();
 
 	public Konto() {}
 	public Konto(String name) {
@@ -44,10 +45,10 @@ public class Konto {
 	public void addBestand(Bestand bestand) {
 		this.bestaende.add(bestand);
 	}
-	
-	public Optional<Bestand> getBestandByAssetName(String assetName) {
-		return bestaende.stream().filter( bestand -> assetName.equals(bestand.getAssetName())).findFirst();
+	public boolean hasBestaende() {
+		return bestaende.size() > 0;
 	}
+	
 	@Override
 	public int hashCode() {
 		return HashCodeBuilder.reflectionHashCode(this);
@@ -55,5 +56,16 @@ public class Konto {
 	@Override
 	public boolean equals(Object obj) {
 		return EqualsBuilder.reflectionEquals(this, obj, "umsaetze");
+	}
+	public Bestand getOrCreateBestand(String assetName) {
+		Optional<Bestand> bestandTreffer = bestaende.stream()
+			.filter( bestand -> assetName.equals(assetName))
+			.findFirst();
+		if (bestandTreffer.isPresent()) {
+			return bestandTreffer.get();
+		}
+		Bestand bestand = new Bestand(assetName);
+		addBestand(bestand);
+		return bestand;
 	}
 }

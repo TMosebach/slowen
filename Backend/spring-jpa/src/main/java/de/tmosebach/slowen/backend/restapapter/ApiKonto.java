@@ -1,13 +1,27 @@
 package de.tmosebach.slowen.backend.restapapter;
 
+import java.util.List;
 import java.util.Objects;
+
+import com.fasterxml.jackson.annotation.JsonInclude;
+import com.fasterxml.jackson.annotation.JsonInclude.Include;
 
 import de.tmosebach.slowen.backend.values.Betrag;
 
+@JsonInclude(Include.NON_NULL)
 public class ApiKonto {
 
 	private String name;
 	private Betrag saldo;
+	private List<ApiBestand> bestaende;
+
+	public List<ApiBestand> getBestaende() {
+		return bestaende;
+	}
+
+	public void setBestaende(List<ApiBestand> bestaende) {
+		this.bestaende = bestaende;
+	}
 
 	public ApiKonto() {}
 	

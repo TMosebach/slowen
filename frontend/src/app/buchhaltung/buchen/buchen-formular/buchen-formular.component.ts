@@ -83,10 +83,6 @@ export class BuchenFormularComponent implements OnInit {
         }
       });
     });
-    
-    console.log('Zu buchen: ', buchung);
-    this.service.buche(buchung).subscribe( 
-      b => this.clearFormular());
   }
 
   private clearFormular(): void {

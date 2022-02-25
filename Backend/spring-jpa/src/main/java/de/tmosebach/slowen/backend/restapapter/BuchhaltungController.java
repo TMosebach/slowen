@@ -36,9 +36,8 @@ public class BuchhaltungController {
 
 	@PostMapping("buchungen")
 	public ResponseEntity<ApiBuchung> buche(@RequestBody ApiBuchung apiBuchung) {
-		Buchung buchung = 
-			buchungService.buche(
-					Api2DomainMapper.apiBuchung2Buchung(apiBuchung));
+		Buchung buchung = Api2DomainMapper.apiBuchung2Buchung(apiBuchung);
+		buchung = buchungService.buche(buchung);
 		return ResponseEntity
 				.created(URI.create("api/buchhaltung/buchung/"+buchung.hashCode()))
 				.body(Domain2ApiMapper.buchung2ApiBuchung(buchung));

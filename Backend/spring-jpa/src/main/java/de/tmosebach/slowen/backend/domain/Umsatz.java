@@ -6,7 +6,6 @@ import javax.persistence.Entity;
 import javax.persistence.GeneratedValue;
 import javax.persistence.Id;
 import javax.persistence.ManyToOne;
-import javax.persistence.OneToOne;
 
 import org.apache.commons.lang3.builder.EqualsBuilder;
 import org.apache.commons.lang3.builder.HashCodeBuilder;
@@ -23,9 +22,8 @@ public class Umsatz {
 	private Betrag betrag;
 	private LocalDate valuta;
 	private Menge menge;
-	
-	@OneToOne
-	private Asset asset;
+
+	private String asset;
 	
 	@ManyToOne
 	private Buchung buchung;
@@ -56,10 +54,10 @@ public class Umsatz {
 	public void setMenge(Menge menge) {
 		this.menge = menge;
 	}
-	public Asset getAsset() {
+	public String getAsset() {
 		return asset;
 	}
-	public void setAsset(Asset asset) {
+	public void setAsset(String asset) {
 		this.asset = asset;
 	}
 	public Buchung getBuchung() {

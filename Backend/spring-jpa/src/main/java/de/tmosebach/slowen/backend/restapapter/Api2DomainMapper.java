@@ -4,7 +4,6 @@ import static java.util.Objects.nonNull;
 import java.util.List;
 import java.util.stream.Collectors;
 
-import de.tmosebach.slowen.backend.domain.Asset;
 import de.tmosebach.slowen.backend.domain.Buchung;
 import de.tmosebach.slowen.backend.domain.Umsatz;
 
@@ -33,15 +32,11 @@ public class Api2DomainMapper {
 		umsatz.setValuta(apiUmsatz.getValuta());
 		umsatz.setBetrag(apiUmsatz.getBetrag());
 		if (nonNull(apiUmsatz.getAsset())) {
-			umsatz.setAsset(apiAsset2Aasset(apiUmsatz.getAsset()));
+			umsatz.setAsset(apiUmsatz.getAsset());
 		}
 		if (nonNull(apiUmsatz.getMenge())) {
 			umsatz.setMenge(apiUmsatz.getMenge());
 		}
 		return umsatz;
-	}
-
-	private static Asset apiAsset2Aasset(ApiAsset apiAsset) {
-		return new Asset(apiAsset.getName());
 	}
 }

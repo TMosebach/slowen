@@ -1,8 +1,9 @@
 package de.tmosebach.slowen.backend.jpaadapter;
 
+import static java.util.Objects.nonNull;
+
 import java.util.ArrayList;
 import java.util.HashMap;
-import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
@@ -14,8 +15,10 @@ import javax.validation.ConstraintViolationException;
 import javax.validation.Validator;
 
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import de.tmosebach.slowen.backend.domain.Asset;
+import de.tmosebach.slowen.backend.domain.Bestand;
 import de.tmosebach.slowen.backend.domain.BuchhaltungService;
 import de.tmosebach.slowen.backend.domain.Buchung;
 import de.tmosebach.slowen.backend.domain.BuchungRepository;
@@ -32,7 +35,7 @@ public class BuchhaltungServiceJpa implements BuchhaltungService {
 	
 	private List<Buchung> buchungen = new ArrayList<>();
 	private Map<String, Konto> kontorahmen = new HashMap<>();
-	private Set<Asset> assets = new HashSet<>();
+	private Map<String, Asset> assets = new HashMap<>();
 
 	public BuchhaltungServiceJpa(
 			Validator validator,
@@ -46,6 +49,7 @@ public class BuchhaltungServiceJpa implements BuchhaltungService {
 		buchungen.forEach( buchung -> buche(buchung));
 	}
 
+	@Transactional
 	public Buchung buche(Buchung buchung) {
 
         Set<ConstraintViolation<Buchung>> violations = validator.validate(buchung);
@@ -67,11 +71,14 @@ public class BuchhaltungServiceJpa implements BuchhaltungService {
         buchungRepository.save(buchung);
         
 		switch (buchung.getArt()) {
-		case Buchung: // TODO zum Pflichtfeld machen
-
-		default:
+		case Buchung: 
 			bucheBuchung(buchung);
 			break;
+		case Kauf:
+			bucheKauf(buchung);
+			break;
+		default:
+			throw new UnsupportedOperationException();
 		}
 		
 		
@@ -81,13 +88,45 @@ public class BuchhaltungServiceJpa implements BuchhaltungService {
 	private void bucheBuchung(Buchung buchung) {
 		buchung.getUmsaetze().stream().forEach( umsatz -> saldoAnpassen( umsatz ));
 	}
+	
+	private void bucheKauf(Buchung buchung) {
+		bucheBuchung(buchung);
+		bucheSkonto(buchung);
+	}
+
+	private void bucheSkonto(Buchung buchung) {
+		Optional<Umsatz> skontroUmsatz = 
+				buchung.getUmsaetze().stream()
+				.filter( umsatz -> nonNull(umsatz.getAsset()) )
+				.findFirst();
+		skontroUmsatz.ifPresentOrElse( 
+				umsatz -> skontroAnpassen(umsatz), 
+				() -> new IllegalArgumentException("Kein Bestands-Umsatz") );
+	}
+
+	/**
+	 * Bestand im Depot anpassen.
+	 * 
+	 * Das Depot ist im Zweifel mit der Saldoanpassung entstanden.
+	 * 
+	 * @param umsatz
+	 */
+	private void skontroAnpassen(Umsatz umsatz) {
+		Optional<Konto> depotOptional = findKontoByName(umsatz.getKonto());
+		Konto depot = depotOptional.get();
+		String assetName = umsatz.getAsset();
+		Bestand bestand = depot.getOrCreateBestand(assetName);
+
+		bestand.addMenge(umsatz.getMenge());
+		bestand.addEinstandswert(umsatz.getBetrag());
+	}
 
 	private void saldoAnpassen(Umsatz umsatz) {
-		Konto konto = getOrCreate(umsatz.getKonto());
+		Konto konto = getOrCreateKonto(umsatz.getKonto());
 		konto.setSaldo( konto.getSaldo().add( umsatz.getBetrag() ));
 	}
 	
-	private Konto getOrCreate(String kontoName) {
+	private Konto getOrCreateKonto(String kontoName) {
 		if (kontorahmen.containsKey(kontoName)) {
 			return kontorahmen.get(kontoName);
 		}
@@ -103,53 +142,6 @@ public class BuchhaltungServiceJpa implements BuchhaltungService {
 		
 		return konto;
 	}
-
-//	private void berechneNeueSalden(Buchung buchung) {
-//		buchung.getUmsaetze().stream().forEach( umsatz -> {
-//			String kontoName = umsatz.getKonto();
-//			Konto konto = null;
-//			if (kontorahmen.containsKey(kontoName)) {
-//				konto = kontorahmen.get(kontoName);
-//			} else {
-//				konto = new Konto(kontoName);
-//				checkPersistenceAndSave(konto);
-//				kontorahmen.put(kontoName, new Konto(kontoName));
-//			}
-//			konto.setSaldo( konto.getSaldo().add(umsatz.getBetrag()) );
-//			
-//			checkAndAddSkontro(konto, umsatz);
-//		});
-//	}
-//
-//	private void checkPersistenceAndSave(Konto konto) {
-//		Optional<Konto> persistentKonto = kontoRepository.findByName(konto.getName());
-//		
-//		if (persistentKonto.isEmpty()) {
-//			kontoRepository.save(konto);
-//		}
-//	}
-//
-//	private void checkAndAddSkontro(Konto konto, Umsatz umsatz) {
-//		Asset asset = umsatz.getAsset();
-//		if (nonNull(asset)) {
-//			
-//			if (!assets.contains(asset)) {
-//				assets.add(asset);
-//			}
-//			
-//			Optional<Bestand> result = konto.getBestandByAssetName(asset.getName());
-//			Bestand bestand = null;
-//			if (result.isPresent()) {
-//				bestand = result.get();
-//			} else {
-//				bestand = new Bestand(asset);
-//				konto.addBestand(bestand);
-//			}
-//			bestand.addMenge(umsatz.getMenge());
-//		}
-//	}
-
-	
 
 	public List<Konto> getKontorahmen() {
 		return new ArrayList<>(kontorahmen.values());
@@ -173,6 +165,8 @@ public class BuchhaltungServiceJpa implements BuchhaltungService {
 	}
 
 	public Set<Asset> getAssets() {
-		return assets;
+		return assets.entrySet().stream()
+				.map( entry -> entry.getValue() )
+				.collect(Collectors.toSet());
 	}
 }
