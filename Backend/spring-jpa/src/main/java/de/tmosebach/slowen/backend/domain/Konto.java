@@ -68,4 +68,7 @@ public class Konto {
 		addBestand(bestand);
 		return bestand;
 	}
+	public void remove(Bestand bestand) {
+		bestaende.remove(bestand);
+	}
 }

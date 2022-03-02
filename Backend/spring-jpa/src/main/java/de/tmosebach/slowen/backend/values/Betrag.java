@@ -1,5 +1,6 @@
 package de.tmosebach.slowen.backend.values;
 
+import static java.math.BigDecimal.valueOf;
 import static java.util.Objects.isNull;
 
 import java.math.BigDecimal;
@@ -67,5 +68,21 @@ public class Betrag {
 			return false;
 		Betrag other = (Betrag) obj;
 		return betrag.compareTo(other.betrag)==0 && Objects.equals(waehrung, other.waehrung);
+	}
+	public Betrag mal(double abgabeAnteil) {
+		return new Betrag(
+				betrag.multiply(valueOf(abgabeAnteil)),
+				waehrung);
+	}
+	public Betrag minus(Betrag abzugebenderWert) {
+		return new Betrag(
+				betrag.subtract(abzugebenderWert.getBetrag()),
+				waehrung);
+	}
+	public boolean isPositiv() {
+		return BigDecimal.ZERO.compareTo(betrag) < 0;
+	}
+	public boolean isNegativ() {
+		return BigDecimal.ZERO.compareTo(betrag) > 0;
 	}
 }

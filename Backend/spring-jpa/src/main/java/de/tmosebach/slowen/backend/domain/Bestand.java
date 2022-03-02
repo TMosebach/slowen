@@ -1,5 +1,6 @@
 package de.tmosebach.slowen.backend.domain;
 
+import java.math.BigDecimal;
 import java.util.Objects;
 
 import de.tmosebach.slowen.backend.values.Betrag;
@@ -67,5 +68,9 @@ public class Bestand {
 
 	public void addMenge(Menge menge) {
 		this.menge = this.menge.add(menge);
+	}
+
+	public boolean isEmpty() {
+		return menge.getMenge().compareTo(BigDecimal.ZERO) == 0;
 	}
 }

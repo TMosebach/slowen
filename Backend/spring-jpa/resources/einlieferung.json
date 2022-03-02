@@ -1,5 +1,5 @@
 {
-	"art": "Kauf",
+	"art": "Einlieferung",
 	"datum": "2022-02-25",
 	"beschreibung": "Kauf Deutsche Telekom AG",
 	"umsaetze": [
@@ -14,22 +14,6 @@
 			"menge": {
 				"menge": 100, 
 				"einheit": "St."
-			}
-		},
-		{
-			"konto": "Provision",
-			"valuta": "2022-02-25",
-			"betrag": {
-				"betrag": 30, 
-				"waehrung": "EUR"
-			}
-		},
-		{
-			"konto": "Giro",
-			"valuta": "2022-02-25",
-			"betrag": {
-				"betrag": -2430, 
-				"waehrung": "EUR"
 			}
 		}
 	]

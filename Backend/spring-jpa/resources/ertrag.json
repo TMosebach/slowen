@@ -1,5 +1,5 @@
 {
-	"art": "Kauf",
+	"art": "Ertrag",
 	"datum": "2022-02-25",
 	"beschreibung": "Kauf Deutsche Telekom AG",
 	"umsaetze": [
@@ -7,20 +7,20 @@
 			"konto": "Depot",
 			"valuta": "2022-02-25",
 			"betrag": {
-				"betrag": 2400, 
+				"betrag": 0.0, 
 				"waehrung": "EUR"
 			},
 			"asset": "Deutsche Telekom AG",
 			"menge": {
-				"menge": 100, 
+				"menge": 0.0, 
 				"einheit": "St."
 			}
 		},
 		{
-			"konto": "Provision",
+			"konto": "Dividende",
 			"valuta": "2022-02-25",
 			"betrag": {
-				"betrag": 30, 
+				"betrag": -300, 
 				"waehrung": "EUR"
 			}
 		},
@@ -28,7 +28,7 @@
 			"konto": "Giro",
 			"valuta": "2022-02-25",
 			"betrag": {
-				"betrag": -2430, 
+				"betrag": 300, 
 				"waehrung": "EUR"
 			}
 		}

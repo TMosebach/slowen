@@ -2,6 +2,7 @@ package de.tmosebach.slowen.backend.jpaadapter;
 
 import static java.util.Objects.nonNull;
 
+import java.time.LocalDate;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -25,6 +26,9 @@ import de.tmosebach.slowen.backend.domain.BuchungRepository;
 import de.tmosebach.slowen.backend.domain.Konto;
 import de.tmosebach.slowen.backend.domain.KontoRepository;
 import de.tmosebach.slowen.backend.domain.Umsatz;
+import de.tmosebach.slowen.backend.values.Betrag;
+import de.tmosebach.slowen.backend.values.Kontorahmen;
+import de.tmosebach.slowen.backend.values.Menge;
 
 @Service
 public class BuchhaltungServiceJpa implements BuchhaltungService {
@@ -68,40 +72,105 @@ public class BuchhaltungServiceJpa implements BuchhaltungService {
         }
         
         buchungen.add(buchung);
-        buchungRepository.save(buchung);
-        
-		switch (buchung.getArt()) {
-		case Buchung: 
-			bucheBuchung(buchung);
-			break;
-		case Kauf:
-			bucheKauf(buchung);
-			break;
-		default:
-			throw new UnsupportedOperationException();
+
+        for (Umsatz umsatz : buchung.getUmsaetze()) {
+			if (isSkontroUmsatz(umsatz)) {
+				
+				switch (buchung.getArt()) {
+				case Buchung:
+					buchen(buchung);
+					break;
+				case Kauf:
+				case Einlieferung:
+					skontroZugang(umsatz);
+					break;
+					
+				case Verkauf:
+					skontroAbgang(buchung, umsatz);
+					break;
+
+				case Ertrag:
+					skontroErtrag(umsatz);
+					break;
+				default:
+					// Darf nicht passieren
+					throw new IllegalArgumentException();
+				}
+				
+			} else {
+				saldoAnpassen(umsatz);
+			}
 		}
-		
+        
+		buchungRepository.save(buchung);
 		
 		return buchung;
 	}
 
-	private void bucheBuchung(Buchung buchung) {
-		buchung.getUmsaetze().stream().forEach( umsatz -> saldoAnpassen( umsatz ));
-	}
-	
-	private void bucheKauf(Buchung buchung) {
-		bucheBuchung(buchung);
-		bucheSkonto(buchung);
+	private void skontroErtrag(Umsatz umsatz) {
+		// TODO Zuordnung zwischen Skontro-Umsatz und Bestand
 	}
 
-	private void bucheSkonto(Buchung buchung) {
-		Optional<Umsatz> skontroUmsatz = 
-				buchung.getUmsaetze().stream()
-				.filter( umsatz -> nonNull(umsatz.getAsset()) )
-				.findFirst();
-		skontroUmsatz.ifPresentOrElse( 
-				umsatz -> skontroAnpassen(umsatz), 
-				() -> new IllegalArgumentException("Kein Bestands-Umsatz") );
+	private void buchen(Buchung buchung) {
+		buchung.getUmsaetze().stream().forEach( umsatz -> saldoAnpassen( umsatz ));
+	}
+
+	private boolean isSkontroUmsatz(Umsatz umsatz) {
+		return nonNull(umsatz.getAsset());
+	}
+
+	private void skontroAbgang(Buchung buchung, Umsatz umsatz) {
+		Optional<Konto> depotOptional = findKontoByName(umsatz.getKonto());
+		Konto depot = depotOptional.get();
+		String assetName = umsatz.getAsset();
+		Bestand bestand = depot.getOrCreateBestand(assetName);
+
+		double abgabeAnteil = calcAbgabeAnteil(bestand.getMenge(), umsatz.getMenge());
+		bestand.addMenge(umsatz.getMenge());
+		if (bestand.isEmpty()) {
+			depot.remove(bestand);
+		}
+		
+		Betrag abzugebenderWert = bestand.getEinstandsWert().mal(abgabeAnteil);
+		bestand.addEinstandswert(abzugebenderWert);
+		
+		Betrag differenz = umsatz.getBetrag().minus(abzugebenderWert).invert();
+		if(differenz.isPositiv()) {
+			// Die Gegenbuchung muss einen negativen Betrag haben.
+			saldoAnpassen(
+					createUmsatz(
+							Kontorahmen.Kursgewinn,
+							umsatz.getValuta(),
+							differenz.invert() ));
+		} else if (differenz.isNegativ()) {
+			saldoAnpassen(
+					createUmsatz(
+							Kontorahmen.Kursverlust,
+							umsatz.getValuta(),
+							differenz.invert() ));
+		}
+	}
+	
+	private Umsatz createUmsatz(Kontorahmen konto, LocalDate valuta, Betrag betrag) {
+		Umsatz umsatz = new Umsatz();
+		umsatz.setKonto(konto.name());
+		umsatz.setValuta(valuta);
+		umsatz.setBetrag(betrag); 
+		return umsatz;
+	}
+
+	/**
+	 * Ermittlung des relativen Anteils
+	 * 
+	 * <b>Vorbedingung:</b>Die Einheiten der Mengen sind identisch.
+	 * 
+	 * @param basis
+	 * @param anteil
+	 * @return relative Anteil an der Basis (0-1)
+	 */
+	private double calcAbgabeAnteil(Menge basis, Menge anteil) {
+		
+		return anteil.getMenge().doubleValue() / basis.getMenge().doubleValue();
 	}
 
 	/**
@@ -111,9 +180,8 @@ public class BuchhaltungServiceJpa implements BuchhaltungService {
 	 * 
 	 * @param umsatz
 	 */
-	private void skontroAnpassen(Umsatz umsatz) {
-		Optional<Konto> depotOptional = findKontoByName(umsatz.getKonto());
-		Konto depot = depotOptional.get();
+	private void skontroZugang(Umsatz umsatz) {
+		Konto depot = getOrCreateKonto(umsatz.getKonto());
 		String assetName = umsatz.getAsset();
 		Bestand bestand = depot.getOrCreateBestand(assetName);
 
