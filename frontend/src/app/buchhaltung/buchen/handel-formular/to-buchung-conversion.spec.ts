@@ -1,7 +1,7 @@
-import { ToBuchungConversion } from './to-buchung-conversion';
+import { transformToBuchung } from './to-buchung-conversion';
 
 describe('ToBuchungConversion', () => {
   it('should create an instance', () => {
-    expect(new ToBuchungConversion()).toBeTruthy();
+    expect(transformToBuchung).toBeTruthy();
   });
 });

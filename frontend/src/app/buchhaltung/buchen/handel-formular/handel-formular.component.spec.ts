@@ -1,4 +1,6 @@
+import { HttpClientTestingModule } from '@angular/common/http/testing';
 import { ComponentFixture, TestBed } from '@angular/core/testing';
+import { ReactiveFormsModule } from '@angular/forms';
 
 import { HandelFormularComponent } from './handel-formular.component';
 
@@ -8,6 +10,7 @@ describe('HandelFormularComponent', () => {
 
   beforeEach(async () => {
     await TestBed.configureTestingModule({
+      imports: [ ReactiveFormsModule, HttpClientTestingModule ],
       declarations: [ HandelFormularComponent ]
     })
     .compileComponents();
