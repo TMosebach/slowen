@@ -14,3 +14,10 @@
 * Typeahead auf Konten ( ohne Depots )
 * Typeahead auf Kosten- und Steuer-Konten
 * Fehlermeldungen anzeigen
+* Kosten/Steuerfelder fest vorsehen
+
+# Ertragformular
+
+* Depot/Bestand-Auswahl vorsehen
+* Ertrag unf Kosten/Steuer-Felder einbauen
+* Ertragbuchung erstellen
