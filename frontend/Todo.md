@@ -1,5 +1,7 @@
 # TODO
 
+* Konto / Asset auf Id-Namens-Referenz umstellen
+
 # Buchenformular
 
 * Fehlermeldungen anzeigen
