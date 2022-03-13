@@ -13,6 +13,7 @@ import { BuchenFormularComponent } from './buchen/buchen-formular/buchen-formula
 import { HandelFormularComponent } from './buchen/handel-formular/handel-formular.component';
 import { TypeaheadModule } from 'ngx-bootstrap/typeahead';
 import { BrowserAnimationsModule } from '@angular/platform-browser/animations';
+import { ErtragFormularComponent } from './buchen/ertrag-formular/ertrag-formular.component';
 
 @NgModule({
   declarations: [
@@ -22,7 +23,8 @@ import { BrowserAnimationsModule } from '@angular/platform-browser/animations';
     BuchungListeComponent,
     BuchenComponent,
     BuchenFormularComponent,
-    HandelFormularComponent
+    HandelFormularComponent,
+    ErtragFormularComponent
   ],
   imports: [
     CommonModule,
