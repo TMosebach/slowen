@@ -26,3 +26,5 @@ hs_err_pid*
 /code-with-springboot/
 /Backend/spring-jpa/target/
 Backend/spring-jpa/target/classes/META-INF/maven/de.tmosebach.slowen/spring-jpa/pom.properties
+frontend/.angulardoc.json
+frontend/.vscode/
