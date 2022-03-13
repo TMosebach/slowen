@@ -1,127 +1,200 @@
 <form [formGroup]="buchenForm!" class="mb-4">
     <div class="row">
-        <div class="col-2"></div>
-        <div class="col-10">
-            <select formControlName="art" class="input-group-text">
-                <option value="Kauf">Kauf</option>
-                <option value="Verkauf">Verkauf</option>
-                <option value="Ertrag">Ertrag</option>
-                <option value="Einlieferung">Einlieferung</option>
-            </select>
-        </div>
-    </div>
-    <div class="row">
-        <div class="col-2 text-end">
-            <label for="asset" class="col-form-label">Datum</label>
-        </div>
-        <div class="col-4">
-            <input type="date" formControlName="datum" class="form-control">
-        </div>
-    </div>
-    <div class="row">
-        <div class="col-2 text-end">
-            <label for="asset" class="col-form-label">Asset</label>
-        </div>
-        <div class="col-4">
-            <input type="text" formControlName="asset" class="form-control" [typeahead]="assetNames">
-        </div>
-    </div>
-    <div class="row">
-        <div class="col-2 text-end">
-            <label for="depot" class="col-form-label">Depot</label>
-        </div>
-        <div class="col-4">
-            <input type="text" formControlName="depot" class="form-control" [typeahead]="depotNamen">
-        </div>
-    </div>
-    <div class="row">
-        <div class="col-2 text-end">
-            <label for="menge" class="col-form-label">Menge</label>
-        </div>
-        <div class="col-2"></div>
-        <div class="col-2">
-            <div class="input-group">
-                <input formControlName="menge" type="text" class="form-control text-end">
-                <select formControlName="einheit" class="input-group-text">
-                    <option>St.</option>
-                    <option>EUR</option>
-                    <option>USD</option>
-                </select>
-            </div>
-        </div>
-    </div>
-    <div class="row">
-        <div class="col-2 text-end">
-            <label for="preis" class="col-form-label">Preis</label>
-        </div>
-        <div class="col-2"></div>
-        <div class="col-2">
-            <div class="input-group">
-                <input formControlName="preis" type="text" class="form-control text-end">
-                <select formControlName="waehrung" class="input-group-text">
-                    <option *ngFor="let waehrung of waehrungen">{{ waehrung }}</option>
-                </select>
-            </div>
-        </div>
-    </div>
-    <div class="row">
-        <div class="col-2 text-end">
-            <label for="verrechnungskonto" class="col-form-label">Verrechnungskonto</label>
-        </div>
-        <div class="col-4">
-            <input type="text" formControlName="verrechnungskonto" class="form-control" [typeahead]="kontoNamen">
-        </div>
-    </div>
-    <div class="row">
-        <div class="col-2 text-end">
-            <label for="Valuta" class="col-form-label">Valuta</label>
-        </div>
-        <div class="col-4">
-            <input type="date" formControlName="valuta" class="form-control">
-        </div>
-    </div>
-
-    <div class="row">
-        <div class="col-2"></div>
-        <div class="col-4">Kosten</div>
-        <div class="col-2">Betrag</div>
-        <div class="col-1"></div>
-    </div>
-
-    <div *ngFor="let umsatz of umsaetze.controls; index as i">
-        <div [formGroup]="asFromGroup(umsatz)" class="row">
-            <div class="col-2"></div>
-            <div class="col-4">
-                <input formControlName="konto"
-                        [typeahead]="kontoNamen"
-                        class="form-control">
-            </div>
-            <div class="col-2">
-                <div class="input-group">
-                    <input formControlName="betrag" type="text" class="form-control text-end">
-                    <select formControlName="waehrung" class="input-group-text">
-                        <option *ngFor="let waehrung of waehrungen">{{ waehrung }}</option>
+        <div class="col-6">
+            <div class="row">
+                <div class="col-3"></div>
+                <div class="col-5">
+                    <select formControlName="art" class="input-group-text">
+                        <option value="Kauf">Kauf</option>
+                        <option value="Verkauf">Verkauf</option>
+                        <option value="Ertrag">Ertrag</option>
+                        <option value="Einlieferung">Einlieferung</option>
                     </select>
                 </div>
             </div>
-            <div class="col-1">
-                <button (click)="addUmsatz()" class="btn btn-dark">+</button>
-                <button (click)="removeUmsatz(i)" class="btn btn-dark ms-2">-</button>
+        </div>
+    </div>
+    <div class="row">
+        <div class="col-6">
+            <div class="row">
+                <div class="col-3 text-end">
+                    <label for="asset" class="col-form-label">Datum</label>
+                </div>
+                <div class="col-4">
+                    <input type="date" formControlName="datum" class="form-control">
+                </div>
+            </div>
+            <div class="row">
+                <div class="col-3 text-end">
+                    <label for="asset" class="col-form-label">Asset</label>
+                </div>
+                <div class="col-9">
+                    <input type="text" formControlName="asset" class="form-control" [typeahead]="assetNames">
+                </div>
+            </div>
+            <div class="row">
+                <div class="col-3 text-end">
+                    <label for="depot" class="col-form-label">Depot</label>
+                </div>
+                <div class="col-9">
+                    <input type="text" formControlName="depot" class="form-control" [typeahead]="depotNamen">
+                </div>
+            </div>
+            <div class="row">
+                <div class="col-3 text-end">
+                    <label for="menge" class="col-form-label">Menge</label>
+                </div>
+                <div class="col-4">
+                    <div class="input-group">
+                        <input formControlName="menge" type="text" class="form-control text-end">
+                        <select formControlName="einheit" class="input-group-text">
+                            <option>St.</option>
+                            <option>EUR</option>
+                            <option>USD</option>
+                        </select>
+                    </div>
+                </div>
+            </div>
+            <div class="row">
+                <div class="col-3 text-end">
+                    <label for="preis" class="col-form-label">Preis</label>
+                </div>
+                <div class="col-4">
+                    <div class="input-group">
+                        <input formControlName="preis" type="text" class="form-control text-end">
+                        <select formControlName="waehrung" class="input-group-text">
+                            <option *ngFor="let waehrung of waehrungen">{{ waehrung }}</option>
+                        </select>
+                    </div>
+                </div>
+            </div>
+            <div class="row">
+                <div class="col-3 text-end">
+                    <label for="verrechnungskonto" class="col-form-label">Verrechnungskonto</label>
+                </div>
+                <div class="col-9">
+                    <input type="text" formControlName="verrechnungskonto" class="form-control" [typeahead]="kontoNamen">
+                </div>
+            </div>
+            <div class="row">
+                <div class="col-3 text-end">
+                    <label for="Valuta" class="col-form-label">Valuta</label>
+                </div>
+                <div class="col-4">
+                    <input type="date" formControlName="valuta" class="form-control">
+                </div>
+            </div>
+        </div>
+        <div class="col-6">
+            <div class="row">
+                <div class="col-3 text-end">
+                    <label for="menge" class="col-form-label">Provision</label>
+                </div>
+                <div class="col-4">
+                    <div class="input-group">
+                        <input formControlName="provision" type="text" class="form-control text-end">
+                        <select class="input-group-text">
+                            <option *ngFor="let waehrung of waehrungen">{{ waehrung }}</option>
+                        </select>
+                    </div>
+                </div>
+            </div>
+            <div class="row">
+                <div class="col-3 text-end">
+                    <label for="menge" class="col-form-label">Maklercourtage</label>
+                </div>
+                <div class="col-4">
+                    <div class="input-group">
+                        <input formControlName="maklercourtage" type="text" class="form-control text-end">
+                        <select class="input-group-text">
+                            <option *ngFor="let waehrung of waehrungen">{{ waehrung }}</option>
+                        </select>
+                    </div>
+                </div>
+            </div>
+            <div class="row">
+                <div class="col-3 text-end">
+                    <label for="menge" class="col-form-label">Börsenplatzentgeld</label>
+                </div>
+                <div class="col-4">
+                    <div class="input-group">
+                        <input formControlName="boersenplatzentgeld" type="text" class="form-control text-end">
+                        <select class="input-group-text">
+                            <option *ngFor="let waehrung of waehrungen">{{ waehrung }}</option>
+                        </select>
+                    </div>
+                </div>
+            </div>
+            <div class="row">
+                <div class="col-3 text-end">
+                    <label for="menge" class="col-form-label">Spesen</label>
+                </div>
+                <div class="col-4">
+                    <div class="input-group">
+                        <input formControlName="spesen" type="text" class="form-control text-end">
+                        <select class="input-group-text">
+                            <option *ngFor="let waehrung of waehrungen">{{ waehrung }}</option>
+                        </select>
+                    </div>
+                </div>
+            </div>
+            <div class="row">
+                <div class="col-3 text-end">
+                    <label for="menge" class="col-form-label">sonstige Kosten</label>
+                </div>
+                <div class="col-4">
+                    <div class="input-group">
+                        <input formControlName="sonstigeKosten" type="text" class="form-control text-end">
+                        <select class="input-group-text">
+                            <option *ngFor="let waehrung of waehrungen">{{ waehrung }}</option>
+                        </select>
+                    </div>
+                </div>
+            </div>
+            <div class="row">
+                <div class="col-3 text-end">
+                    <label for="menge" class="col-form-label">Kapitalertragsteuer</label>
+                </div>
+                <div class="col-4">
+                    <div class="input-group">
+                        <input formControlName="kapitalertragssteuer" type="text" class="form-control text-end">
+                        <select class="input-group-text">
+                            <option *ngFor="let waehrung of waehrungen">{{ waehrung }}</option>
+                        </select>
+                    </div>
+                </div>
+            </div>
+            <div class="row">
+                <div class="col-3 text-end">
+                    <label for="menge" class="col-form-label">Solidaritätszuschlag</label>
+                </div>
+                <div class="col-4">
+                    <div class="input-group">
+                        <input formControlName="solidaritaetszuschlag" type="text" class="form-control text-end">
+                        <select class="input-group-text">
+                            <option *ngFor="let waehrung of waehrungen">{{ waehrung }}</option>
+                        </select>
+                    </div>
+                </div>
             </div>
         </div>
     </div>
 
+
     <div class="row mt-4">
-        <div class="col-2 text-end">
-            <label for="ausmachenderBetrag" class="col-form-label">Ausmachender Betrag</label>
-        </div>
-        <div class="col-2">
-            <div class="input-group">
-                <input type="text" id="ausmachenderBetrag" disabled class="form-control text-end" value="28634,78">
-                <select class="input-group-text">
-                    <option selected>EUR</option>
-                    <option>USD</option>
-                </select>
+        <div class="col-6">
+            <div class="row">
+                <div class="col-3 text-end">
+                    <label for="menge" class="col-form-label">Gesamt</label>
+                </div>
+                <div class="col-4">
+                    <div class="input-group">
+                        <input type="text" disabled class="form-control text-end" value="28634,78">
+                        <select class="input-group-text">
+                            <option *ngFor="let waehrung of waehrungen">{{ waehrung }}</option>
+                        </select>
+                    </div>
+                </div>
             </div>
         </div>
     </div>

@@ -18,13 +18,13 @@ const formVorlage = {
   waehrung: 'EUR',
   verrechnungskonto: 'Giro',
   valuta: '2022-02-25',
-  umsaetze: [
-    {
-      konto: 'Provision',
-      betrag: 30,
-      waehrung: 'EUR'
-    }
-  ]
+  provision: '',
+  maklercourtage: '',
+  boersenplatzentgeld: '',
+  spesen: '',
+  sonstigeKosten: '',
+  kapitalertragssteuer: '',
+  solidaritaetszuschlag: ''
 }
 
 describe('HandelFormularComponent', () => {
@@ -64,7 +64,8 @@ describe('HandelFormularComponent', () => {
   it('should deliver Kauf-Buchung', () => {
     component.buchenForm?.setValue({
       ...formVorlage,
-      art: 'Kauf'
+      art: 'Kauf',
+      provision: '30.0'
     });
     component.doBuche();
     
@@ -75,6 +76,7 @@ describe('HandelFormularComponent', () => {
     component.buchenForm?.setValue({
       ...formVorlage,
       art: 'Verkauf',
+      provision: '30.0',
       menge: -100,
       preis: 30
     });

@@ -1,8 +1,9 @@
 import { Buchung } from "../../domain/buchung";
 import { BuchungArt } from "../../domain/buchung-art";
 import { Umsatz } from "../../domain/umsatz";
+import { HandelFormular } from "./handel-formular";
 
-export function transformToBuchung(formular: any): Buchung {
+export function transformToBuchung(formular: HandelFormular): Buchung {
     switch (formular.art) {
         case 'Kauf':
             return createAssetBuchung(BuchungArt.Kauf, formular);
@@ -29,7 +30,7 @@ function createEinlieferung(formular: any): Buchung {
     return buchung;
 }
 
-function createAssetBuchung(art: BuchungArt, formular: any): Buchung {
+function createAssetBuchung(art: BuchungArt, formular: HandelFormular): Buchung {
     const buchung = createBasisBuchung(art, formular.datum, formular.asset);
     const umsaetze = buchung.umsaetze;
 
@@ -38,19 +39,30 @@ function createAssetBuchung(art: BuchungArt, formular: any): Buchung {
 
     umsaetze?.push(createDepotUmsatz(formular, betrag, menge));
 
-    // Kosten und Steuern
-    formular.umsaetze.forEach( (umsatz: any) => {
-        umsaetze?.push( createUmsatz(umsatz.konto, formular.valuta, Number.parseFloat(umsatz.betrag), umsatz.waehrung) );
-        betrag += Number.parseFloat(umsatz.betrag);
-    });
+    betrag += checkAndCreateUmsatz('Provision', formular, formular.provision, umsaetze);
+    betrag += checkAndCreateUmsatz('Maklercourtage', formular, formular.maklercourtage, umsaetze);
+    betrag += checkAndCreateUmsatz('Börsenplatzentgeld', formular, formular.boersenplatzentgeld, umsaetze);
+    betrag += checkAndCreateUmsatz('Spesen', formular, formular.spesen, umsaetze);
+    betrag += checkAndCreateUmsatz('sonstige Kosten', formular, formular.sonstigeKosten, umsaetze);
+    betrag += checkAndCreateUmsatz('Kapitalertragssteuer', formular, formular.kapitalertragssteuer, umsaetze);
+    betrag += checkAndCreateUmsatz('Solidaritätszuschlag', formular, formular.solidaritaetszuschlag, umsaetze);
 
-    // Verrechnungsumsatz
     umsaetze?.push( createUmsatz(formular.verrechnungskonto, formular.valuta, -betrag, formular.waehrung) );
 
+    console.log('***************', buchung);
     return buchung;
 }
 
-function createDepotUmsatz(formular: any, betrag:number, menge: number): Umsatz {
+function checkAndCreateUmsatz(konto: string, formular: HandelFormular, formularBetrag: string, umsaetze: Umsatz[] | undefined) {
+    if (formularBetrag && formularBetrag.length > 0) {
+        const betrag = Number.parseFloat(formularBetrag);
+        umsaetze?.push( createUmsatz(konto, formular.valuta, betrag, formular.waehrung));
+        return betrag;
+    }
+    return 0;
+}
+
+function createDepotUmsatz(formular: HandelFormular, betrag:number, menge: number): Umsatz {
     let depotUmsatz = createUmsatz(formular.depot, formular.valuta, betrag, formular.waehrung);
     depotUmsatz.asset = formular.asset;
     depotUmsatz.menge = {
