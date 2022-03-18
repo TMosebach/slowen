@@ -76,7 +76,6 @@ export class HandelFormularComponent implements OnInit {
 
   doBuche() {
     let buchung = transformToBuchung(this.buchenForm?.value);
-    console.log('Buche: ', buchung);
     this.service.buche(buchung).subscribe( 
       () => this.clearFormular()
       );

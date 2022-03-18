@@ -49,7 +49,6 @@ function createAssetBuchung(art: BuchungArt, formular: HandelFormular): Buchung 
 
     umsaetze?.push( createUmsatz(formular.verrechnungskonto, formular.valuta, -betrag, formular.waehrung) );
 
-    console.log('***************', buchung);
     return buchung;
 }
 
