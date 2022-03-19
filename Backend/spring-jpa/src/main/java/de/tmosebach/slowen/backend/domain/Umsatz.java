@@ -28,7 +28,8 @@ public class Umsatz {
 	@ManyToOne
 	private Buchung buchung;
 
-	private String konto;
+	@ManyToOne
+	private Konto konto;
 	
 	public Long getId() {
 		return id;
@@ -66,10 +67,10 @@ public class Umsatz {
 	public void setBuchung(Buchung buchung) {
 		this.buchung = buchung;
 	}
-	public String getKonto() {
+	public Konto getKonto() {
 		return konto;
 	}
-	public void setKonto(String konto) {
+	public void setKonto(Konto konto) {
 		this.konto = konto;
 	}
 	@Override

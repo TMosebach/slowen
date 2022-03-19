@@ -1,7 +1,6 @@
 package de.tmosebach.slowen.backend.domain;
 
 import java.util.List;
-import java.util.Optional;
 import java.util.Set;
 
 public interface BuchhaltungService {
@@ -9,8 +8,6 @@ public interface BuchhaltungService {
 	Buchung buche(Buchung apiBuchung2Buchung);
 
 	List<Buchung> findBuchungenByKontoname(String name);
-
-	Optional<Konto> findKontoByName(String name);
 
 	List<Konto> getKontorahmen();
 

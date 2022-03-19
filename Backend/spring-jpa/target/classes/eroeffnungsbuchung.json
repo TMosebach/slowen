@@ -4,7 +4,9 @@
   "beschreibung": "Eröffnungsbuchung",
   "umsaetze": [
     {
-      "konto": "ING-Giro",
+      "konto": {
+				"name": "Giro"
+			},
       "valuta": "2021-12-31",
       "betrag": {
         "betrag": 3380.90,
@@ -12,7 +14,9 @@
       }
     },
     {
-      "konto": "Eröffnungskonto",
+	  "konto": {
+		 "name": "Eröffnungskonto"
+	  },
       "valuta": "2021-12-31",
       "betrag": {
         "betrag": -3380.90,

@@ -38,7 +38,7 @@ public class BuchhaltungServiceJpa implements BuchhaltungService {
 	private KontoRepository kontoRepository;
 	
 	private List<Buchung> buchungen = new ArrayList<>();
-	private Map<String, Konto> kontorahmen = new HashMap<>();
+	private Map<Long, Konto> kontorahmen = new HashMap<>();
 	private Map<String, Asset> assets = new HashMap<>();
 
 	public BuchhaltungServiceJpa(
@@ -120,8 +120,7 @@ public class BuchhaltungServiceJpa implements BuchhaltungService {
 	}
 
 	private void skontroAbgang(Buchung buchung, Umsatz umsatz) {
-		Optional<Konto> depotOptional = findKontoByName(umsatz.getKonto());
-		Konto depot = depotOptional.get();
+		Konto depot = getOrCreateKonto(umsatz.getKonto());
 		String assetName = umsatz.getAsset();
 		Bestand bestand = depot.getOrCreateBestand(assetName);
 
@@ -139,21 +138,21 @@ public class BuchhaltungServiceJpa implements BuchhaltungService {
 			// Die Gegenbuchung muss einen negativen Betrag haben.
 			saldoAnpassen(
 					createUmsatz(
-							Kontorahmen.Kursgewinn,
+							getOrCreateKonto(Kontorahmen.Kursgewinn.getKontoRef()),
 							umsatz.getValuta(),
 							differenz.invert() ));
 		} else if (differenz.isNegativ()) {
 			saldoAnpassen(
 					createUmsatz(
-							Kontorahmen.Kursverlust,
+							getOrCreateKonto(Kontorahmen.Kursverlust.getKontoRef()),
 							umsatz.getValuta(),
 							differenz.invert() ));
 		}
 	}
 	
-	private Umsatz createUmsatz(Kontorahmen konto, LocalDate valuta, Betrag betrag) {
+	private Umsatz createUmsatz(Konto konto, LocalDate valuta, Betrag betrag) {
 		Umsatz umsatz = new Umsatz();
-		umsatz.setKonto(konto.name());
+		umsatz.setKonto(konto);
 		umsatz.setValuta(valuta);
 		umsatz.setBetrag(betrag); 
 		return umsatz;
@@ -194,29 +193,28 @@ public class BuchhaltungServiceJpa implements BuchhaltungService {
 		konto.setSaldo( konto.getSaldo().add( umsatz.getBetrag() ));
 	}
 	
-	private Konto getOrCreateKonto(String kontoName) {
-		if (kontorahmen.containsKey(kontoName)) {
-			return kontorahmen.get(kontoName);
+	private Konto getOrCreateKonto(Konto kontoRef) {
+		Long id = kontoRef.getId();
+		if (nonNull(id) && kontorahmen.containsKey(id)) {
+			return kontorahmen.get(id);
 		}
-		
+
+		String kontoName = kontoRef.getName();
 		Optional<Konto> persistentKonto = kontoRepository.findByName(kontoName);
 		Konto konto = 
 			persistentKonto.orElseGet(() -> {
-				Konto newKonto = new Konto(kontoName);
-				kontoRepository.save(newKonto);
+				Konto newKonto = new Konto();
+				newKonto.setName(kontoName);
+				newKonto = kontoRepository.save(newKonto);
 				return newKonto;
 			});
-		kontorahmen.put(kontoName, konto);
+		kontorahmen.put(konto.getId(), konto);
 		
 		return konto;
 	}
 
 	public List<Konto> getKontorahmen() {
 		return new ArrayList<>(kontorahmen.values());
-	}
-
-	public Optional<Konto> findKontoByName(String name) {
-		return Optional.ofNullable(kontorahmen.get(name));
 	}
 
 	public List<Buchung> findBuchungenByKontoname(String name) {

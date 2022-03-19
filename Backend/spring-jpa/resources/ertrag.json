@@ -4,7 +4,9 @@
 	"beschreibung": "Kauf Deutsche Telekom AG",
 	"umsaetze": [
 		{
-			"konto": "Depot",
+			"konto": {
+				"name": "Depot"
+			},
 			"valuta": "2022-02-25",
 			"betrag": {
 				"betrag": 0.0, 
@@ -17,7 +19,9 @@
 			}
 		},
 		{
-			"konto": "Dividende",
+			"konto": {
+				"name": "Dividende"
+		  	},
 			"valuta": "2022-02-25",
 			"betrag": {
 				"betrag": -300, 
@@ -25,7 +29,9 @@
 			}
 		},
 		{
-			"konto": "Giro",
+			"konto": {
+				"name": "Giro"
+			},
 			"valuta": "2022-02-25",
 			"betrag": {
 				"betrag": 300, 

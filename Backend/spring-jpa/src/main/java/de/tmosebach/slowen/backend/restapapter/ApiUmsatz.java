@@ -23,8 +23,10 @@ public class ApiUmsatz {
 			umsatz = new ApiUmsatz();
 		}
 		
-		public ApiUmsatzBuilder konto(String konto) {
-			umsatz.setKonto(konto);
+		public ApiUmsatzBuilder konto(String kontoName) {
+			ApiKontoRef apiKontoRef = new ApiKontoRef();
+			apiKontoRef.setName(kontoName);
+			umsatz.setKonto(apiKontoRef);
 			return this;
 		}
 
@@ -55,16 +57,16 @@ public class ApiUmsatz {
 		}
 	}
 
-	private String konto;
+	private ApiKontoRef konto;
 	private LocalDate valuta;
 	private Betrag betrag;
 	private String asset;
 	private Menge menge;
 	
-	public String getKonto() {
+	public ApiKontoRef getKonto() {
 		return konto;
 	}
-	public void setKonto(String konto) {
+	public void setKonto(ApiKontoRef konto) {
 		this.konto = konto;
 	}
 	public LocalDate getValuta() {

@@ -2,7 +2,6 @@ package de.tmosebach.slowen.backend.restapapter;
 
 import java.net.URI;
 import java.util.List;
-import java.util.Optional;
 import java.util.Set;
 
 import org.slf4j.Logger;
@@ -50,18 +49,6 @@ public class BuchhaltungController {
 		List<Buchung> buchungen = buchungService.findBuchungenByKontoname(name);
 		
 		return ResponseEntity.ok(Domain2ApiMapper.buchungList2ApiBuchungList(buchungen));
-	}
-	
-	@GetMapping("konten/{name}")
-	public ResponseEntity<ApiKonto> getKontoByName(@PathVariable String name) {
-		
-		LOG.debug("Lese Konto {}", name);
-		
-		Optional<Konto> kontoResult = buchungService.findKontoByName(name);
-		if (kontoResult.isPresent()) {
-			return ResponseEntity.ok(Domain2ApiMapper.konto2ApiKonto(kontoResult.get()));
-		}
-		return ResponseEntity.notFound().build();
 	}
 	
 	@GetMapping("konten")

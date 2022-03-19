@@ -4,7 +4,9 @@
 	"beschreibung": "Kauf Deutsche Telekom AG",
 	"umsaetze": [
 		{
-			"konto": "Depot",
+			"konto": {
+				"name": "Depot"
+			},
 			"valuta": "2022-02-25",
 			"betrag": {
 				"betrag": -3000, 
@@ -17,7 +19,9 @@
 			}
 		},
 		{
-			"konto": "Provision",
+			"konto": {
+				"name": "Provision"
+		  	},
 			"valuta": "2022-02-25",
 			"betrag": {
 				"betrag": 30, 
@@ -25,7 +29,9 @@
 			}
 		},
 		{
-			"konto": "Giro",
+			"konto": {
+				"name": "Giro"
+			},
 			"valuta": "2022-02-25",
 			"betrag": {
 				"betrag": 2970, 

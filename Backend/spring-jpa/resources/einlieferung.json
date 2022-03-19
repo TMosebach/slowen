@@ -4,7 +4,9 @@
 	"beschreibung": "Kauf Deutsche Telekom AG",
 	"umsaetze": [
 		{
-			"konto": "Depot",
+			"konto": {
+				"name": "Depot"
+			},
 			"valuta": "2022-02-25",
 			"betrag": {
 				"betrag": 2400, 

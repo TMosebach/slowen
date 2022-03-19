@@ -5,6 +5,7 @@ import java.util.List;
 import java.util.Optional;
 
 import javax.persistence.Entity;
+import javax.persistence.GeneratedValue;
 import javax.persistence.Id;
 
 import org.apache.commons.lang3.builder.EqualsBuilder;
@@ -16,6 +17,8 @@ import de.tmosebach.slowen.backend.values.Betrag;
 public class Konto {
 
 	@Id
+	@GeneratedValue
+	private Long id;
 	private String name;
 	private Betrag saldo = Betrag.ZERO;
 	private transient List<Bestand> bestaende = new ArrayList<>();
@@ -23,6 +26,16 @@ public class Konto {
 	public Konto() {}
 	public Konto(String name) {
 		this.name = name;
+	}
+	public Konto(long id, String name) {
+		this(name);
+		this.id = id;
+	}
+	public Long getId() {
+		return id;
+	}
+	public void setId(Long id) {
+		this.id = id;
 	}
 	public String getName() {
 		return name;
@@ -70,5 +83,9 @@ public class Konto {
 	}
 	public void remove(Bestand bestand) {
 		bestaende.remove(bestand);
+	}
+	@Override
+	public String toString() {
+		return "Konto [id=" + id + ", name=" + name + ", saldo=" + saldo + "]";
 	}
 }
