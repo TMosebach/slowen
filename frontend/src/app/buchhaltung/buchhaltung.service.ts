@@ -17,12 +17,12 @@ export class BuchhaltungService {
     return this.http.get<Konto[]>(`${API_ENDPOINT}/konten`);
   }
 
-  getKonto(name: string): Observable<Konto> {
-    return this.http.get<Konto>(`${API_ENDPOINT}/konten/${name}`);
+  getKonto(id: string): Observable<Konto> {
+    return this.http.get<Konto>(`${API_ENDPOINT}/konten/${id}`);
   }
 
-  getBuchungen4Konto(name: string): Observable<Buchung[]> {
-    return this.http.get<Buchung[]>(`${API_ENDPOINT}/buchungen/${name}`);
+  getBuchungen4Konto(id: string): Observable<Buchung[]> {
+    return this.http.get<Buchung[]>(`${API_ENDPOINT}/buchungen/${id}`);
   }
 
   buche(buchung: Buchung): Observable<Buchung> {

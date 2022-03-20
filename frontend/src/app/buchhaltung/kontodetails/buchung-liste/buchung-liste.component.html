@@ -16,14 +16,14 @@
                 <td>{{buchung.empfaenger}}</td>
                 <td>{{buchung.beschreibung}}</td>
                 <ng-container *ngIf="simpleBuchung(buchung)">
-                    <td>{{gegenUmsatz(buchung).konto}}</td>
+                    <td>{{gegenUmsatz(buchung).konto?.name}}</td>
                     <td>{{refUmsatz(buchung).valuta| date}}</td>
                     <td class="text-end">
                         <app-betrag-label [betrag]="refUmsatz(buchung).betrag"></app-betrag-label>
                     </td>
                 </ng-container>
                 <ng-container *ngIf="!simpleBuchung(buchung)">
-                    <td>{{refUmsatz(buchung).konto}}</td>
+                    <td>{{refUmsatz(buchung).konto?.name}}</td>
                     <td>{{refUmsatz(buchung).valuta | date}}</td>
                     <td class="text-end">
                         <app-betrag-label [betrag]="refUmsatz(buchung).betrag"></app-betrag-label>
@@ -34,7 +34,7 @@
                 <ng-container *ngFor="let umsatz of buchung.umsaetze">
                     <tr *ngIf="!isViewKonto(umsatz.konto)">
                         <td colspan="3"></td>
-                        <td>{{umsatz.konto}}</td>
+                        <td>{{umsatz.konto?.name}}</td>
                         <td>{{umsatz.valuta | date}}</td>
                         <td class="text-end">
                             <app-betrag-label [betrag]="umsatz.betrag"></app-betrag-label>

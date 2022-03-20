@@ -105,7 +105,9 @@ function getExpectedEinlieferung(): Buchung {
     beschreibung: 'Einlieferung Talanx',
     umsaetze: [
       {
-        konto: 'Depot',
+        konto: {
+          name: 'Depot'
+        },
         valuta: '2022-02-25',
         betrag: {
           betrag: 2400, 
@@ -128,7 +130,9 @@ function getExpectedVerkauf(): Buchung {
     beschreibung: 'Verkauf Talanx',
     umsaetze: [
       {
-        konto: 'Depot',
+        konto: {
+          name: 'Depot'
+        },
         valuta: '2022-02-25',
         betrag: {
           betrag: -3000, 
@@ -141,7 +145,9 @@ function getExpectedVerkauf(): Buchung {
         }
       },
       {
-        konto: 'Provision',
+        konto: {
+          name: 'Provision'
+        },
         valuta: '2022-02-25',
         betrag: {
           betrag: 30, 
@@ -149,7 +155,9 @@ function getExpectedVerkauf(): Buchung {
         }
       },
       {
-        konto: 'Giro',
+        konto: {
+          name: 'Giro'
+        },
         valuta: '2022-02-25',
         betrag: {
           betrag: 2970, 
@@ -167,7 +175,9 @@ function getExpectedKauf(): Buchung {
     beschreibung: 'Kauf Talanx',
     umsaetze: [
       {
-        konto: 'Depot',
+        konto: {
+          name: 'Depot'
+        },
         valuta: '2022-02-25',
         betrag: {
           betrag: 2400, 
@@ -180,7 +190,9 @@ function getExpectedKauf(): Buchung {
         }
       },
       {
-        konto: 'Provision',
+        konto: {
+          name: 'Provision'
+        },
         valuta: '2022-02-25',
         betrag: {
           betrag: 30, 
@@ -188,7 +200,9 @@ function getExpectedKauf(): Buchung {
         }
       },
       {
-        konto: 'Giro',
+        konto: {
+          name: 'Giro'
+        },
         valuta: '2022-02-25',
         betrag: {
           betrag: -2430, 

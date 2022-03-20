@@ -16,6 +16,7 @@ import javax.validation.ConstraintViolationException;
 import javax.validation.Validator;
 
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
 
 import de.tmosebach.slowen.backend.domain.Asset;
@@ -190,6 +191,7 @@ public class BuchhaltungServiceJpa implements BuchhaltungService {
 
 	private void saldoAnpassen(Umsatz umsatz) {
 		Konto konto = getOrCreateKonto(umsatz.getKonto());
+		umsatz.setKonto(konto);
 		konto.setSaldo( konto.getSaldo().add( umsatz.getBetrag() ));
 	}
 	
@@ -205,27 +207,32 @@ public class BuchhaltungServiceJpa implements BuchhaltungService {
 			persistentKonto.orElseGet(() -> {
 				Konto newKonto = new Konto();
 				newKonto.setName(kontoName);
-				newKonto = kontoRepository.save(newKonto);
-				return newKonto;
+				return saveKonto(newKonto);
 			});
 		kontorahmen.put(konto.getId(), konto);
 		
 		return konto;
+	}
+	
+	@Transactional(propagation = Propagation.REQUIRES_NEW)
+	public Konto saveKonto(Konto konto) {
+		return kontoRepository.save(konto);
 	}
 
 	public List<Konto> getKontorahmen() {
 		return new ArrayList<>(kontorahmen.values());
 	}
 
-	public List<Buchung> findBuchungenByKontoname(String name) {
+	public List<Buchung> findBuchungenByKonto(Long id) {
 		return buchungen.stream()
-				.filter( buchung -> enthaeltKonto(buchung, name))
+				.filter( buchung -> enthaeltKonto(buchung, id))
 				.collect(Collectors.toList());
 	}
 	
-	private boolean enthaeltKonto(Buchung buchung, String kontoName) {
+	private boolean enthaeltKonto(Buchung buchung, Long id) {
 		return buchung.getUmsaetze().stream()
-			.map( u -> u.getKonto())
+			.map( u -> u.getKonto().getId())
+			.filter( kontoId -> kontoId == id)
 			.findFirst()
 			.isPresent();
 	}
@@ -234,5 +241,10 @@ public class BuchhaltungServiceJpa implements BuchhaltungService {
 		return assets.entrySet().stream()
 				.map( entry -> entry.getValue() )
 				.collect(Collectors.toSet());
+	}
+
+	@Override
+	public Konto getKontoById(Long id) {
+		return kontorahmen.get(id);
 	}
 }

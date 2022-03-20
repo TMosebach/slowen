@@ -82,7 +82,9 @@ function createBasisBuchung(art: BuchungArt, datum: string, asset: string): Buch
 
 function createUmsatz(konto: string, valuta: string, betrag: number, waehrung: string): Umsatz {
     return {
-        konto: konto,
+        konto: {
+            name: konto
+        },
         valuta: valuta,
         betrag: {
         betrag: betrag,

@@ -43,7 +43,9 @@ public class Api2DomainMapper {
 
 	private static Konto apiKontoToKonto(ApiKontoRef apiKontoRef) {
 		Konto konto = new Konto();
-		konto.setId( Long.valueOf(apiKontoRef.getId()) );
+		if (nonNull(apiKontoRef.getId())) {
+			konto.setId( Long.valueOf(apiKontoRef.getId()) );
+		}
 		konto.setName(apiKontoRef.getName());
 		return konto;
 	}

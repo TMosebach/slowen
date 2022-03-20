@@ -74,7 +74,9 @@ function getExpectedSteuerfreieDividende(): Buchung {
     beschreibung: 'Dividende Talanx AG',
     umsaetze: [
       {
-        konto: 'Depot',
+        konto: {
+          name: 'Depot'
+        },
         valuta: '2022-02-25',
         betrag: {
           betrag: 0.0, 
@@ -87,7 +89,9 @@ function getExpectedSteuerfreieDividende(): Buchung {
         }
       },
       {
-        konto: 'Dividende',
+        konto: {
+          name: 'Dividende'
+        },
         valuta: '2022-02-25',
         betrag: {
           betrag: -300, 
@@ -95,7 +99,9 @@ function getExpectedSteuerfreieDividende(): Buchung {
         }
       },
       {
-        konto: 'Giro',
+        konto: {
+          name: 'Giro'
+        },
         valuta: '2022-02-25',
         betrag: {
           betrag: 300, 

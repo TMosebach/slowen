@@ -2,6 +2,7 @@ package de.tmosebach.slowen.backend.domain;
 
 import java.time.LocalDate;
 
+import javax.persistence.CascadeType;
 import javax.persistence.Entity;
 import javax.persistence.GeneratedValue;
 import javax.persistence.Id;
@@ -28,7 +29,7 @@ public class Umsatz {
 	@ManyToOne
 	private Buchung buchung;
 
-	@ManyToOne
+	@ManyToOne(cascade = CascadeType.ALL)
 	private Konto konto;
 	
 	public Long getId() {

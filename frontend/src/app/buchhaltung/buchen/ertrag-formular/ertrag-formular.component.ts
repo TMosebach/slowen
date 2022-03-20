@@ -71,7 +71,9 @@ function transformToBuchung(formular: ErtragFormular): Buchung {
     beschreibung: `${formular.ertragsart} ${formular.asset}`,
     umsaetze: [
       {
-        konto: formular.depot,
+        konto: {
+          name: formular.depot
+        },
         valuta: formular.valuta,
         betrag: {
           betrag: 0.0, 
@@ -100,7 +102,9 @@ function transformToBuchung(formular: ErtragFormular): Buchung {
 
 function createUmsatz(kontoName: string, betrag: number, formular: ErtragFormular): Umsatz {
   return {
-    konto: kontoName,
+    konto: {
+      name: kontoName
+    },
     valuta: formular.valuta,
     betrag: {
       betrag,

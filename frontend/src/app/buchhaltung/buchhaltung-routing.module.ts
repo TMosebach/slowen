@@ -11,7 +11,7 @@ const routes: Routes = [
     component: BuchhaltungComponent,
     children: [
       { path: 'buchen', component: BuchenComponent },
-      { path: 'konto/:name', component: KontodetailsComponent },
+      { path: 'konto/:id', component: KontodetailsComponent },
       { path: '', component: KontouebersichtComponent }
     ]
   }

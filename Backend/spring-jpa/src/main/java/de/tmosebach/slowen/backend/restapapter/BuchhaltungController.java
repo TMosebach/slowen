@@ -42,13 +42,22 @@ public class BuchhaltungController {
 				.body(Domain2ApiMapper.buchung2ApiBuchung(buchung));
 	}
 	
-	@GetMapping("buchungen/{name}")
-	public ResponseEntity<List<ApiBuchung>> getBuchungen4Konto(@PathVariable String name) {
-		LOG.debug("getBuchungen4Konto({})", name);
+	@GetMapping("buchungen/{id}")
+	public ResponseEntity<List<ApiBuchung>> getBuchungen4Konto(@PathVariable String id) {
+		LOG.debug("getBuchungen4Konto({})", id);
 		
-		List<Buchung> buchungen = buchungService.findBuchungenByKontoname(name);
+		List<Buchung> buchungen = buchungService.findBuchungenByKonto(Long.parseLong(id));
 		
 		return ResponseEntity.ok(Domain2ApiMapper.buchungList2ApiBuchungList(buchungen));
+	}
+	
+	@GetMapping("konten/{id}")
+	public ResponseEntity<ApiKonto> getKonto(@PathVariable String id) {
+		
+		LOG.debug("Lese Konto mit ID {}", id);
+		
+		Konto konto = buchungService.getKontoById(Long.parseLong(id));
+		return ResponseEntity.ok(Domain2ApiMapper.konto2ApiKonto(konto));
 	}
 	
 	@GetMapping("konten")

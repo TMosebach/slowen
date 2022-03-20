@@ -14,7 +14,7 @@
             </thead>
             <tbody>
             <tr *ngFor="let konto of konten$ | async">
-                <td><a [routerLink]="['konto', konto.name]">{{ konto.name }}</a></td>
+                <td><a [routerLink]="['konto', konto.id]">{{ konto.name }}</a></td>
                 <td class="text-end"><app-betrag-label [betrag]="konto.saldo"></app-betrag-label></td>
                 <td></td>
             </tr>

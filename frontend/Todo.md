@@ -1,7 +1,12 @@
 # TODO
 
 ## Allgemein
-* Konto / Asset auf Id-Namens-Referenz umstellen
+* Asset auf Id-Namens-Referenz umstellen
+
+## Kontodetails
+
+* Bestände für Depots ausweisen
+* Depot-Umsätze für Erträge ausblenden
 
 ## Buchenformular
 

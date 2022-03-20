@@ -1,6 +1,6 @@
 import { Component, OnInit } from '@angular/core';
 import { ActivatedRoute, ParamMap, Router } from '@angular/router';
-import { map, Observable, switchMap, tap } from 'rxjs';
+import { flatMap, map, mergeMap, Observable, of, switchMap, tap } from 'rxjs';
 import { BuchhaltungService } from '../buchhaltung.service';
 import { Buchung } from '../domain/buchung';
 import { Konto } from '../domain/konto';
@@ -21,10 +21,11 @@ export class KontodetailsComponent implements OnInit {
     private service: BuchhaltungService) { }
 
   ngOnInit(): void {
-    this.name$ = this.route.paramMap.pipe(
-      map( (params: ParamMap) => params.get('name')! ),
-      tap( kontoName => this.konto$ = this.service.getKonto(kontoName) ),
-      tap( kontoName => this.buchungen$ = this.service.getBuchungen4Konto(kontoName) )
+    this.konto$ = this.route.paramMap.pipe(
+      map( (params: ParamMap) => params.get('id')! ),
+      mergeMap( id => this.service.getKonto(id) ),
+      tap( konto => this.buchungen$ = this.service.getBuchungen4Konto(konto.id) ),
+      tap( konto => this.name$ = of(konto.name))
     );
   }
 }

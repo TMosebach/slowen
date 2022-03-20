@@ -7,9 +7,11 @@ public interface BuchhaltungService {
 
 	Buchung buche(Buchung apiBuchung2Buchung);
 
-	List<Buchung> findBuchungenByKontoname(String name);
+	List<Buchung> findBuchungenByKonto(Long id);
 
 	List<Konto> getKontorahmen();
 
 	Set<Asset> getAssets();
+
+	Konto getKontoById(Long id);
 }

@@ -2,6 +2,7 @@ import { Component, Input, OnInit } from '@angular/core';
 import { Observable } from 'rxjs';
 import { Buchung } from '../../domain/buchung';
 import { Konto } from '../../domain/konto';
+import { KontoRef } from '../../domain/konto-ref';
 import { Umsatz } from '../../domain/umsatz';
 import { KontodetailsComponent } from '../kontodetails.component';
 
@@ -32,7 +33,7 @@ export class BuchungListeComponent implements OnInit {
     return buchung.umsaetze?.find( umsatz => ! this.isViewKonto(umsatz.konto))!;
   }
 
-  isViewKonto(konto: string) {
-    return konto === this.viewKonto!.name;
+  isViewKonto(konto: KontoRef) {
+    return konto.name === this.viewKonto!.name;
   }
 }

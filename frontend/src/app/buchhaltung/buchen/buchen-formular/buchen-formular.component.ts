@@ -1,5 +1,6 @@
 import { Component, EventEmitter, Input, OnInit, Output } from '@angular/core';
 import { AbstractControl, FormArray, FormBuilder, FormControl, FormGroup, Validators } from '@angular/forms';
+import { TypeaheadOptions } from 'ngx-bootstrap/typeahead';
 import { BuchhaltungService } from '../../buchhaltung.service';
 import { Konto } from '../../domain/konto';
 
@@ -75,14 +76,18 @@ export class BuchenFormularComponent implements OnInit {
     buchung.umsaetze = [];
     umsaetze.forEach( (u: any) => {
       buchung.umsaetze.push({
-        konto: u.konto,
+        konto: {
+          name: u.konto,
+        },
         valuta: u.valuta,
         betrag: {
-          betrag: u.betrag,
+          betrag: Number.parseFloat(u.betrag),
           waehrung: u.waehrung
         }
       });
     });
+
+    this.service.buche(buchung).subscribe( () => this.clearFormular() );
   }
 
   private clearFormular(): void {
