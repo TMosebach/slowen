@@ -113,7 +113,9 @@ function getExpectedEinlieferung(): Buchung {
           betrag: 2400, 
           waehrung: 'EUR'
         },
-        asset: 'Talanx',
+        asset: {
+          name: 'Talanx'
+        },
         menge: {
           menge: 100, 
           einheit: 'St.'
@@ -138,7 +140,9 @@ function getExpectedVerkauf(): Buchung {
           betrag: -3000, 
           waehrung: 'EUR'
         },
-        asset: 'Talanx',
+        asset: {
+          name: 'Talanx'
+        },
         menge: {
           menge: -100, 
           einheit: 'St.'
@@ -183,7 +187,9 @@ function getExpectedKauf(): Buchung {
           betrag: 2400, 
           waehrung: 'EUR'
         },
-        asset: 'Talanx',
+        asset: {
+          name: 'Talanx'
+        },
         menge: {
           menge: 100, 
           einheit: 'St.'

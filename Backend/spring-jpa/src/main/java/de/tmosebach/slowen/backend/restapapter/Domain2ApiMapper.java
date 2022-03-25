@@ -42,7 +42,7 @@ public class Domain2ApiMapper {
 			apiUmsatz.setBetrag(umsatz.getBetrag());
 		}
 		if (nonNull(umsatz.getAsset())) {
-			apiUmsatz.setAsset(umsatz.getAsset());
+			apiUmsatz.setAsset(asset2ApiAsset(umsatz.getAsset()));
 		}
 		if (nonNull(umsatz.getMenge())) {
 			apiUmsatz.setMenge(umsatz.getMenge());
@@ -50,8 +50,9 @@ public class Domain2ApiMapper {
 		return apiUmsatz;
 	}
 
-	private static ApiAsset asset2ApiAsset(Asset asset) {
-		ApiAsset apiAsset = new ApiAsset();
+	private static ApiAssetRef asset2ApiAsset(Asset asset) {
+		ApiAssetRef apiAsset = new ApiAssetRef();
+		apiAsset.setId( Long.toString(asset.getId()) );
 		apiAsset.setName(asset.getName());
 		return apiAsset;
 	}
@@ -73,7 +74,7 @@ public class Domain2ApiMapper {
 
 	private static ApiBestand bestand2ApiBestand(Bestand bestand) {
 		ApiBestand apiBestand = new ApiBestand();
-		apiBestand.setAsset(bestand.getAsset());
+		apiBestand.setAsset(asset2ApiAsset(bestand.getAsset()));
 		apiBestand.setEinstandsWert(bestand.getEinstandsWert());
 		apiBestand.setMenge(bestand.getMenge());
 		return apiBestand;
@@ -83,7 +84,7 @@ public class Domain2ApiMapper {
 		return kontoList.stream().map( k -> konto2ApiKonto(k)).collect(Collectors.toList());
 	}
 
-	public static List<ApiAsset> assetList2ApiAssetList(Set<Asset> assetList) {
+	public static List<ApiAssetRef> assetList2ApiAssetList(Set<Asset> assetList) {
 		return assetList.stream().map( a -> asset2ApiAsset(a)).collect(Collectors.toList());
 	}
 }

@@ -24,7 +24,8 @@ public class Umsatz {
 	private LocalDate valuta;
 	private Menge menge;
 
-	private String asset;
+	@ManyToOne(cascade = CascadeType.ALL)
+	private Asset asset;
 	
 	@ManyToOne
 	private Buchung buchung;
@@ -56,10 +57,10 @@ public class Umsatz {
 	public void setMenge(Menge menge) {
 		this.menge = menge;
 	}
-	public String getAsset() {
+	public Asset getAsset() {
 		return asset;
 	}
-	public void setAsset(String asset) {
+	public void setAsset(Asset asset) {
 		this.asset = asset;
 	}
 	public Buchung getBuchung() {

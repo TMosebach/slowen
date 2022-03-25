@@ -1,6 +1,5 @@
-import { Asset } from "./asset";
+import { AssetRef } from "./asset-ref";
 import { Betrag } from "./betrag";
-import { Konto } from "./konto";
 import { KontoRef } from "./konto-ref";
 import { Menge } from "./menge";
 
@@ -8,6 +7,6 @@ export interface Umsatz {
     konto: KontoRef;
     valuta: string;
     betrag: Betrag;
-    asset?: string;
+    asset?: AssetRef;
     menge?: Menge;
 }

@@ -63,7 +63,9 @@ function checkAndCreateUmsatz(konto: string, formular: HandelFormular, formularB
 
 function createDepotUmsatz(formular: HandelFormular, betrag:number, menge: number): Umsatz {
     let depotUmsatz = createUmsatz(formular.depot, formular.valuta, betrag, formular.waehrung);
-    depotUmsatz.asset = formular.asset;
+    depotUmsatz.asset = {
+        name: formular.asset
+    };
     depotUmsatz.menge = {
         menge: menge,
         einheit: formular.einheit

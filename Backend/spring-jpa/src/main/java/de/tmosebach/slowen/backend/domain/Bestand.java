@@ -8,7 +8,7 @@ import de.tmosebach.slowen.backend.values.Menge;
 
 public class Bestand {
 	
-	private String asset;
+	private Asset asset;
 	private Menge menge = Menge.NULL_MENGE;
 	private Betrag einstandsWert = Betrag.ZERO;
 
@@ -24,15 +24,15 @@ public class Bestand {
 		einstandsWert = einstandsWert.add(wert);
 	}
 
-	public Bestand(String asset) {
+	public Bestand(Asset asset) {
 		this.asset = asset;
 	}
 
-	public String getAsset() {
+	public Asset getAsset() {
 		return asset;
 	}
 
-	public void setAsset(String asset) {
+	public void setAsset(Asset asset) {
 		this.asset = asset;
 	}
 

@@ -10,6 +10,8 @@ import javax.persistence.Embeddable;
 import javax.validation.constraints.NotNull;
 import javax.validation.constraints.Size;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
+
 @Embeddable
 public class Betrag {
 	
@@ -79,9 +81,11 @@ public class Betrag {
 				betrag.subtract(abzugebenderWert.getBetrag()),
 				waehrung);
 	}
+	@JsonIgnore
 	public boolean isPositiv() {
 		return BigDecimal.ZERO.compareTo(betrag) < 0;
 	}
+	@JsonIgnore
 	public boolean isNegativ() {
 		return BigDecimal.ZERO.compareTo(betrag) > 0;
 	}

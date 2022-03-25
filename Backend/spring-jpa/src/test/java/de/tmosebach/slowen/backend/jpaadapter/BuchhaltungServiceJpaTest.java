@@ -16,6 +16,8 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.mockito.Mock;
 
+import de.tmosebach.slowen.backend.domain.Asset;
+import de.tmosebach.slowen.backend.domain.AssetRepository;
 import de.tmosebach.slowen.backend.domain.Bestand;
 import de.tmosebach.slowen.backend.domain.Buchung;
 import de.tmosebach.slowen.backend.domain.BuchungRepository;
@@ -39,12 +41,16 @@ class BuchhaltungServiceJpaTest {
 	@Mock
 	private KontoRepository kontoRepositoryMock;
 	
+	@Mock
+	private AssetRepository assetRepositoryMock;
+	
 	private BuchhaltungServiceJpa impl;
 	
 	@BeforeEach
 	void setUp() throws Exception {
 		openMocks(this);
-		impl = new BuchhaltungServiceJpa(validatorMock, buchungRepositoryMock, kontoRepositoryMock);
+		impl = new BuchhaltungServiceJpa(
+				validatorMock, buchungRepositoryMock, kontoRepositoryMock, assetRepositoryMock);
 	}
 
 	@Test
@@ -64,6 +70,11 @@ class BuchhaltungServiceJpaTest {
 		Optional<Konto> tagesgeld = findKontoByName("Tagesgeld");
 		assertTrue(tagesgeld.isPresent());
 		assertEquals(BigDecimal.TEN, tagesgeld.get().getSaldo().getBetrag());
+	}
+	
+	private void mockNewAsset(long id, String assetName) {
+		when(assetRepositoryMock.save(new Asset(assetName)))
+		.thenReturn(new Asset(id, assetName));
 	}
 	
 	private void mockNewKonto(long id, String kontoName) {
@@ -97,6 +108,8 @@ class BuchhaltungServiceJpaTest {
 		mockNewKonto(2L, "Provision");
 		mockNewKonto(3L, "Depot");
 		
+		mockNewAsset(1L, "Talanx AG");
+		
 		Buchung kauf = createKauf();
 		
 		impl.buche(kauf);
@@ -126,11 +139,17 @@ class BuchhaltungServiceJpaTest {
 		buchung.addUmsatz(createUmsatz("Provision", LocalDate.now(), new Betrag(valueOf(30.0), WAEHRUNG)));
 		buchung.addUmsatz(
 				createSkontroUmsatz("Depot", LocalDate.now(), new Betrag(valueOf(2400.0), WAEHRUNG),
-						"Talanx AG", new Menge(100.0)));
+						createAsset(), new Menge(100.0)));
 		return buchung;
 	}
 
-	private Umsatz createSkontroUmsatz(String konto, LocalDate valuta, Betrag betrag, String asset, Menge menge) {
+	private Asset createAsset() {
+		Asset asset = new Asset();
+		asset.setName("Talanx AG");
+		return asset;
+	}
+
+	private Umsatz createSkontroUmsatz(String konto, LocalDate valuta, Betrag betrag, Asset asset, Menge menge) {
 		Umsatz umsatz = createUmsatz(konto, valuta, betrag);
 		umsatz.setAsset(asset);
 		umsatz.setMenge(menge);
@@ -142,6 +161,8 @@ class BuchhaltungServiceJpaTest {
 		mockNewKonto(1L, "Giro");
 		mockNewKonto(2L, "Provision");
 		mockNewKonto(3L, "Depot");
+		
+		mockNewAsset(1L, "Talanx AG");
 		
 		Buchung kauf = createKauf();
 		
@@ -180,6 +201,8 @@ class BuchhaltungServiceJpaTest {
 		mockNewKonto(3L, "Depot");
 		mockNewKonto(4L, "Kursgewinn");
 		
+		mockNewAsset(1L, "Talanx AG");
+		
 		impl.buche(createKauf());
 		impl.buche(createVerkauf(-100.0, -3000.0));
 		
@@ -209,7 +232,7 @@ class BuchhaltungServiceJpaTest {
 		buchung.addUmsatz(createUmsatz("Provision", LocalDate.now(), new Betrag(valueOf(30.0), WAEHRUNG)));
 		buchung.addUmsatz(
 				createSkontroUmsatz("Depot", LocalDate.now(), new Betrag(valueOf(wert), WAEHRUNG),
-						"Talanx AG", new Menge(menge)));
+						createAsset(), new Menge(menge)));
 		return buchung;
 	}
 
@@ -219,6 +242,8 @@ class BuchhaltungServiceJpaTest {
 		mockNewKonto(2L, "Provision");
 		mockNewKonto(3L, "Depot");
 		mockNewKonto(4L, "Kursverlust");
+		
+		mockNewAsset(1L, "Talanx AG");
 		
 		impl.buche(createKauf());
 		impl.buche(createVerkauf(-50.0, -1000.0));
@@ -247,11 +272,13 @@ class BuchhaltungServiceJpaTest {
 
 		mockNewKonto(3L, "Depot");
 		
+		mockNewAsset(1L, "Talanx AG");
+		
 		Buchung einlieferung = new Buchung();
 		einlieferung.setArt(BuchungArt.Einlieferung);
 		einlieferung.addUmsatz(
 				createSkontroUmsatz("Depot", LocalDate.now(), new Betrag(valueOf(2400), WAEHRUNG),
-						"Talanx AG", new Menge(100)));
+						createAsset(), new Menge(100)));
 		
 		impl.buche(einlieferung);
 
@@ -277,7 +304,7 @@ class BuchhaltungServiceJpaTest {
 		ertrag.addUmsatz(createUmsatz("Dividende", LocalDate.now(), new Betrag(valueOf(-300.0), WAEHRUNG)));
 		ertrag.addUmsatz(
 				createSkontroUmsatz("Depot", LocalDate.now(), new Betrag(valueOf(0.0), WAEHRUNG),
-						"Talanx AG", new Menge(0.0)));
+						createAsset(), new Menge(0.0)));
 		
 		impl.buche(ertrag);
 		

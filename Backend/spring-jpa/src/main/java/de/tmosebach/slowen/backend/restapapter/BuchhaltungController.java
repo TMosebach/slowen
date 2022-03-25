@@ -70,7 +70,7 @@ public class BuchhaltungController {
 	}
 	
 	@GetMapping("assets")
-	public ResponseEntity<List<ApiAsset>> getAssets() {
+	public ResponseEntity<List<ApiAssetRef>> getAssets() {
 		LOG.debug("Lese Assets.");
 		
 		Set<Asset> assetList = buchungService.getAssets();

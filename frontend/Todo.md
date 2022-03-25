@@ -1,8 +1,5 @@
 # TODO
 
-## Allgemein
-* Asset auf Id-Namens-Referenz umstellen
-
 ## Kontodetails
 
 * Bestände für Depots ausweisen

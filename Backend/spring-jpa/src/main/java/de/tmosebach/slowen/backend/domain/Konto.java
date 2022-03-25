@@ -4,6 +4,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
 
+import javax.persistence.Column;
 import javax.persistence.Entity;
 import javax.persistence.GeneratedValue;
 import javax.persistence.Id;
@@ -19,6 +20,7 @@ public class Konto {
 	@Id
 	@GeneratedValue
 	private Long id;
+	@Column(unique = true)
 	private String name;
 	private Betrag saldo = Betrag.ZERO;
 	private transient List<Bestand> bestaende = new ArrayList<>();
@@ -70,14 +72,14 @@ public class Konto {
 	public boolean equals(Object obj) {
 		return EqualsBuilder.reflectionEquals(this, obj, "umsaetze");
 	}
-	public Bestand getOrCreateBestand(String assetName) {
+	public Bestand getOrCreateBestand(Asset asset) {
 		Optional<Bestand> bestandTreffer = bestaende.stream()
-			.filter( bestand -> assetName.equals(assetName))
+			.filter( bestand -> bestand.getAsset().getName().equals(asset.getName()))
 			.findFirst();
 		if (bestandTreffer.isPresent()) {
 			return bestandTreffer.get();
 		}
-		Bestand bestand = new Bestand(assetName);
+		Bestand bestand = new Bestand(asset);
 		addBestand(bestand);
 		return bestand;
 	}

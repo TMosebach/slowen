@@ -12,7 +12,9 @@
 				"betrag": -3000, 
 				"waehrung": "EUR"
 			},
-			"asset": "Deutsche Telekom AG",
+			"asset": {
+				"name": "Talanx AG"
+			},
 			"menge": {
 				"menge": -100, 
 				"einheit": "St."

@@ -82,7 +82,9 @@ function getExpectedSteuerfreieDividende(): Buchung {
           betrag: 0.0, 
           waehrung: 'EUR'
         },
-        asset: 'Talanx AG',
+        asset: {
+          name: 'Talanx AG'
+        },
         menge: {
           menge: 0.0, 
           einheit: 'St.'

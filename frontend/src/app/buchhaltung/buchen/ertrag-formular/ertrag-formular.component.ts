@@ -79,7 +79,9 @@ function transformToBuchung(formular: ErtragFormular): Buchung {
           betrag: 0.0, 
           waehrung: formular.waehrung
         },
-        asset: formular.asset,
+        asset: {
+          name: formular.asset
+        },
         menge: {
           menge: 0.0, 
           einheit: 'St.'

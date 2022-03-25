@@ -46,7 +46,9 @@ public class ApiUmsatz {
 		}
 
 		public ApiUmsatzBuilder asset(String assetName) {
-			umsatz.setAsset(assetName);
+			ApiAssetRef asset = new ApiAssetRef();
+			asset.setName(assetName);
+			umsatz.setAsset(asset);
 			return this;
 		}
 
@@ -60,7 +62,7 @@ public class ApiUmsatz {
 	private ApiKontoRef konto;
 	private LocalDate valuta;
 	private Betrag betrag;
-	private String asset;
+	private ApiAssetRef asset;
 	private Menge menge;
 	
 	public ApiKontoRef getKonto() {
@@ -81,10 +83,10 @@ public class ApiUmsatz {
 	public void setBetrag(Betrag betrag) {
 		this.betrag = betrag;
 	}
-	public String getAsset() {
+	public ApiAssetRef getAsset() {
 		return asset;
 	}
-	public void setAsset(String asset) {
+	public void setAsset(ApiAssetRef asset) {
 		this.asset = asset;
 	}
 	public Menge getMenge() {

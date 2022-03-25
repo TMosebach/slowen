@@ -7,13 +7,14 @@ import de.tmosebach.slowen.backend.values.Menge;
 
 public class ApiBestand {
 
-	private String asset;
+	private ApiAssetRef asset;
 	private Betrag einstandsWert;
 	private Menge menge;
-	public String getAsset() {
+	
+	public ApiAssetRef getAsset() {
 		return asset;
 	}
-	public void setAsset(String asset) {
+	public void setAsset(ApiAssetRef asset) {
 		this.asset = asset;
 	}
 	public Betrag getEinstandsWert() {

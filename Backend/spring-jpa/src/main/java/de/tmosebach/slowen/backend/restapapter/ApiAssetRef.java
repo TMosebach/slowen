@@ -1,43 +1,33 @@
-package de.tmosebach.slowen.backend.domain;
+package de.tmosebach.slowen.backend.restapapter;
 
 import java.util.Objects;
 
-import javax.persistence.Entity;
-import javax.persistence.GeneratedValue;
-import javax.persistence.Id;
+public class ApiAssetRef {
 
-@Entity
-public class Asset {
-
-	@Id
-	@GeneratedValue
-	private Long id;
+	private String id;
 	private String name;
 	
-	public Asset() {}
-	public Asset(String name) {
-		this.name = name;
-	}
-	public Asset(long id, String name) {
-		this(name);
-		this.id = id;
-	}
-	public Long getId() {
+	public String getId() {
 		return id;
 	}
-	public void setId(Long id) {
+
+	public void setId(String id) {
 		this.id = id;
 	}
+
 	public String getName() {
 		return name;
 	}
+
 	public void setName(String name) {
 		this.name = name;
 	}
+
 	@Override
 	public int hashCode() {
 		return Objects.hash(id, name);
 	}
+
 	@Override
 	public boolean equals(Object obj) {
 		if (this == obj)
@@ -46,11 +36,13 @@ public class Asset {
 			return false;
 		if (getClass() != obj.getClass())
 			return false;
-		Asset other = (Asset) obj;
+		ApiAssetRef other = (ApiAssetRef) obj;
 		return Objects.equals(id, other.id) && Objects.equals(name, other.name);
 	}
+
 	@Override
 	public String toString() {
-		return "Asset [id=" + id + ", name=" + name + "]";
+		return "ApiAssetRef [id=" + id + ", name=" + name + "]";
 	}
+
 }

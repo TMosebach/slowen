@@ -20,6 +20,7 @@ import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
 
 import de.tmosebach.slowen.backend.domain.Asset;
+import de.tmosebach.slowen.backend.domain.AssetRepository;
 import de.tmosebach.slowen.backend.domain.Bestand;
 import de.tmosebach.slowen.backend.domain.BuchhaltungService;
 import de.tmosebach.slowen.backend.domain.Buchung;
@@ -37,19 +38,23 @@ public class BuchhaltungServiceJpa implements BuchhaltungService {
 	private Validator validator;
 	private BuchungRepository buchungRepository;
 	private KontoRepository kontoRepository;
+	private AssetRepository assetRepository;
 	
 	private List<Buchung> buchungen = new ArrayList<>();
 	private Map<Long, Konto> kontorahmen = new HashMap<>();
-	private Map<String, Asset> assets = new HashMap<>();
+	private Map<Long, Asset> assets = new HashMap<>();
 
 	public BuchhaltungServiceJpa(
 			Validator validator,
 			BuchungRepository buchungRepository,
-			KontoRepository kontoRepository) {
+			KontoRepository kontoRepository,
+			AssetRepository assetRepository) {
 		this.validator = validator;
 		this.buchungRepository = buchungRepository;
 		this.kontoRepository = kontoRepository;
+		this.assetRepository = assetRepository;
 		
+		// Initialisieren
 		List<Buchung> buchungen = buchungRepository.findAll();
 		buchungen.forEach( buchung -> buche(buchung));
 	}
@@ -122,8 +127,11 @@ public class BuchhaltungServiceJpa implements BuchhaltungService {
 
 	private void skontroAbgang(Buchung buchung, Umsatz umsatz) {
 		Konto depot = getOrCreateKonto(umsatz.getKonto());
-		String assetName = umsatz.getAsset();
-		Bestand bestand = depot.getOrCreateBestand(assetName);
+		Asset asset = getOrCreateAsset(umsatz.getAsset());
+		
+		umsatz.setKonto(depot);
+		umsatz.setAsset(asset);
+		Bestand bestand = depot.getOrCreateBestand(asset);
 
 		double abgabeAnteil = calcAbgabeAnteil(bestand.getMenge(), umsatz.getMenge());
 		bestand.addMenge(umsatz.getMenge());
@@ -182,11 +190,38 @@ public class BuchhaltungServiceJpa implements BuchhaltungService {
 	 */
 	private void skontroZugang(Umsatz umsatz) {
 		Konto depot = getOrCreateKonto(umsatz.getKonto());
-		String assetName = umsatz.getAsset();
-		Bestand bestand = depot.getOrCreateBestand(assetName);
+		Asset asset = getOrCreateAsset(umsatz.getAsset());
+		
+		umsatz.setKonto(depot);
+		umsatz.setAsset(asset);
+		Bestand bestand = depot.getOrCreateBestand(asset);
 
 		bestand.addMenge(umsatz.getMenge());
 		bestand.addEinstandswert(umsatz.getBetrag());
+	}
+
+	private Asset getOrCreateAsset(Asset assetRef) {
+		Long id = assetRef.getId();
+		if (nonNull(id) && assets.containsKey(id)) {
+			return assets.get(id);
+		}
+
+		String assetName = assetRef.getName();
+		Optional<Asset> persistentAsset = assetRepository.findByName(assetName);
+		Asset asset = 
+			persistentAsset.orElseGet(() -> {
+				Asset newAsset = new Asset();
+				newAsset.setName(assetName);
+				return saveAsset(newAsset);
+			});
+		assets.put(asset.getId(), asset);
+		
+		return asset;
+	}
+
+	@Transactional(propagation = Propagation.REQUIRES_NEW)
+	private Asset saveAsset(Asset asset) {
+		return assetRepository.save(asset);
 	}
 
 	private void saldoAnpassen(Umsatz umsatz) {
@@ -215,7 +250,7 @@ public class BuchhaltungServiceJpa implements BuchhaltungService {
 	}
 	
 	@Transactional(propagation = Propagation.REQUIRES_NEW)
-	public Konto saveKonto(Konto konto) {
+	private Konto saveKonto(Konto konto) {
 		return kontoRepository.save(konto);
 	}
 
