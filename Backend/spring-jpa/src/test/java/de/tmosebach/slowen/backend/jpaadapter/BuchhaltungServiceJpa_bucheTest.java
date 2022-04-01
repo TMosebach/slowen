@@ -28,7 +28,7 @@ import de.tmosebach.slowen.backend.values.Betrag;
 import de.tmosebach.slowen.backend.values.BuchungArt;
 import de.tmosebach.slowen.backend.values.Menge;
 
-class BuchhaltungServiceJpaTest {
+class BuchhaltungServiceJpa_bucheTest {
 	
 	private static final String WAEHRUNG = "EUR";
 

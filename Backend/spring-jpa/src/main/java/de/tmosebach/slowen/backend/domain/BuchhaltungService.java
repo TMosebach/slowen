@@ -14,4 +14,13 @@ public interface BuchhaltungService {
 	Set<Asset> getAssets();
 
 	Konto getKontoById(Long id);
+	
+	/**
+	 * Suchen nach Buchungen, deren Verwendung oder Empfänger mit
+	 * dem Query-Pattern starten.
+	 * 
+	 * @param query Das Pattern
+	 * @return Liste der gefundenen Buchungen.
+	 */
+	List<Buchung> searchBuchungen(String query);
 }

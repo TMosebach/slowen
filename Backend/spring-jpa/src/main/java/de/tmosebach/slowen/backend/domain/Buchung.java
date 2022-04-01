@@ -86,4 +86,9 @@ public class Buchung {
 		umsaetze.add(umsatz);
 		umsatz.setBuchung(this);
 	}
+	@Override
+	public String toString() {
+		return "Buchung [id=" + id + ", art=" + art + ", empfaenger=" + empfaenger + ", beschreibung=" + beschreibung
+				+ ", datum=" + datum + ", umsaetze=" + umsaetze + "]";
+	}
 }

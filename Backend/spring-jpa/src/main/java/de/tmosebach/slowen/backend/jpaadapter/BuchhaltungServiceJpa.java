@@ -282,4 +282,10 @@ public class BuchhaltungServiceJpa implements BuchhaltungService {
 	public Konto getKontoById(Long id) {
 		return kontorahmen.get(id);
 	}
+
+	@Override
+	public List<Buchung> searchBuchungen(String query) {
+		List<Buchung> result = new ArrayList<>();
+		return result;
+	}
 }
