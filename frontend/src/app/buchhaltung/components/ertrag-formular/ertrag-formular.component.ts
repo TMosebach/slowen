@@ -1,8 +1,8 @@
 import { Component, OnInit } from '@angular/core';
 import { FormBuilder, FormGroup, Validators } from '@angular/forms';
-import { BuchhaltungService } from '../../buchhaltung.service';
 import { Buchung } from '../../domain/buchung';
 import { Umsatz } from '../../domain/umsatz';
+import { BuchhaltungService } from '../../services/buchhaltung.service';
 import { ErtragFormular } from './ertrag-formular';
 
 @Component({

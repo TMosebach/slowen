@@ -1,9 +1,9 @@
 import { NgModule } from '@angular/core';
 import { RouterModule, Routes } from '@angular/router';
-import { BuchenComponent } from './buchen/buchen.component';
 import { BuchhaltungComponent } from './buchhaltung.component';
-import { KontodetailsComponent } from './kontodetails/kontodetails.component';
-import { KontouebersichtComponent } from './kontouebersicht/kontouebersicht.component';
+import { BuchenComponent } from './views/buchen/buchen.component';
+import { KontodetailsComponent } from './views/kontodetails/kontodetails.component';
+import { KontouebersichtComponent } from './views/kontouebersicht/kontouebersicht.component';
 
 const routes: Routes = [
   { 

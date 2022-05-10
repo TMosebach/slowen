@@ -1,6 +1,6 @@
 import { Component, OnInit } from '@angular/core';
 import { FormBuilder, FormGroup, Validators } from '@angular/forms';
-import { BuchhaltungService } from '../../buchhaltung.service';
+import { BuchhaltungService } from '../../services/buchhaltung.service';
 import { transformToBuchung } from './to-buchung-conversion';
 
 @Component({

@@ -1,9 +1,9 @@
 import { Component, OnInit } from '@angular/core';
-import { ActivatedRoute, ParamMap, Router } from '@angular/router';
-import { flatMap, map, mergeMap, Observable, of, switchMap, tap } from 'rxjs';
-import { BuchhaltungService } from '../buchhaltung.service';
-import { Buchung } from '../domain/buchung';
-import { Konto } from '../domain/konto';
+import { ActivatedRoute, ParamMap } from '@angular/router';
+import { map, mergeMap, Observable, of, tap } from 'rxjs';
+import { Buchung } from '../../domain/buchung';
+import { Konto } from '../../domain/konto';
+import { BuchhaltungService } from '../../services/buchhaltung.service';
 
 @Component({
   selector: 'app-kontodetails',
@@ -18,13 +18,13 @@ export class KontodetailsComponent implements OnInit {
 
   constructor(
     private route: ActivatedRoute,
-    private service: BuchhaltungService) { }
+    private buchhaltungService: BuchhaltungService) { }
 
   ngOnInit(): void {
     this.konto$ = this.route.paramMap.pipe(
       map( (params: ParamMap) => params.get('id')! ),
-      mergeMap( id => this.service.getKonto(id) ),
-      tap( konto => this.buchungen$ = this.service.getBuchungen4Konto(konto.id) ),
+      mergeMap( id => this.buchhaltungService.getKonto(id) ),
+      tap( konto => this.buchungen$ = this.buchhaltungService.getBuchungen4Konto(konto.id) ),
       tap( konto => this.name$ = of(konto.name))
     );
   }

@@ -4,7 +4,6 @@ import { Buchung } from '../../domain/buchung';
 import { Konto } from '../../domain/konto';
 import { KontoRef } from '../../domain/konto-ref';
 import { Umsatz } from '../../domain/umsatz';
-import { KontodetailsComponent } from '../kontodetails.component';
 
 @Component({
   selector: 'app-buchung-liste',

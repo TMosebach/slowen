@@ -1,8 +1,7 @@
 import { Component, EventEmitter, Input, OnInit, Output } from '@angular/core';
 import { AbstractControl, FormArray, FormBuilder, FormControl, FormGroup, Validators } from '@angular/forms';
-import { TypeaheadOptions } from 'ngx-bootstrap/typeahead';
-import { BuchhaltungService } from '../../buchhaltung.service';
 import { Konto } from '../../domain/konto';
+import { BuchhaltungService } from '../../services/buchhaltung.service';
 
 @Component({
   selector: 'app-buchen-formular',

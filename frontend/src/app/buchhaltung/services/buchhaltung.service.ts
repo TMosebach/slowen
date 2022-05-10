@@ -1,8 +1,10 @@
 import { HttpClient } from '@angular/common/http';
 import { Injectable } from '@angular/core';
 import { Observable } from 'rxjs';
-import { Buchung } from './domain/buchung';
-import { Konto } from './domain/konto';
+import { Buchung } from '../domain/buchung';
+import { Konto } from '../domain/konto';
+
+
 
 const API_ENDPOINT = 'http://localhost:8080/api/buchhaltung';
 

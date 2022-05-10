@@ -1,7 +1,7 @@
 import { Component, OnInit } from '@angular/core';
 import { Observable } from 'rxjs';
-import { BuchhaltungService } from '../buchhaltung.service';
-import { Konto } from '../domain/konto';
+import { Konto } from '../../domain/konto';
+import { BuchhaltungService } from '../../services/buchhaltung.service';
 
 @Component({
   selector: 'app-kontouebersicht',
@@ -12,10 +12,10 @@ export class KontouebersichtComponent implements OnInit {
 
   konten$: Observable<Konto[]> | undefined;
 
-  constructor(private service: BuchhaltungService) { }
+  constructor(private buchhaltungsService: BuchhaltungService) { }
 
   ngOnInit(): void {
-    this.konten$ = this.service.getKonten();
+    this.konten$ = this.buchhaltungsService.getKonten();
   }
 
 }
