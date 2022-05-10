@@ -7,7 +7,7 @@ public interface BuchhaltungService {
 
 	Buchung buche(Buchung apiBuchung2Buchung);
 
-	List<Buchung> findBuchungenByKonto(Long id);
+	List<Buchung> findBuchungenByKonto(Long id, Long page, Long size);
 
 	List<Konto> getKontorahmen();
 
@@ -23,4 +23,6 @@ public interface BuchhaltungService {
 	 * @return Liste der gefundenen Buchungen.
 	 */
 	List<Buchung> searchBuchungen(String query);
+
+	long countBuchungenByKonto(Long kontoId);
 }

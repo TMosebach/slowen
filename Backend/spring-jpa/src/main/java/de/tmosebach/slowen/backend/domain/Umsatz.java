@@ -83,4 +83,10 @@ public class Umsatz {
 	public boolean equals(Object obj) {
 		return EqualsBuilder.reflectionEquals(this, obj);
 	}
+	@Override
+	public String toString() {
+		return "Umsatz [id=" + id + ", betrag=" + betrag + ", valuta=" + valuta + ", menge=" + menge + ", asset="
+				+ asset + ", buchung=" + buchung + ", konto=" + konto + "]";
+	}
+	
 }

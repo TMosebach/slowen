@@ -89,6 +89,6 @@ public class Buchung {
 	@Override
 	public String toString() {
 		return "Buchung [id=" + id + ", art=" + art + ", empfaenger=" + empfaenger + ", beschreibung=" + beschreibung
-				+ ", datum=" + datum + ", umsaetze=" + umsaetze + "]";
+				+ ", datum=" + datum + "]";
 	}
 }

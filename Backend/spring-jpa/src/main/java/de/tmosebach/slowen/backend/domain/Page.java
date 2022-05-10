@@ -5,31 +5,39 @@ import java.util.List;
 public class Page<T> {
 
 	private List<T> content;
-	private Integer totalPages;
-	private Long totalElements;
-	private Integer size;
-	private Integer number;
+	private long totalElements;
+	private long pageCount;
+	public long getPageCount() {
+		return pageCount;
+	}
+	private int size;
+	private int page;
 
-	public Page(List<T> content, Integer totalPages, Long totalElements, Integer size, Integer number) {
+	public Page(
+			List<T> content, 
+			long totalElements, long pageCount,
+			int page, int size) {
 		this.content = content;
-		this.totalPages = totalPages;
 		this.totalElements = totalElements;
+		this.pageCount = pageCount;
 		this.size = size;
-		this.number = number;
+		this.page = page;
 	}
 	public List<T> getContent() {
 		return content;
 	}
-	public Integer getTotalPages() {
-		return totalPages;
-	}
-	public Long getTotalElements() {
+	public long getTotalElements() {
 		return totalElements;
 	}
-	public Integer getSize() {
+	public int getSize() {
 		return size;
 	}
-	public Integer getNumber() {
-		return number;
+	public int getPage() {
+		return page;
+	}
+	@Override
+	public String toString() {
+		return "Page [totalElements=" + totalElements + ", pageCount=" + pageCount + ", size=" + size + ", page=" + page
+				+ ", content=" + content + "]";
 	}
 }

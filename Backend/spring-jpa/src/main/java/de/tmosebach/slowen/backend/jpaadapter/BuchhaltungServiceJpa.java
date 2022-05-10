@@ -1,9 +1,11 @@
 package de.tmosebach.slowen.backend.jpaadapter;
 
+import static java.lang.Math.max;
 import static java.util.Objects.nonNull;
 
 import java.time.LocalDate;
 import java.util.ArrayList;
+import java.util.Comparator;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -258,10 +260,42 @@ public class BuchhaltungServiceJpa implements BuchhaltungService {
 		return new ArrayList<>(kontorahmen.values());
 	}
 
-	public List<Buchung> findBuchungenByKonto(Long id) {
-		return buchungen.stream()
+	/**
+	 * Lesen eines Ausschnitts aus der Buchungsliste eines Kontos.
+	 * 
+	 * Es kommen die jüngsten/zu letzt ergänzten Buchungen zu erst.
+	 * 
+	 * Die Liste enthält den Buchungsausschnitt mit der angegebenen größe.
+	 * 
+	 * @param id des Kontos
+	 * @param page Seitennummer beginnend mit 0
+	 * @param size Seitengröße
+	 */
+	public List<Buchung> findBuchungenByKonto(Long id, Long page, Long size) {
+		List<Buchung> kontoBuchungen = 
+			buchungen.stream()
 				.filter( buchung -> enthaeltKonto(buchung, id))
+				.sorted(new Comparator<Buchung>() {
+
+					@Override
+					public int compare(Buchung o1, Buchung o2) {
+						Umsatz u1 = extractUmsatz(o1, id);
+						Umsatz u2 = extractUmsatz(o2, id);
+						return u1.getValuta().compareTo(u2.getValuta());
+					}
+
+					private Umsatz extractUmsatz(Buchung buchung, Long id) {
+						return buchung.getUmsaetze().stream()
+							.filter( umsatz -> umsatz.getKonto().getId() == id)
+							.findFirst()
+							.get();
+					}
+				})
 				.collect(Collectors.toList());
+		int count = kontoBuchungen.size();
+		int start = (int)max(0 , count - (1 + page) * size);
+		int ende = (int)max(0, count - page * size);
+		return kontoBuchungen.subList(start, ende);
 	}
 	
 	private boolean enthaeltKonto(Buchung buchung, Long id) {
@@ -287,5 +321,18 @@ public class BuchhaltungServiceJpa implements BuchhaltungService {
 	public List<Buchung> searchBuchungen(String query) {
 		List<Buchung> result = new ArrayList<>();
 		return result;
+	}
+
+	@Override
+	public long countBuchungenByKonto(Long kontoId) {
+		return buchungen
+				.stream()
+				.filter( buchung -> withKonto(buchung.getUmsaetze(), kontoId))
+				.count();
+	}
+
+	private boolean withKonto(List<Umsatz> umsaetze, Long kontoId) {
+		return umsaetze.stream()
+				.anyMatch( umsatz -> umsatz.getKonto().getId() == kontoId);
 	}
 }

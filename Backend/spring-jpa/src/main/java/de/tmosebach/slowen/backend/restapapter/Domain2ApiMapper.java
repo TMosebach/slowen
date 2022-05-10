@@ -35,7 +35,7 @@ public class Domain2ApiMapper {
 	private static ApiUmsatz umsatz2ApiUmsatz(Umsatz umsatz) {
 		ApiUmsatz apiUmsatz = new ApiUmsatz();
 		if (nonNull(umsatz.getKonto())) {
-			apiUmsatz.setKonto(konto2ApiKonto(umsatz.getKonto()));
+			apiUmsatz.setKonto(konto2ApiKonto4Umsatz(umsatz.getKonto()));
 		}
 		apiUmsatz.setValuta(umsatz.getValuta());
 		if (nonNull(umsatz.getBetrag())) {
@@ -69,6 +69,13 @@ public class Domain2ApiMapper {
 				.collect(Collectors.toList())
 			);
 		}
+		return apiKonto;
+	}
+	
+	public static ApiKonto konto2ApiKonto4Umsatz(Konto konto) {
+		ApiKonto apiKonto = new ApiKonto();
+		apiKonto.setId( Long.toString(konto.getId()) );
+		apiKonto.setName(konto.getName());
 		return apiKonto;
 	}
 
