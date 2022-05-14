@@ -51,12 +51,21 @@ public class Api2DomainMapper {
 		return asset;
 	}
 
-	private static Konto apiKontoToKonto(ApiKontoRef apiKontoRef) {
+	public static Konto apiKontoToKonto(ApiKontoRef apiKontoRef) {
 		Konto konto = new Konto();
 		if (nonNull(apiKontoRef.getId())) {
 			konto.setId( Long.valueOf(apiKontoRef.getId()) );
 		}
 		konto.setName(apiKontoRef.getName());
+		return konto;
+	}
+	
+	public static Konto apiKontoToKonto(ApiKonto apiKonto) {
+		Konto konto = new Konto();
+		if (nonNull(apiKonto.getId())) {
+			konto.setId( Long.valueOf(apiKonto.getId()) );
+		}
+		konto.setName(apiKonto.getName());
 		return konto;
 	}
 }

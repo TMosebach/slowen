@@ -103,6 +103,15 @@ public class BuchhaltungController {
 		return ResponseEntity.ok(Domain2ApiMapper.konto2ApiKonto(konto));
 	}
 	
+	@PostMapping("konten")
+	public ResponseEntity<ApiKonto> createKonto(@RequestBody ApiKonto apiKonto) {
+		Konto konto = Api2DomainMapper.apiKontoToKonto(apiKonto);
+		konto = buchungService.createKonto(konto);
+		return ResponseEntity
+				.created(URI.create("api/buchhaltung/konto/"+konto.getId()))
+				.body(Domain2ApiMapper.konto2ApiKonto(konto));
+	}
+	
 	@GetMapping("konten")
 	public ResponseEntity<List<ApiKonto>> getKonten() {
 		

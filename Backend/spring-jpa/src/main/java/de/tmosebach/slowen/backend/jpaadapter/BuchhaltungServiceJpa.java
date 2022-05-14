@@ -43,7 +43,6 @@ public class BuchhaltungServiceJpa implements BuchhaltungService {
 	private AssetRepository assetRepository;
 	
 	private List<Buchung> buchungen = new ArrayList<>();
-	private Map<Long, Konto> kontorahmen = new HashMap<>();
 	private Map<Long, Asset> assets = new HashMap<>();
 
 	public BuchhaltungServiceJpa(
@@ -234,8 +233,11 @@ public class BuchhaltungServiceJpa implements BuchhaltungService {
 	
 	private Konto getOrCreateKonto(Konto kontoRef) {
 		Long id = kontoRef.getId();
-		if (nonNull(id) && kontorahmen.containsKey(id)) {
-			return kontorahmen.get(id);
+		if (nonNull(id)) {
+			Optional<Konto> persistentKonto = kontoRepository.findById(id);
+			if (persistentKonto.isPresent()) {
+				return persistentKonto.get();
+			}
 		}
 
 		String kontoName = kontoRef.getName();
@@ -246,7 +248,6 @@ public class BuchhaltungServiceJpa implements BuchhaltungService {
 				newKonto.setName(kontoName);
 				return saveKonto(newKonto);
 			});
-		kontorahmen.put(konto.getId(), konto);
 		
 		return konto;
 	}
@@ -257,7 +258,7 @@ public class BuchhaltungServiceJpa implements BuchhaltungService {
 	}
 
 	public List<Konto> getKontorahmen() {
-		return new ArrayList<>(kontorahmen.values());
+		return kontoRepository.findAll();
 	}
 
 	/**
@@ -314,7 +315,7 @@ public class BuchhaltungServiceJpa implements BuchhaltungService {
 
 	@Override
 	public Konto getKontoById(Long id) {
-		return kontorahmen.get(id);
+		return kontoRepository.getById(id);
 	}
 
 	@Override
@@ -334,5 +335,11 @@ public class BuchhaltungServiceJpa implements BuchhaltungService {
 	private boolean withKonto(List<Umsatz> umsaetze, Long kontoId) {
 		return umsaetze.stream()
 				.anyMatch( umsatz -> umsatz.getKonto().getId() == kontoId);
+	}
+
+	@Override
+	public Konto createKonto(Konto konto) {
+		Konto neuesKonto = kontoRepository.save(konto);
+		return neuesKonto;
 	}
 }

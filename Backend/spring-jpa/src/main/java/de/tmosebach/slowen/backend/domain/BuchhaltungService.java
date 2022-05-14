@@ -25,4 +25,6 @@ public interface BuchhaltungService {
 	List<Buchung> searchBuchungen(String query);
 
 	long countBuchungenByKonto(Long kontoId);
+
+	Konto createKonto(Konto konto);
 }
