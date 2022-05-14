@@ -1,0 +1,61 @@
+<form [formGroup]="buchenForm!" class="mb-4">
+    <div class="row">
+        <div class="col-2">
+            <label for="datum" class="form-label">Buchungsdatum</label>
+            <input formControlName="datum" type="date" id="datum" class="form-control">
+        </div>
+        <div class="col-10"></div>
+        
+        <div>
+            <label for="empfaenger" class="form-label">Empfänger</label>
+            <input formControlName="empfaenger" type="text" id="empfaenger" class="form-control" autofocus>
+        </div>
+        
+        <div>
+            <label for="beschreibung" class="form-label">Beschreibung</label>
+            <input formControlName="beschreibung" type="text" id="beschreibung" class="form-control">
+        </div>
+    </div>
+
+    <fieldset class="mt-2">
+        <legend>Umsätze</legend>
+        <div class="row">
+            <div class="col-4">Konto</div>
+            <div class="col-2">Valuta</div>
+            <div class="col-2">Betrag</div>
+            <div class="col-1"></div>
+            <div class="col-1"></div>
+        </div>
+
+        <div *ngFor="let umsatz of umsaetze.controls; index as i">
+            <div [formGroup]="asFromGroup(umsatz)" class="row mt-2">
+                <div class="col-4">
+                    <select formControlName="konto" class="form-select" id="gegenkonto">
+                        <option
+                            *ngFor="let konto of konten$ | async" 
+                            [ngValue]="konto.id">{{konto.name}}</option>
+                    </select>
+                </div>
+                <div class="col-2">
+                    <input formControlName="valuta" type="date" id="valuta" class="form-control">
+                </div>
+                <div class="col-2">
+                    <input formControlName="betrag" type="text" id="betrag" class="form-control text-end">
+                </div>
+                <div class="col-1">
+                    <button (click)="addUmsatz()" class="btn btn-dark">+</button>
+                    <button (click)="removeUmsatz(i)" class="btn btn-dark ms-2">-</button>
+                </div>
+            </div>
+        </div>
+    </fieldset>
+
+    <div class="row">
+        <div class="col-1 btn-group mt-4">
+            <button (click)="doBuche()" [disabled]="!buchenForm?.valid" class="btn btn-primary">Buchen</button>
+        </div>
+    </div>
+</form>
+
+<p>{{buchenForm?.value|json}}</p>
+

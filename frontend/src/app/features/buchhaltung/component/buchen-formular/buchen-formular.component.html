@@ -1,0 +1,54 @@
+<form [formGroup]="buchenForm" class="mb-4" (submit)="speichern()">
+    <div class="row mb-3">
+        <label for="konto" class="col-sm-2 col-form-label">Konto</label>
+        <div class="col-sm-5">
+            <select formControlName="konto" class="form-select" id="konto">
+                <option
+                    *ngFor="let konto of kontoauswahl$ | async" 
+                    [ngValue]="konto.id">{{konto.name}}</option>
+            </select>
+        </div>
+    </div>
+    <div class="row mb-3">
+        <label for="empfaenger" class="col-sm-2 col-form-label">Empfänger</label>
+        <div class="col-sm-10">
+          <input formControlName="empfaenger" type="text" class="form-control" id="empfaenger">
+        </div>
+    </div>
+    <div class="row mb-3">
+        <label for="beschreibung" class="col-sm-2 col-form-label">Beschreibung</label>
+        <div class="col-sm-10">
+          <input formControlName="beschreibung" type="text" class="form-control" id="beschreibung">
+        </div>
+    </div>
+    <div class="row mb-3">
+        <label for="gegenkonto" class="col-sm-2 col-form-label">Gegenkonto</label>
+        <div class="col-sm-5">
+            <select formControlName="gegenkonto" class="form-select" id="gegenkonto">
+                <option
+                    *ngFor="let konto of gegenkontoauswahl$ | async" 
+                    [ngValue]="konto.id">{{konto.name}}</option>
+            </select>
+        </div>
+    </div>
+    <div class="row mb-3">
+        <label for="valuta" class="col-sm-2 col-form-label">Valuta</label>
+        <div class="col-sm-2">
+          <input type="date" class="form-control" id="valuta" value="2022-05-13">
+        </div>
+    </div>
+    <div class="row mb-3">
+        <label for="betrag" class="col-sm-2 col-form-label">Betrag</label>
+        <div class="col-sm-2">
+          <input formControlName="betrag" type="number" class="form-control text-end" id="betrag">
+        </div>
+    </div>
+
+    <div class="row mb-3">
+        <label for="betrag" class="col-sm-2 col-form-label"></label>
+        <div class="col-sm-10">
+            <button type="submit" class="btn btn-primary me-3">Buchen</button>
+            <button type="button" (click)="toMehrfachBuchung()" class="btn btn-outline-primary">Mehrfachbuchung</button>
+        </div>
+    </div>
+</form>

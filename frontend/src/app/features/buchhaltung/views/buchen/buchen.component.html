@@ -1,0 +1,8 @@
+<h2>Buchen</h2>
+
+<div *ngIf="simpleBuchung">
+    <app-buchen-formular (buchen)="buchen($event)" (mehrfachBuchung)="changeToMehrfachBuchhung()"></app-buchen-formular>
+</div>
+<div *ngIf="!simpleBuchung">
+    <app-mehrfach-buchung-formular (buchen)="buchen($event)"></app-mehrfach-buchung-formular>
+</div>

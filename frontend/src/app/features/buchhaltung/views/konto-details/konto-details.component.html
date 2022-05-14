@@ -1,0 +1,10 @@
+<h2>Kontodetails</h2>
+
+<div *ngIf="konto">
+    <div>Name: <span class="fw-bold">{{ konto.name }}</span></div>
+    <div>Saldo: <span class="fw-bold">{{ konto.saldo?.betrag | currency:konto.saldo?.waehrung }}</span></div>
+</div>
+
+<div *ngIf="konto">
+    <app-umsatz-liste [viewKonto]="konto"></app-umsatz-liste>
+</div>

@@ -1,0 +1,47 @@
+<table class="table table-striped table-sm mt-3">
+    <thead>
+        <tr>
+            <th scope="col">Datum</th>
+            <th scope="col">Empfänger</th>
+            <th scope="col">Beschreibung</th>
+            <th scope="col">Konto</th>
+            <th scope="col">Valuta</th>
+            <th scope="col" class="text-end">Betrag</th>
+        </tr>
+    </thead>
+    <tbody>
+        <ng-container *ngFor="let buchung of buchungen">
+            <tr >
+                <td>{{buchung.datum | date}}</td>
+                <td>{{buchung.empfaenger}}</td>
+                <td>{{buchung.beschreibung}}</td>
+                <ng-container *ngIf="simpleBuchung(buchung)">
+                    <td>{{gegenUmsatz(buchung).konto?.name}}</td>
+                    <td>{{refUmsatz(buchung).valuta| date}}</td>
+                    <td class="text-end">
+                        <app-betrag-label [betrag]="refUmsatz(buchung).betrag"></app-betrag-label>
+                    </td>
+                </ng-container>
+                <ng-container *ngIf="!simpleBuchung(buchung)">
+                    <td>{{refUmsatz(buchung).konto?.name}}</td>
+                    <td>{{refUmsatz(buchung).valuta | date}}</td>
+                    <td class="text-end">
+                        <app-betrag-label [betrag]="refUmsatz(buchung).betrag"></app-betrag-label>
+                    </td>
+                </ng-container>
+            </tr>
+            <ng-container *ngIf="!simpleBuchung(buchung)" >
+                <ng-container *ngFor="let umsatz of buchung.umsaetze">
+                    <tr *ngIf="!isViewKonto(umsatz.konto)">
+                        <td colspan="3"></td>
+                        <td>{{umsatz.konto?.name}}</td>
+                        <td>{{umsatz.valuta | date}}</td>
+                        <td class="text-end">
+                            <app-betrag-label [betrag]="umsatz.betrag"></app-betrag-label>
+                        </td>
+                    </tr>
+                </ng-container>
+            </ng-container>
+        </ng-container>
+    </tbody>
+</table>

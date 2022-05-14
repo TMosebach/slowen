@@ -1,10 +1,22 @@
 import { NgModule } from '@angular/core';
 import { RouterModule, Routes } from '@angular/router';
-import { BuchhaltungComponent } from './buchhaltung/buchhaltung.component';
+import { NotFoundPageComponent } from './core/not-found-page/not-found-page.component';
+import { StartPageComponent } from './core/start-page/start-page.component';
 
 const routes: Routes = [
-  { path: 'reports', loadChildren: () => import('./reports/reports.module').then(m => m.ReportsModule) },
-  { path: '', pathMatch: 'full', redirectTo: 'buchhaltung' }
+  {
+    path: '',
+    redirectTo: '/start',
+    pathMatch: 'full'
+  },
+  {
+    path: 'start',
+    component: StartPageComponent
+  },
+  {
+    path: '**',
+    component: NotFoundPageComponent
+  }
 ];
 
 @NgModule({
