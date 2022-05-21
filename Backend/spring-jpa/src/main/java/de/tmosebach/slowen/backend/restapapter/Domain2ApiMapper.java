@@ -2,7 +2,6 @@ package de.tmosebach.slowen.backend.restapapter;
 
 import static java.util.Objects.nonNull;
 import java.util.List;
-import java.util.Set;
 import java.util.stream.Collectors;
 
 import de.tmosebach.slowen.backend.domain.Asset;
@@ -50,7 +49,7 @@ public class Domain2ApiMapper {
 		return apiUmsatz;
 	}
 
-	private static ApiAssetRef asset2ApiAsset(Asset asset) {
+	public static ApiAssetRef asset2ApiAsset(Asset asset) {
 		ApiAssetRef apiAsset = new ApiAssetRef();
 		apiAsset.setId( Long.toString(asset.getId()) );
 		apiAsset.setName(asset.getName());
@@ -91,7 +90,7 @@ public class Domain2ApiMapper {
 		return kontoList.stream().map( k -> konto2ApiKonto(k)).collect(Collectors.toList());
 	}
 
-	public static List<ApiAssetRef> assetList2ApiAssetList(Set<Asset> assetList) {
+	public static List<ApiAssetRef> assetList2ApiAssetList(List<Asset> assetList) {
 		return assetList.stream().map( a -> asset2ApiAsset(a)).collect(Collectors.toList());
 	}
 }

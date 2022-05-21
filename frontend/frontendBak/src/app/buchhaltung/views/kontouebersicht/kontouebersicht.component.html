@@ -1,0 +1,26 @@
+<h2>Kontoübersicht</h2>
+
+<a [routerLink]="['./buchen']">Buchen</a>
+
+<div class="row">
+    <div class="col-5">
+        <table class="table">
+            <thead>
+            <tr>
+                <th scope="col">Name</th>
+                <th class="text-end" scope="col">Saldo</th>
+                <th scope="col"></th>
+            </tr>
+            </thead>
+            <tbody>
+            <tr *ngFor="let konto of konten$ | async">
+                <td><a [routerLink]="['konto', konto.id]">{{ konto.name }}</a></td>
+                <td class="text-end"><app-betrag-label [betrag]="konto.saldo"></app-betrag-label></td>
+                <td></td>
+            </tr>
+            </tbody>
+        </table>
+    </div>
+</div>
+
+

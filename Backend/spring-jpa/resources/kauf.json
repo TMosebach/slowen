@@ -13,6 +13,7 @@
 				"waehrung": "EUR"
 			},
 			"asset": {
+				"id": "3",
 				"name": "Talanx AG"
 			},
 			"menge": {
@@ -22,7 +23,7 @@
 		},
 		{
 			"konto": {
-				"name": "Provision"
+				"name": "Handelsgebühr"
 		  	},
 			"valuta": "2022-02-25",
 			"betrag": {

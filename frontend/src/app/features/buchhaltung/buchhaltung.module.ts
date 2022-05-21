@@ -14,6 +14,11 @@ import { KontoDetailsComponent } from './views/konto-details/konto-details.compo
 import { UmsatzListeComponent } from './component/umsatz-liste/umsatz-liste.component';
 import { AssetListeComponent } from './views/asset-liste/asset-liste.component';
 import { MehrfachBuchungFormularComponent } from './component/mehrfach-buchung-formular/mehrfach-buchung-formular.component';
+import { KaufComponent } from './views/kauf/kauf.component';
+import { KaufFormularComponent } from './component/kauf-formular/kauf-formular.component';
+import { AssetNeuComponent } from './views/asset-neu/asset-neu.component';
+import { AssetFormularComponent } from './component/asset-formular/asset-formular.component';
+import { BestandListeComponent } from './component/bestand-liste/bestand-liste.component';
 
 
 @NgModule({
@@ -28,7 +33,12 @@ import { MehrfachBuchungFormularComponent } from './component/mehrfach-buchung-f
     KontoDetailsComponent,
     UmsatzListeComponent,
     AssetListeComponent,
-    MehrfachBuchungFormularComponent
+    MehrfachBuchungFormularComponent,
+    KaufComponent,
+    KaufFormularComponent,
+    AssetNeuComponent,
+    AssetFormularComponent,
+    BestandListeComponent
   ],
   imports: [
     CommonModule,
@@ -37,7 +47,8 @@ import { MehrfachBuchungFormularComponent } from './component/mehrfach-buchung-f
   ],
   exports: [
     KontoNeuComponent,
-    AssetListeComponent
+    AssetListeComponent,
+    AssetNeuComponent
   ]
 })
 export class BuchhaltungModule { }

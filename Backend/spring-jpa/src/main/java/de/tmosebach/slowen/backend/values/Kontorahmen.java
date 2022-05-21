@@ -7,24 +7,9 @@ import de.tmosebach.slowen.backend.domain.Konto;
  */
 public enum Kontorahmen {
 
-	// GuV
+	Handelsgebuehr("Handelsgebühr"),
 	Kursgewinn("Kursgewinn"),
-	Kursverlust("Kursverlust"),
-	
-	// Gebühren
-	Bankprovision("Bankprovision"),
-	Maklercourtage("Maklercourtage"),
-	Boesenplatzentgeld("Börsenplatzentgeld"),
-	Spesen("Spesen"),
-	SpesenAusland("Spesen Ausland"),
-	SonstigeKosten("sontige Kosten"),
-	
-	// Steuer
-	Zinsabschlagsteuer("Zinsabschlagsteuer"),
-	Kapitalertragsteuer("Kapitalertragsteuer"),
-	Solidaritaetszuschlag("Solidaritätszuschlag"),
-	auslQuellensteuer("ausl. Quellensteuer"),
-	Abgeltungssteuer("Abgeltungssteuer");
+	Kursverlust("Kursverlust");
 	
 	private final String name;
 

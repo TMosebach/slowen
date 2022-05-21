@@ -18,7 +18,8 @@
                 <td><a [routerLink]="['konten', konto.id]">{{ konto.name }}</a></td>
                 <td class="text-end"><app-betrag-label [betrag]="konto.saldo"></app-betrag-label></td>
                 <td>
-                    <button class="btn btn-primary btn-sm" [routerLink]="['buchen', konto.id]">Buchen</button>
+                    <button class="btn btn-primary btn-sm me-1" [routerLink]="['buchen', konto.id]">Buchen</button>
+                    <button class="btn btn-primary btn-sm" [routerLink]="['kauf', konto.id]">Kauf</button>
                 </td>
             </tr>
             </tbody>

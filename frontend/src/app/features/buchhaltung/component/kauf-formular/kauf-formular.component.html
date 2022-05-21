@@ -1,0 +1,68 @@
+<form [formGroup]="kaufForm" class="mb-4" (submit)="speichern()">
+    <div class="row mb-3">
+        <label for="datum" class="col-sm-2 col-form-label">Datum</label>
+        <div class="col-sm-2">
+          <input formControlName="datum" type="date" class="form-control" id="datum">
+        </div>
+    </div>
+    <div class="row mb-3">
+        <label for="depot" class="col-sm-2 col-form-label">Depot</label>
+        <div class="col-sm-5">
+            <select formControlName="depot" class="form-select" id="depot">
+                <option
+                    *ngFor="let depot of depotauswahl$ | async" 
+                    [ngValue]="depot.id">{{depot.name}}</option>
+            </select>
+        </div>
+    </div>
+    <div class="row mb-3">
+        <label for="asset" class="col-sm-2 col-form-label">Asset</label>
+        <div class="col-sm-5">
+            <select formControlName="asset" class="form-select" id="asset">
+                <option
+                    *ngFor="let asset of assetauswahl$ | async" 
+                    [ngValue]="asset">{{asset.name}}</option>
+            </select>
+        </div>
+    </div>
+    <div class="row mb-3">
+        <label for="verrechnungskonto" class="col-sm-2 col-form-label">Verrechnungskonto</label>
+        <div class="col-sm-5">
+            <select formControlName="verrechnungskonto" class="form-select" id="verrechnungskonto">
+                <option
+                    *ngFor="let depot of depotauswahl$ | async" 
+                    [ngValue]="depot.id">{{depot.name}}</option>
+            </select>
+        </div>
+    </div>
+    <div class="row mb-3">
+        <label for="valuta" class="col-sm-2 col-form-label">Valuta</label>
+        <div class="col-sm-2">
+            <input formControlName="valuta" type="date" class="form-control" id="valuta">
+        </div>
+    </div>
+    <div class="row mb-3">
+        <label for="menge" class="col-sm-2 col-form-label">Menge</label>
+        <div class="col-sm-2">
+            <input formControlName="menge" type="number" class="form-control text-end" id="menge">
+        </div>
+    </div>
+    <div class="row mb-3">
+        <label for="betrag" class="col-sm-2 col-form-label">Betrag</label>
+        <div class="col-sm-2">
+            <input formControlName="betrag" type="number" class="form-control text-end" id="betrag">
+        </div>
+    </div>
+    <div class="row mb-3">
+        <label for="gebuehren" class="col-sm-2 col-form-label">Gebühren</label>
+        <div class="col-sm-2">
+            <input formControlName="gebuehren" type="number" class="form-control text-end" id="gebuehren">
+        </div>
+    </div>
+    <div class="row mb-3">
+        <label for="betrag" class="col-sm-2 col-form-label"></label>
+        <div class="col-sm-10">
+            <button type="submit" class="btn btn-primary me-3">Buchen</button>
+        </div>
+    </div>
+</form>

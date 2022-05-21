@@ -50,7 +50,10 @@ class BuchhaltungServiceJpa_bucheTest {
 	void setUp() throws Exception {
 		openMocks(this);
 		impl = new BuchhaltungServiceJpa(
-				validatorMock, buchungRepositoryMock, kontoRepositoryMock, assetRepositoryMock);
+				validatorMock,
+				buchungRepositoryMock,
+				kontoRepositoryMock,
+				assetRepositoryMock);
 	}
 
 	@Test

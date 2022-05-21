@@ -37,15 +37,18 @@ class BuchhaltungServiceJpa_searchBuchungenTest {
 	
 	@Mock
 	private AssetRepository assetRepositoryMock;
-	
+
 	private BuchhaltungServiceJpa impl;
 	
 	@BeforeEach
 	void setUp() throws Exception {
 		openMocks(this);
 		impl = new BuchhaltungServiceJpa(
-				validatorMock, buchungRepositoryMock, kontoRepositoryMock, assetRepositoryMock);
-		
+				validatorMock,
+				buchungRepositoryMock,
+				kontoRepositoryMock,
+				assetRepositoryMock);
+
 		mockNewKonto(1L, "Giro");
 		mockNewKonto(2L, "Tagesgeld");
 		

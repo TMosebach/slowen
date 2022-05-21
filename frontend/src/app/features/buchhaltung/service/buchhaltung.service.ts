@@ -39,4 +39,8 @@ export class BuchhaltungService {
   getAssets(): Observable<AssetRef[]> {
     return this.http.get<AssetRef[]>(`${API_ENDPOINT}/assets`);
   }
+
+  createAsset(asset: AssetRef): Observable<AssetRef> {
+    return this.http.post<AssetRef>(`${API_ENDPOINT}/assets`, asset);
+  }
 }

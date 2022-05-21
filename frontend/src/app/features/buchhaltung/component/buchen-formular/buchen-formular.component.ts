@@ -53,8 +53,14 @@ export class BuchenFormularComponent implements OnInit {
   }
 
   speichern() {
-    const formValue = this.buchenForm.value;
+    const buchung = this.createBuchung(this.buchenForm.value);
+    this.buchen.emit(buchung);
+  }
+
+  createBuchung( formValue:any  ): Buchung {
+
     const betrag = Number.parseFloat(formValue.betrag);
+
     const buchung: Buchung = {
       art: BuchungArt.Buchung,
       datum: this.heute(),
@@ -83,7 +89,7 @@ export class BuchenFormularComponent implements OnInit {
         }
       ]
     };
-    this.buchen.emit(buchung);
+    return buchung;
   }
 
   toMehrfachBuchung() {

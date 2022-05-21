@@ -1,0 +1,122 @@
+<form [formGroup]="buchenForm!" class="mb-4">
+    <div class="row">
+        <div class="col-6">
+            <div class="row">
+                <div class="col-3"></div>
+                <div class="col-5">
+                    <select formControlName="ertragsart" class="input-group-text form-select">
+                        <option value="Dividende">Dividende</option>
+                        <option value="Ausschüttung">Ausschüttung</option>
+                    </select>
+                </div>
+            </div>
+        </div>
+    </div>
+    <div class="row">
+        <div class="col-6">
+            <div class="row">
+                <div class="col-3 text-end">
+                    <label for="asset" class="col-form-label">Datum</label>
+                </div>
+                <div class="col-4">
+                    <input type="date" formControlName="datum" class="form-control">
+                </div>
+            </div>
+            <div class="row">
+                <div class="col-3 text-end">
+                    <label for="depot" class="col-form-label">Depot</label>
+                </div>
+                <div class="col-9">
+                    <input type="text" formControlName="depot" class="form-control" [typeahead]="depotNamen">
+                </div>
+            </div>
+            <div class="row">
+                <div class="col-3 text-end">
+                    <label for="asset" class="col-form-label">Asset</label>
+                </div>
+                <div class="col-9">
+                    <input type="text" formControlName="asset" class="form-control" [typeahead]="assetNames">
+                </div>
+            </div>
+            <div class="row">
+                <div class="col-3 text-end">
+                    <label for="verrechnungskonto" class="col-form-label">Verrechnungskonto</label>
+                </div>
+                <div class="col-9">
+                    <input type="text" formControlName="verrechnungskonto" class="form-control" [typeahead]="kontoNamen">
+                </div>
+            </div>
+            <div class="row">
+                <div class="col-3 text-end">
+                    <label for="Valuta" class="col-form-label">Valuta</label>
+                </div>
+                <div class="col-4">
+                    <input type="date" formControlName="valuta" class="form-control">
+                </div>
+            </div>
+            <div class="row">
+                <div class="col-3 text-end">
+                    <label for="Valuta" class="col-form-label">Ertrag</label>
+                </div>
+                <div class="col-4">
+                    <div class="input-group">
+                        <input formControlName="ertrag" type="text" class="form-control text-end">
+                        <select formControlName="waehrung" class="input-group-text">
+                            <option *ngFor="let waehrung of waehrungen">{{ waehrung }}</option>
+                        </select>
+                    </div>
+                </div>
+            </div>
+            <div class="row">
+                <div class="col-3 text-end">
+                    <label for="menge" class="col-form-label">Kapitalertragsteuer</label>
+                </div>
+                <div class="col-4">
+                    <div class="input-group">
+                        <input formControlName="kapitalertragssteuer" type="text" class="form-control text-end">
+                        <select class="input-group-text">
+                            <option *ngFor="let waehrung of waehrungen">{{ waehrung }}</option>
+                        </select>
+                    </div>
+                </div>
+            </div>
+            <div class="row">
+                <div class="col-3 text-end">
+                    <label for="menge" class="col-form-label">Solidaritätszuschlag</label>
+                </div>
+                <div class="col-4">
+                    <div class="input-group">
+                        <input formControlName="solidaritaetszuschlag" type="text" class="form-control text-end">
+                        <select class="input-group-text">
+                            <option *ngFor="let waehrung of waehrungen">{{ waehrung }}</option>
+                        </select>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="row mt-4">
+        <div class="col-6">
+            <div class="row">
+                <div class="col-3 text-end">
+                    <label for="menge" class="col-form-label">Gesamt</label>
+                </div>
+                <div class="col-4">
+                    <div class="input-group">
+                        <input type="text" disabled class="form-control text-end" value="28634,78">
+                        <select class="input-group-text">
+                            <option *ngFor="let waehrung of waehrungen">{{ waehrung }}</option>
+                        </select>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="row">
+        <div class="col-1 btn-group mt-4">
+            <button (click)="doBuche()" [disabled]="!buchenForm?.valid" class="btn btn-primary">Buchen</button>
+        </div>
+    </div>
+</form>

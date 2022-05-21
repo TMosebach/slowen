@@ -2,6 +2,7 @@ import { NgModule } from '@angular/core';
 import { RouterModule, Routes } from '@angular/router';
 import { BuchhaltungComponent } from './buchhaltung/buchhaltung.component';
 import { BuchenComponent } from './views/buchen/buchen.component';
+import { KaufComponent } from './views/kauf/kauf.component';
 import { KontoDetailsComponent } from './views/konto-details/konto-details.component';
 import { KontoListeComponent } from './views/konto-liste/konto-liste.component';
 import { KontoNeuComponent } from './views/konto-neu/konto-neu.component';
@@ -22,6 +23,14 @@ const routes: Routes = [
       {
         path: 'buchen',
         component: BuchenComponent
+      },
+      {
+        path: 'kauf/:id',
+        component: KaufComponent
+      },
+      {
+        path: 'kauf',
+        component: KaufComponent
       },
       {
         path: 'konten/neu',

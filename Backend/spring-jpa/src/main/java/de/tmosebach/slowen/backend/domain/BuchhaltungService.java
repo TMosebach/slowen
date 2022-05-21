@@ -1,17 +1,18 @@
 package de.tmosebach.slowen.backend.domain;
 
 import java.util.List;
-import java.util.Set;
+
+import org.springframework.data.domain.Page;
 
 public interface BuchhaltungService {
 
 	Buchung buche(Buchung apiBuchung2Buchung);
 
-	List<Buchung> findBuchungenByKonto(Long id, Long page, Long size);
+	Page<Buchung> findBuchungenByKonto(Long id, int page, int size);
 
 	List<Konto> getKontorahmen();
 
-	Set<Asset> getAssets();
+	List<Asset> getAssets();
 
 	Konto getKontoById(Long id);
 	
@@ -27,4 +28,6 @@ public interface BuchhaltungService {
 	long countBuchungenByKonto(Long kontoId);
 
 	Konto createKonto(Konto konto);
+
+	Asset createAsset(Asset asset);
 }

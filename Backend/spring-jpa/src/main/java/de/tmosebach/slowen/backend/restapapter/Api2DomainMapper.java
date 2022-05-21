@@ -42,7 +42,7 @@ public class Api2DomainMapper {
 		return umsatz;
 	}
 
-	private static Asset apiAssetToAsset(ApiAssetRef apiAssetRef) {
+	public static Asset apiAssetToAsset(ApiAssetRef apiAssetRef) {
 		Asset asset = new Asset();
 		if (nonNull(apiAssetRef.getId())) {
 			asset.setId( Long.valueOf(apiAssetRef.getId()) );

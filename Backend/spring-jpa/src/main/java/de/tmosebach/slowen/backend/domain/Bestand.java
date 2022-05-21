@@ -3,13 +3,32 @@ package de.tmosebach.slowen.backend.domain;
 import java.math.BigDecimal;
 import java.util.Objects;
 
+import javax.persistence.Embedded;
+import javax.persistence.Entity;
+import javax.persistence.GeneratedValue;
+import javax.persistence.Id;
+import javax.persistence.ManyToOne;
+
 import de.tmosebach.slowen.backend.values.Betrag;
 import de.tmosebach.slowen.backend.values.Menge;
 
+@Entity
 public class Bestand {
 	
+	@Id
+	@GeneratedValue
+	private Long id;
+	
+	@ManyToOne
+	private Konto konto;
+	
+	@ManyToOne
 	private Asset asset;
+	
+	@Embedded
 	private Menge menge = Menge.NULL_MENGE;
+	
+	@Embedded
 	private Betrag einstandsWert = Betrag.ZERO;
 
 	public Betrag getEinstandsWert() {
@@ -23,6 +42,8 @@ public class Bestand {
 	public void addEinstandswert(Betrag wert) {
 		einstandsWert = einstandsWert.add(wert);
 	}
+	
+	public Bestand() {}
 
 	public Bestand(Asset asset) {
 		this.asset = asset;
@@ -72,5 +93,13 @@ public class Bestand {
 
 	public boolean isEmpty() {
 		return menge.getMenge().compareTo(BigDecimal.ZERO) == 0;
+	}
+
+	public Konto getKonto() {
+		return konto;
+	}
+
+	public void setKonto(Konto konto) {
+		this.konto = konto;
 	}
 }

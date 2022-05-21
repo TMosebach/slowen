@@ -1,22 +1,20 @@
 package de.tmosebach.slowen.backend.jpaadapter;
 
-import static java.lang.Math.max;
 import static java.util.Objects.nonNull;
 
 import java.time.LocalDate;
 import java.util.ArrayList;
-import java.util.Comparator;
-import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
 import java.util.Optional;
 import java.util.Set;
-import java.util.stream.Collectors;
 
 import javax.validation.ConstraintViolation;
 import javax.validation.ConstraintViolationException;
 import javax.validation.Validator;
 
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
@@ -41,9 +39,6 @@ public class BuchhaltungServiceJpa implements BuchhaltungService {
 	private BuchungRepository buchungRepository;
 	private KontoRepository kontoRepository;
 	private AssetRepository assetRepository;
-	
-	private List<Buchung> buchungen = new ArrayList<>();
-	private Map<Long, Asset> assets = new HashMap<>();
 
 	public BuchhaltungServiceJpa(
 			Validator validator,
@@ -54,10 +49,6 @@ public class BuchhaltungServiceJpa implements BuchhaltungService {
 		this.buchungRepository = buchungRepository;
 		this.kontoRepository = kontoRepository;
 		this.assetRepository = assetRepository;
-		
-		// Initialisieren
-		List<Buchung> buchungen = buchungRepository.findAll();
-		buchungen.forEach( buchung -> buche(buchung));
 	}
 
 	@Transactional
@@ -77,8 +68,6 @@ public class BuchhaltungServiceJpa implements BuchhaltungService {
             }
             throw new ConstraintViolationException(sb.toString(), violations);
         }
-        
-        buchungen.add(buchung);
 
         for (Umsatz umsatz : buchung.getUmsaetze()) {
 			if (isSkontroUmsatz(umsatz)) {
@@ -116,6 +105,7 @@ public class BuchhaltungServiceJpa implements BuchhaltungService {
 
 	private void skontroErtrag(Umsatz umsatz) {
 		// TODO Zuordnung zwischen Skontro-Umsatz und Bestand
+		throw new UnsupportedOperationException();
 	}
 
 	private void buchen(Buchung buchung) {
@@ -132,7 +122,8 @@ public class BuchhaltungServiceJpa implements BuchhaltungService {
 		
 		umsatz.setKonto(depot);
 		umsatz.setAsset(asset);
-		Bestand bestand = depot.getOrCreateBestand(asset);
+		Optional<Bestand> bestandOptional = depot.findeBestand(asset);
+		Bestand bestand = bestandOptional.get();
 
 		double abgabeAnteil = calcAbgabeAnteil(bestand.getMenge(), umsatz.getMenge());
 		bestand.addMenge(umsatz.getMenge());
@@ -158,6 +149,7 @@ public class BuchhaltungServiceJpa implements BuchhaltungService {
 							umsatz.getValuta(),
 							differenz.invert() ));
 		}
+		kontoRepository.save(depot);
 	}
 	
 	private Umsatz createUmsatz(Konto konto, LocalDate valuta, Betrag betrag) {
@@ -195,16 +187,27 @@ public class BuchhaltungServiceJpa implements BuchhaltungService {
 		
 		umsatz.setKonto(depot);
 		umsatz.setAsset(asset);
-		Bestand bestand = depot.getOrCreateBestand(asset);
+		Bestand bestand = 
+				depot.findeBestand(asset).orElseGet( () -> {
+			Bestand newBestand = new Bestand(asset);
+			depot.addBestand(newBestand);
+			newBestand.setKonto(depot);
+			return newBestand;
+		});
 
 		bestand.addMenge(umsatz.getMenge());
 		bestand.addEinstandswert(umsatz.getBetrag());
+
+		kontoRepository.save(depot);
 	}
 
 	private Asset getOrCreateAsset(Asset assetRef) {
 		Long id = assetRef.getId();
-		if (nonNull(id) && assets.containsKey(id)) {
-			return assets.get(id);
+		if (nonNull(id)) {
+			Optional<Asset> persistentAsset = assetRepository.findById(id);
+			if (persistentAsset.isPresent()) {
+				return persistentAsset.get();
+			}
 		}
 
 		String assetName = assetRef.getName();
@@ -215,7 +218,6 @@ public class BuchhaltungServiceJpa implements BuchhaltungService {
 				newAsset.setName(assetName);
 				return saveAsset(newAsset);
 			});
-		assets.put(asset.getId(), asset);
 		
 		return asset;
 	}
@@ -272,45 +274,15 @@ public class BuchhaltungServiceJpa implements BuchhaltungService {
 	 * @param page Seitennummer beginnend mit 0
 	 * @param size Seitengröße
 	 */
-	public List<Buchung> findBuchungenByKonto(Long id, Long page, Long size) {
-		List<Buchung> kontoBuchungen = 
-			buchungen.stream()
-				.filter( buchung -> enthaeltKonto(buchung, id))
-				.sorted(new Comparator<Buchung>() {
-
-					@Override
-					public int compare(Buchung o1, Buchung o2) {
-						Umsatz u1 = extractUmsatz(o1, id);
-						Umsatz u2 = extractUmsatz(o2, id);
-						return u1.getValuta().compareTo(u2.getValuta());
-					}
-
-					private Umsatz extractUmsatz(Buchung buchung, Long id) {
-						return buchung.getUmsaetze().stream()
-							.filter( umsatz -> umsatz.getKonto().getId() == id)
-							.findFirst()
-							.get();
-					}
-				})
-				.collect(Collectors.toList());
-		int count = kontoBuchungen.size();
-		int start = (int)max(0 , count - (1 + page) * size);
-		int ende = (int)max(0, count - page * size);
-		return kontoBuchungen.subList(start, ende);
-	}
-	
-	private boolean enthaeltKonto(Buchung buchung, Long id) {
-		return buchung.getUmsaetze().stream()
-			.map( u -> u.getKonto().getId())
-			.filter( kontoId -> kontoId == id)
-			.findFirst()
-			.isPresent();
+	public Page<Buchung> findBuchungenByKonto(Long id, int page, int size) {
+		
+		Pageable pageable = PageRequest.of(page, size);		
+		Page<Buchung> kontoBuchungen = buchungRepository.findByKonto(id, pageable);
+		return kontoBuchungen;
 	}
 
-	public Set<Asset> getAssets() {
-		return assets.entrySet().stream()
-				.map( entry -> entry.getValue() )
-				.collect(Collectors.toSet());
+	public List<Asset> getAssets() {
+		return assetRepository.findAll();
 	}
 
 	@Override
@@ -326,20 +298,18 @@ public class BuchhaltungServiceJpa implements BuchhaltungService {
 
 	@Override
 	public long countBuchungenByKonto(Long kontoId) {
-		return buchungen
-				.stream()
-				.filter( buchung -> withKonto(buchung.getUmsaetze(), kontoId))
-				.count();
-	}
-
-	private boolean withKonto(List<Umsatz> umsaetze, Long kontoId) {
-		return umsaetze.stream()
-				.anyMatch( umsatz -> umsatz.getKonto().getId() == kontoId);
+		return buchungRepository.countKontoBuchungenByKonto(kontoId);
 	}
 
 	@Override
 	public Konto createKonto(Konto konto) {
 		Konto neuesKonto = kontoRepository.save(konto);
 		return neuesKonto;
+	}
+
+	@Override
+	public Asset createAsset(Asset asset) {
+		Asset neuesAsset = assetRepository.save(asset);
+		return neuesAsset;
 	}
 }

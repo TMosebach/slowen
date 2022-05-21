@@ -23,6 +23,7 @@ export class KontoDetailsComponent implements OnInit {
       map( params => params.get('id')),
       mergeMap( id => this.buchhaltungService.getKonto(id!) )
     ).subscribe( konto => {
+      console.log(konto);
       this.konto = konto;
     });
   }

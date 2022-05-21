@@ -23,8 +23,7 @@ export class UmsatzListeComponent implements OnInit {
   ngOnInit(): void {
     this.buchhaltungService.getBuchungen4Konto(this.viewKonto.id)
       .subscribe( (page: any) => {
-        console.log('gelesen: ', page);
-        this.buchungen = page._embedded.apiBuchungList;
+        this.buchungen = page._embedded?.apiBuchungList;
       });
   }
 
