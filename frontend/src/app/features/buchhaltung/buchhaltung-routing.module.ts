@@ -7,6 +7,7 @@ import { KaufComponent } from './views/kauf/kauf.component';
 import { KontoDetailsComponent } from './views/konto-details/konto-details.component';
 import { KontoListeComponent } from './views/konto-liste/konto-liste.component';
 import { KontoNeuComponent } from './views/konto-neu/konto-neu.component';
+import { VerkaufComponent } from './views/verkauf/verkauf.component';
 
 const routes: Routes = [
   {
@@ -48,6 +49,10 @@ const routes: Routes = [
       {
         path: 'konten/:id',
         component: KontoDetailsComponent
+      },
+      {
+        path: 'konten/:kontoId/verkauf/:assetId',
+        component: VerkaufComponent
       }
     ]
   }

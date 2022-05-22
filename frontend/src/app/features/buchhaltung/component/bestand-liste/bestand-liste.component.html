@@ -6,6 +6,7 @@
             <th>Asset</th>
             <th>Menge</th>
             <th>Kaufwert</th>
+            <th></th>
         </tr>
     </thead>
     <tbody>
@@ -13,6 +14,7 @@
             <td>{{ bestand.asset.name }}</td>
             <td>{{ bestand.menge.menge }}</td>
             <td><app-betrag-label [betrag]="bestand.einstandsWert"></app-betrag-label></td>
+            <td><button class="btn btn-sm btn-primary" [routerLink]="['verkauf', bestand.asset.id]">Verkauf</button></td>
         </tr>
     </tbody>
 </table>

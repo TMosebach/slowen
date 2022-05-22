@@ -21,6 +21,8 @@ import { AssetFormularComponent } from './component/asset-formular/asset-formula
 import { BestandListeComponent } from './component/bestand-liste/bestand-liste.component';
 import { ErtragComponent } from './views/ertrag/ertrag.component';
 import { ErtragFormularComponent } from './component/ertrag-formular/ertrag-formular.component';
+import { VerkaufComponent } from './views/verkauf/verkauf.component';
+import { VerkaufFormularComponent } from './component/verkauf-formular/verkauf-formular.component';
 
 
 @NgModule({
@@ -42,7 +44,9 @@ import { ErtragFormularComponent } from './component/ertrag-formular/ertrag-form
     AssetFormularComponent,
     BestandListeComponent,
     ErtragComponent,
-    ErtragFormularComponent
+    ErtragFormularComponent,
+    VerkaufComponent,
+    VerkaufFormularComponent
   ],
   imports: [
     CommonModule,
