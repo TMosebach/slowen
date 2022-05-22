@@ -9,7 +9,10 @@ public enum Kontorahmen {
 
 	Handelsgebuehr("Handelsgebühr"),
 	Kursgewinn("Kursgewinn"),
-	Kursverlust("Kursverlust");
+	Kursverlust("Kursverlust"),
+	Kapitalertragssteuer("Kapitalertragssteuer"),
+	Solidaritaetszuschlag("Solidaritaetszuschlag"),
+	Wertpapierertrag("Wertpapierertrag");
 	
 	private final String name;
 

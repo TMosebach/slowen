@@ -19,6 +19,8 @@ import { KaufFormularComponent } from './component/kauf-formular/kauf-formular.c
 import { AssetNeuComponent } from './views/asset-neu/asset-neu.component';
 import { AssetFormularComponent } from './component/asset-formular/asset-formular.component';
 import { BestandListeComponent } from './component/bestand-liste/bestand-liste.component';
+import { ErtragComponent } from './views/ertrag/ertrag.component';
+import { ErtragFormularComponent } from './component/ertrag-formular/ertrag-formular.component';
 
 
 @NgModule({
@@ -38,7 +40,9 @@ import { BestandListeComponent } from './component/bestand-liste/bestand-liste.c
     KaufFormularComponent,
     AssetNeuComponent,
     AssetFormularComponent,
-    BestandListeComponent
+    BestandListeComponent,
+    ErtragComponent,
+    ErtragFormularComponent
   ],
   imports: [
     CommonModule,

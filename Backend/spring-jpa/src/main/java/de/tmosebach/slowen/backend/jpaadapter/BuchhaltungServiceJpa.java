@@ -103,9 +103,22 @@ public class BuchhaltungServiceJpa implements BuchhaltungService {
 		return buchung;
 	}
 
+	/**
+	 * Ertrag einem Depot zuordnen.
+	 * 
+	 * Die Betragszuordnung erfolgt durch das Asset. Der Bestand
+	 * ändert sich bei einem Ertrag nicht.
+	 * 
+	 * @param umsatz Skontro-Umsatz eines Ertrages.
+	 */
 	private void skontroErtrag(Umsatz umsatz) {
-		// TODO Zuordnung zwischen Skontro-Umsatz und Bestand
-		throw new UnsupportedOperationException();
+		Konto depot = getOrCreateKonto(umsatz.getKonto());
+		Asset asset = getOrCreateAsset(umsatz.getAsset());
+		
+		umsatz.setKonto(depot);
+		umsatz.setAsset(asset);
+
+		kontoRepository.save(depot);
 	}
 
 	private void buchen(Buchung buchung) {

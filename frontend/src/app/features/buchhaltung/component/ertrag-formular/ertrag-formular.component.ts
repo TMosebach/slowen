@@ -11,15 +11,15 @@ import { Umsatz } from '../../model/umsatz';
 import { BuchhaltungService } from '../../service/buchhaltung.service';
 
 @Component({
-  selector: 'app-kauf-formular',
-  templateUrl: './kauf-formular.component.html',
-  styleUrls: ['./kauf-formular.component.scss']
+  selector: 'app-ertrag-formular',
+  templateUrl: './ertrag-formular.component.html',
+  styleUrls: ['./ertrag-formular.component.scss']
 })
-export class KaufFormularComponent implements OnInit {
+export class ErtragFormularComponent implements OnInit {
 
-  @Output() kauf = new EventEmitter<Buchung>();
+  @Output() ertrag = new EventEmitter<Buchung>();
 
-  kaufForm: FormGroup;
+  ertragForm: FormGroup;
 
   assetauswahl$: Observable<AssetRef[]>;
   depotauswahl$: Observable<Konto[]>;
@@ -31,15 +31,15 @@ export class KaufFormularComponent implements OnInit {
       private buchhaltungService: BuchhaltungService
   ) {
     const id = this.activatedRoute.snapshot.params['id'];
-    this.kaufForm = this.fb.group({
+    this.ertragForm = this.fb.group({
       datum: [this.heute()],
       depot: [id, Validators.required],
       asset: ['', Validators.required],
       verrechnungskonto: ['', Validators.required],
       valuta: [this.heute()],
-      menge: [''],
-      betrag: [''],
-      gebuehren: ['']
+      ertrag : [''],
+      kapitalertragssteuer: [''],
+      solidaritaetszuschlag: ['']
     });
     this.assetauswahl$ = this.buchhaltungService.getAssets();
     // TODO Sobald der Kontotyp bekannt ist, filtern:
@@ -51,30 +51,39 @@ export class KaufFormularComponent implements OnInit {
   }
 
   speichern() {
-    const buchung = this.createBuchung(this.kaufForm.value);
-    this.kauf.emit(buchung);
+    const buchung = this.createBuchung(this.ertragForm.value);
+    console.log(buchung);
+    this.ertrag.emit(buchung);
   }
 
   createBuchung( formValue:any  ) {
 
-    const betrag = +formValue.betrag;
-    const gebuehr = +formValue.gebuehren;
-    const menge = +formValue.menge;
+    const ertrag = +formValue.ertrag;
+    const kapitalertragssteuer = +formValue.kapitalertragssteuer;
+    const solidaritaetszuschlag = +formValue.solidaritaetszuschlag;
 
     const buchung: Buchung = {
-      art: BuchungArt.Kauf,
+      art: BuchungArt.Ertrag,
       datum: this.heute(),
-      beschreibung: 'Kauf ' + menge + ' ' + formValue.asset.name,
+      beschreibung: 'Ertrag ' + formValue.asset.name,
       umsaetze: [
-        this.createUmsatz( { id: formValue.depot }, formValue.valuta, betrag-gebuehr, { asset: formValue.asset, menge: menge }),
-        this.createUmsatz( { name: 'Handelsgebühr' }, formValue.valuta, gebuehr),
-        this.createUmsatz( { id: formValue.verrechnungskonto } , formValue.valuta, -betrag)
+        this.createUmsatz( { id: formValue.depot }, formValue.valuta, 0, formValue.asset ),
+        this.createUmsatz( { name: 'Wertpapierertrag' }, formValue.valuta, -ertrag ),
+        this.createUmsatz( { id: formValue.verrechnungskonto } , formValue.valuta, ertrag - kapitalertragssteuer - solidaritaetszuschlag)
       ]
     };
+
+    if (kapitalertragssteuer > 0){
+      buchung.umsaetze?.push( this.createUmsatz( { name: 'Kapitalertragssteuer' }, formValue.valuta, kapitalertragssteuer ) );
+    }
+    if (solidaritaetszuschlag > 0){
+      buchung.umsaetze?.push( this.createUmsatz( { name: 'Solidaritätszuschlag' }, formValue.valuta, solidaritaetszuschlag ) );
+    }
+
     return buchung;
   }
 
-  createUmsatz( konto: KontoRef, valuta: string, betrag: number, bestand?: any) {
+  createUmsatz( konto: KontoRef, valuta: string, betrag: number, asset?: AssetRef) {
     const umsatz: Umsatz = {
       konto,
       valuta,
@@ -83,12 +92,8 @@ export class KaufFormularComponent implements OnInit {
         waehrung: 'EUR'
       }
     };
-    if(bestand) {
-      umsatz.menge = {
-        menge: bestand.menge,
-				einheit: 'St.'
-      },
-      umsatz.asset = bestand.asset;
+    if (asset) {
+      umsatz.asset = asset;
     }
     return umsatz;
   }

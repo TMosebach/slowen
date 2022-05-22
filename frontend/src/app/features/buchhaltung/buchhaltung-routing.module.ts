@@ -2,6 +2,7 @@ import { NgModule } from '@angular/core';
 import { RouterModule, Routes } from '@angular/router';
 import { BuchhaltungComponent } from './buchhaltung/buchhaltung.component';
 import { BuchenComponent } from './views/buchen/buchen.component';
+import { ErtragComponent } from './views/ertrag/ertrag.component';
 import { KaufComponent } from './views/kauf/kauf.component';
 import { KontoDetailsComponent } from './views/konto-details/konto-details.component';
 import { KontoListeComponent } from './views/konto-liste/konto-liste.component';
@@ -31,6 +32,14 @@ const routes: Routes = [
       {
         path: 'kauf',
         component: KaufComponent
+      },
+      {
+        path: 'ertrag/:id',
+        component: ErtragComponent
+      },
+      {
+        path: 'ertrag',
+        component: ErtragComponent
       },
       {
         path: 'konten/neu',

@@ -19,7 +19,8 @@
                 <td class="text-end"><app-betrag-label [betrag]="konto.saldo"></app-betrag-label></td>
                 <td>
                     <button class="btn btn-primary btn-sm me-1" [routerLink]="['buchen', konto.id]">Buchen</button>
-                    <button class="btn btn-primary btn-sm" [routerLink]="['kauf', konto.id]">Kauf</button>
+                    <button class="btn btn-primary btn-sm me-1" [routerLink]="['kauf', konto.id]">Kauf</button>
+                    <button class="btn btn-primary btn-sm" [routerLink]="['ertrag', konto.id]">Ertrag</button>
                 </td>
             </tr>
             </tbody>
