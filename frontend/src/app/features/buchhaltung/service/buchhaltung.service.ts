@@ -3,6 +3,7 @@ import { Injectable } from '@angular/core';
 import { Observable, ObservedValuesFromArray } from 'rxjs';
 import { AssetRef } from '../model/asset-ref';
 import { Buchung } from '../model/buchung';
+import { BuchhungPage } from '../model/buchung-page';
 import { Konto } from '../model/konto';
 
 
@@ -24,8 +25,8 @@ export class BuchhaltungService {
     return this.http.get<Konto>(`${API_ENDPOINT}/konten/${id}`);
   }
 
-  getBuchungen4Konto(id: string): Observable<Buchung[]> {
-    return this.http.get<Buchung[]>(`${API_ENDPOINT}/buchungen/${id}`);
+  getBuchungen4Konto(id: string, page: number): Observable<BuchhungPage> {
+    return this.http.get<BuchhungPage>(`${API_ENDPOINT}/buchungen/${id}?page=${page}&size=10`);
   }
 
   createKonto(konto: Konto): Observable<Konto> {
