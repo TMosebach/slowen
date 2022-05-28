@@ -281,7 +281,7 @@ public class BuchhaltungServiceJpa implements BuchhaltungService {
 	 * 
 	 * Es kommen die jüngsten/zu letzt ergänzten Buchungen zu erst.
 	 * 
-	 * Die Liste enthält den Buchungsausschnitt mit der angegebenen größe.
+	 * Die Liste enthält den Buchungsausschnitt mit der angegebenen Größe.
 	 * 
 	 * @param id des Kontos
 	 * @param page Seitennummer beginnend mit 0

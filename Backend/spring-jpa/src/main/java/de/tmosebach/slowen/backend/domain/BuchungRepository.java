@@ -21,7 +21,7 @@ public interface BuchungRepository extends JpaRepository<Buchung, Long>{
 	 * @param pageable Page-Metadaten
 	 * @return Page-Objekt mit den gefundenen Buchungen.
 	 */
-	@Query("select b from Buchung b join b.umsaetze u where u.konto.id = :kontoId order by u.valuta asc, b.id desc ")
+	@Query("select b from Buchung b join b.umsaetze u where u.konto.id = :kontoId order by u.valuta desc, b.id desc ")
 	Page<Buchung> findByKonto(Long kontoId, Pageable pageable );
 	
 	@Query("select b from Buchung b join b.umsaetze u order by b.datum asc, u.valuta asc ")
