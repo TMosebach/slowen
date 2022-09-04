@@ -2,7 +2,7 @@
   <modelVersion>4.0.0</modelVersion>
   <parent>
     <groupId>de.tmosebach.slowen</groupId>
-    <artifactId>backend</artifactId>
+    <artifactId>slowen</artifactId>
     <version>0.0.1-SNAPSHOT</version>
   </parent>
   <artifactId>domains</artifactId>

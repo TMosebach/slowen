@@ -19,12 +19,8 @@
 *.tar.gz
 *.rar
 
-# virtual machine crash logs, see http://www.java.com/en/download/help/error_hotspot.xml
-hs_err_pid*
-/.metadata/
-/code-with-quarkus/
-/code-with-springboot/
-/Backend/spring-jpa/target/
-Backend/spring-jpa/target/classes/META-INF/maven/de.tmosebach.slowen/spring-jpa/pom.properties
-frontend/.angulardoc.json
-frontend/.vscode/
+# Eclipse-Metadata
+.metadata/**
+.settings/**
+**/.project
+**/.classpath

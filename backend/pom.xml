@@ -5,11 +5,11 @@
 	<modelVersion>4.0.0</modelVersion>
 	<parent>
 		<groupId>de.tmosebach.slowen</groupId>
-		<artifactId>backend</artifactId>
+		<artifactId>slowen</artifactId>
 		<version>0.0.1-SNAPSHOT</version>
 	</parent>
-	<artifactId>slowen</artifactId>
-	<name>slowen</name>
+	<artifactId>backend</artifactId>
+	<name>Slowen Backend</name>
 	<description>Exe für Slowen</description>
 
 	<properties>
@@ -39,11 +39,6 @@
 		</dependency>
 
 		<!-- Modelle einbinden -->
-		<dependency>
-			<groupId>de.tmosebach.slowen</groupId>
-			<artifactId>buchhaltung</artifactId>
-			<version>${project.version}</version>
-		</dependency>
 		<dependency>
 			<groupId>de.tmosebach.slowen</groupId>
 			<artifactId>buchhaltung</artifactId>
