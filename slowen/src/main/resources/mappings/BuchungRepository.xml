@@ -1,0 +1,40 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+  PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+  "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="de.tmosebach.slowen.buchhaltung.BuchungRepository">
+
+  <insert id="save">
+  	insert into BHT_BUCHUNG (
+  		id,
+		datum,
+	    verwendung,
+	    empfaenger
+  	) values (
+  		#{id.id},
+  		#{datum},
+  		#{verwendung},
+  		#{empfaenger}
+  	)
+  </insert>
+  
+  <insert id="saveUmsatz">
+  	insert into BHT_UMSATZ (
+  		buchung_id,
+		konto_id,
+		valuta,
+		betrag,
+		waehrung,
+		asset,
+		menge
+  	) values (
+  		#{buchungIdentifier.id},
+  		#{konto.id},
+  		#{valuta},
+  		#{betrag.wert},
+  		#{betrag.waehrung},
+  		#{asset.isin},
+  		#{menge}
+  	)
+  </insert>
+</mapper>

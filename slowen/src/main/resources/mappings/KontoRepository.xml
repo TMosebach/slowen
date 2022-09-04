@@ -1,0 +1,111 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+  PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+  "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="de.tmosebach.slowen.konten.KontoRepository">
+
+  <insert id="save">
+  	insert into KTO_KONTO (
+  		id,
+		name,
+		type,
+		bilanz_Typ,
+		saldo,
+		waehrung
+  	) values (
+  		#{id.id},
+  		#{name},
+  		#{type},
+  		#{bilanzType},
+  		#{saldo.wert},
+  		#{saldo.waehrung}
+  	)
+  </insert>
+  
+  <update id="update">
+  	update KTO_KONTO
+  	   set name=#{name},
+		   bilanz_Typ=#{bilanzType},
+		   saldo=#{saldo.wert},
+		   waehrung=#{saldo.waehrung}
+	 where id = #{id.id}
+  </update>
+  
+  <insert id="merge">
+  	merge into KTO_BESTAND ( konto_id, asset_id, menge, kauf_wert, waehrung ) key (konto_id, asset_id) values (
+  		#{kontoId.id},
+  		#{assetId.isin},
+  		#{menge},
+  		#{kaufWert.wert},
+		#{kaufWert.waehrung}
+  	)
+  </insert>
+  
+  <select id="findById" resultMap="kontoMap">
+	<include refid="kontoSelection" />
+	 where id = #{id}
+  </select>
+
+  <select id="findKonten" resultMap="kontoMap">
+	<include refid="kontoSelection" />
+  </select>
+  
+  <select id="findByName" resultMap="kontoMap">
+	<include refid="kontoSelection" />
+	 where name = #{name}
+  </select>
+  
+  <sql id="kontoSelection">
+  	select 
+		k.id,
+		k.name,
+		type,
+		k.bilanz_Typ,
+		k.saldo,
+		k.waehrung as "kontoWaehrung",
+		b.konto_id,
+		b.asset_id,
+		b.menge,
+		b.kauf_wert,
+		b.waehrung
+	  from KTO_KONTO k
+	  left join KTO_BESTAND b 
+	  	on b.konto_id = k.id
+  </sql>
+  
+  <resultMap id="kontoMap" type="de.tmosebach.slowen.konten.SimpleKonto">
+  	<discriminator javaType="string" column="type">
+  	  <case value="Konto" resultMap="simpleKontoMap"/>
+	  <case value="Depot" resultMap="depotMap"/>
+	</discriminator>
+  </resultMap>
+  
+  <resultMap id="simpleKontoMap" type="de.tmosebach.slowen.konten.SimpleKonto">
+  	<constructor>
+	    <idArg column="id" javaType="string"></idArg>
+		<arg column="name" javaType="string"></arg>
+		<arg column="bilanz_Typ" javaType="de.tmosebach.slowen.konten.BilanzType"></arg>
+		<arg column="saldo" javaType="java.math.BigDecimal"></arg>
+		<arg column="kontoWaehrung" javaType="de.tmosebach.slowen.shared.values.Waehrung"></arg>
+	 </constructor>
+  </resultMap>
+  
+  <resultMap id="depotMap" type="de.tmosebach.slowen.konten.Depot">
+  	<constructor>
+	    <idArg column="id" javaType="string"></idArg>
+		<arg column="name" javaType="string"></arg>
+		<arg column="bilanz_Typ" javaType="de.tmosebach.slowen.konten.BilanzType"></arg>
+		<arg column="saldo" javaType="java.math.BigDecimal"></arg>
+		<arg column="kontoWaehrung" javaType="de.tmosebach.slowen.shared.values.Waehrung"></arg>
+	 </constructor>
+  	<collection property="bestaende" ofType="de.tmosebach.slowen.konten.Bestand">
+		 <constructor>
+		    <idArg column="konto_id" javaType="string"></idArg>
+			<idArg column="asset_id" javaType="string"></idArg>
+			<arg column="menge" javaType="java.math.BigDecimal"></arg>
+			<arg column="kauf_wert" javaType="java.math.BigDecimal"></arg>
+			<arg column="waehrung" javaType="string"></arg>
+		 </constructor>
+	 </collection>
+  </resultMap>
+</mapper>
