@@ -19,6 +19,9 @@
 *.tar.gz
 *.rar
 
+# Mac-Filesystem
+**/.DS_Store
+
 # Eclipse-Metadata
 .metadata/**
 .settings/**
