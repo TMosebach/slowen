@@ -3,20 +3,20 @@ package de.tmosebach.slowen.shared.values;
 import java.util.Objects;
 
 public class AssetIdentifier {
-	private String isin;
+	private String id;
 
-	public AssetIdentifier(String isin) {
-		this.isin = isin;
+	public AssetIdentifier(String id) {
+		this.id = id;
 	}
 
 	@Override
 	public String toString() {
-		return "AssetIdentifier [isin=" + isin + "]";
+		return "AssetIdentifier [id=" + id + "]";
 	}
 
 	@Override
 	public int hashCode() {
-		return Objects.hash(isin);
+		return Objects.hash(id);
 	}
 
 	@Override
@@ -28,10 +28,10 @@ public class AssetIdentifier {
 		if (getClass() != obj.getClass())
 			return false;
 		AssetIdentifier other = (AssetIdentifier) obj;
-		return Objects.equals(isin, other.isin);
+		return Objects.equals(id, other.id);
 	}
 
-	public String getIsin() {
-		return isin;
+	public String getId() {
+		return id;
 	}
 }

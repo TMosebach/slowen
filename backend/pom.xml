@@ -44,6 +44,12 @@
 			<artifactId>buchhaltung</artifactId>
 			<version>${project.version}</version>
 		</dependency>
+		
+		<dependency>
+			<groupId>de.tmosebach.slowen</groupId>
+			<artifactId>assets</artifactId>
+			<version>${project.version}</version>
+		</dependency>
 
 		<!-- Swagger UI -->
 		<dependency>

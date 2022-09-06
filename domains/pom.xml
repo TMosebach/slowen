@@ -13,5 +13,6 @@
   	<module>shared</module>
   	<module>konten</module>
   	<module>buchhaltung</module>
+  	<module>assets</module>
   </modules>
 </project>

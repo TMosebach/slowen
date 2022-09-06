@@ -24,6 +24,7 @@
 
 # Eclipse-Metadata
 .metadata/**
-.settings/**
+**/.settings/**
 **/.project
 **/.classpath
+**/target/**

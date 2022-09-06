@@ -6,6 +6,7 @@ import org.springframework.boot.autoconfigure.SpringBootApplication;
 
 @SpringBootApplication
 @MapperScan({
+	"de.tmosebach.slowen.assets",
 	"de.tmosebach.slowen.konten",
 	"de.tmosebach.slowen.buchhaltung"
 })
