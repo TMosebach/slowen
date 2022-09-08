@@ -1,5 +1,6 @@
 package de.tmosebach.slowen.buchhaltung;
 
+import java.util.List;
 import java.util.Optional;
 
 import org.springframework.stereotype.Service;
@@ -13,6 +14,7 @@ import de.tmosebach.slowen.konten.KontoType;
 import de.tmosebach.slowen.shared.values.AssetIdentifier;
 import de.tmosebach.slowen.shared.values.Betrag;
 import de.tmosebach.slowen.shared.values.KontoIdentifier;
+import de.tmosebach.slowen.shared.values.Page;
 
 @Service
 public class BuchungService {
@@ -35,6 +37,17 @@ public class BuchungService {
 			uebernehmeInsHauptbuch(umsatz);
 		});
 		return buchung;
+	}
+	
+	public Page<Buchung> findBuchung(BuchungSelection selection) {
+		int count = buchungRepository.count(selection);
+		List<Buchung> content = buchungRepository.findBuchung(selection);
+		return new Page.Builder<Buchung>()
+				.content(content)
+				.elementCount(count)
+				.page(selection.getPage())
+				.size(selection.getSize())
+				.get();
 	}
 
 	private void uebernehmeInsHauptbuch(Umsatz umsatz) {
