@@ -6,12 +6,15 @@ import java.time.LocalDate;
 
 import javax.validation.Valid;
 
+import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
 import de.tmosebach.slowen.buchhaltung.Buchung;
+import de.tmosebach.slowen.buchhaltung.BuchungSelection;
 import de.tmosebach.slowen.buchhaltung.BuchungService;
 import de.tmosebach.slowen.buchhaltung.api.model.BucheRequest;
 import de.tmosebach.slowen.buchhaltung.api.model.BucheResponse;
@@ -23,6 +26,7 @@ import de.tmosebach.slowen.buchhaltung.builder.VerkaufBuilder;
 import de.tmosebach.slowen.shared.values.AssetIdentifier;
 import de.tmosebach.slowen.shared.values.Betrag;
 import de.tmosebach.slowen.shared.values.KontoIdentifier;
+import de.tmosebach.slowen.shared.values.Page;
 import de.tmosebach.slowen.shared.values.Waehrung;
 
 @RestController
@@ -120,5 +124,15 @@ public class BuchhaltungController {
 		Buchung buchung = buchungService.buche(builder.build());
 		
 		return ToApiMapper.map(buchung);
+	}
+	
+	@GetMapping("buchungen")
+	public Page<Buchung> findBuchungen(
+			@RequestParam(required = true) String kontoId,
+			@RequestParam(name = "page", required = false, defaultValue = "1") Integer page,
+			@RequestParam(name = "size", required = false, defaultValue = "25") Integer size) {
+		
+		BuchungSelection selection = new BuchungSelection(kontoId).page(page).size(size);
+		return buchungService.findBuchung(selection);
 	}
 }

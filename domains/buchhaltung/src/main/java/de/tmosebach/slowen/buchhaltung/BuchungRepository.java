@@ -16,6 +16,5 @@ public interface BuchungRepository {
 	 */
 	int count(BuchungSelection selection);
 
-	List<Buchung> findBuchung(BuchungSelection selection);
-
+	List<Buchung> findBuchungPagedByKonto(BuchungSelection selection);
 }

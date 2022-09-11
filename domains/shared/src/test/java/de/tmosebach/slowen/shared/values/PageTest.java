@@ -13,12 +13,11 @@ class PageTest {
 		List<String> content = List.of("1", "2");
 		
 		Page<String> page = 
-			new Page.Builder<String>()
+			new Page<String>()
 				.content(content)
 				.elementCount(2)
 				.page(1)
-				.size(2)
-				.get();
+				.size(2);
 		
 		assertEquals(1, page.getPageCount());
 	}
@@ -28,12 +27,11 @@ class PageTest {
 		List<String> content = List.of("1", "2");
 		
 		Page<String> page = 
-			new Page.Builder<String>()
+			new Page<String>()
 				.content(content)
 				.elementCount(2)
 				.page(1)
-				.size(1)
-				.get();
+				.size(1);
 		
 		assertEquals(2, page.getPageCount());
 	}

@@ -15,6 +15,13 @@ public class Buchung {
 	private List<Umsatz> umsaetze;
 	
 	public Buchung(
+			String id, 
+			BuchungArt art,
+			LocalDate datum) {
+		this(new BuchungIdentifier(id), art, datum);
+	}
+	
+	public Buchung(
 			BuchungIdentifier id, 
 			BuchungArt art,
 			LocalDate datum) {

@@ -7,11 +7,13 @@
   <insert id="save">
   	insert into BHT_BUCHUNG (
   		id,
+  		art,
 		datum,
 	    verwendung,
 	    empfaenger
   	) values (
   		#{id.id},
+  		#{art},
   		#{datum},
   		#{verwendung},
   		#{empfaenger}
@@ -33,8 +35,56 @@
   		#{valuta},
   		#{betrag.wert},
   		#{betrag.waehrung},
-  		#{asset.isin},
+  		#{asset.id},
   		#{menge}
   	)
   </insert>
+  
+  <select id="count" resultType="int">
+  	select count(*)
+  	  from BHT_BUCHUNG
+  	 where id in (
+  	 	select buchung_id
+  	 	  from BHT_UMSATZ
+  	 	 where konto_id = #{kontoId}
+  	 )
+  </select>
+  
+  <select id="findBuchungPagedByKonto" resultMap="buchungMap">
+  select
+  		id, art, datum, verwendung, empfaenger,
+ 		konto_id, valuta, betrag, waehrung, asset, menge
+    from (
+	 	select id, art, datum, verwendung, empfaenger
+	  	  from BHT_BUCHUNG b
+	  	  join BHT_UMSATZ u on 
+	  	  		u.buchung_id = b.id 
+	  	  	and konto_id = #{kontoId}
+	     order by u.valuta desc, b.datum desc
+	  	 limit #{size} offset #{size}*(#{page} - 1)
+    ) b
+    join BHT_UMSATZ u on u.buchung_id = b.id
+   order by u.valuta asc, b.datum asc
+  </select>
+  
+  <resultMap id="buchungMap" type="de.tmosebach.slowen.buchhaltung.Buchung">
+  	<constructor>
+	    <idArg column="id" javaType="string"/>
+		<arg column="art" javaType="de.tmosebach.slowen.buchhaltung.BuchungArt"/>
+		<arg column="datum" javaType="java.time.LocalDate"/>
+	 </constructor>
+	 <result column="verwendung" property="verwendung"/>
+	 <result column="empfaenger" property="empfaenger"/>
+	 <collection property="umsaetze" ofType="de.tmosebach.slowen.buchhaltung.Umsatz">
+		 <constructor>
+		    <idArg column="id" javaType="string"></idArg>
+			<idArg column="konto_id" javaType="string"></idArg>
+			<arg column="valuta" javaType="java.time.LocalDate"></arg>
+			<arg column="betrag" javaType="java.math.BigDecimal"></arg>
+			<arg column="waehrung" javaType="string"></arg>
+			<arg column="asset" javaType="string"></arg>
+			<arg column="menge" javaType="java.math.BigDecimal"></arg>
+		 </constructor>
+	 </collection>
+  </resultMap>
 </mapper>

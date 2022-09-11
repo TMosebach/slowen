@@ -2,27 +2,38 @@ package de.tmosebach.slowen.buchhaltung;
 
 public class BuchungSelection {
 
-	private Integer page = 1;
-	private Integer size;
-	
-	@Override
-	public String toString() {
-		return "BuchungSelection [page=" + page + ", size=" + size + "]";
+	private int page = 1;
+	private int size = 25;
+	private String kontoId;
+
+	public BuchungSelection(String kontoId) {
+		this.kontoId = kontoId;
 	}
 
-	protected Integer getPage() {
+	@Override
+	public String toString() {
+		return "BuchungSelection [page=" + page + ", size=" + size + ", kontoId=" + kontoId + "]";
+	}
+
+	public int getPage() {
 		return page;
 	}
 
-	protected void setPage(Integer page) {
+	public BuchungSelection page(int page) {
 		this.page = page;
+		return this;
 	}
 
-	protected Integer getSize() {
+	public int getSize() {
 		return size;
 	}
 
-	protected void setSize(Integer size) {
+	public BuchungSelection size(int size) {
 		this.size = size;
+		return this;
+	}
+
+	public String getKontoId() {
+		return kontoId;
 	}
 }

@@ -7,6 +7,7 @@ import java.util.Objects;
 import de.tmosebach.slowen.shared.values.AssetIdentifier;
 import de.tmosebach.slowen.shared.values.Betrag;
 import de.tmosebach.slowen.shared.values.KontoIdentifier;
+import de.tmosebach.slowen.shared.values.Waehrung;
 
 public class Umsatz {
 	
@@ -26,6 +27,23 @@ public class Umsatz {
 		this.betrag = betrag;
 	}
 
+	public Umsatz(
+			String buchungId,
+			String kontoId,
+			LocalDate valuta, 
+			BigDecimal betrag,
+			String waehrung,
+			String assetId, 
+			BigDecimal menge) {
+		this(
+			new BuchungIdentifier(buchungId),
+			new KontoIdentifier(kontoId),
+			valuta, 
+			new Betrag(betrag, Waehrung.valueOf(waehrung)), 
+			new AssetIdentifier(assetId), 
+			menge);
+	}
+	
 	public Umsatz(
 			BuchungIdentifier buchungIdentifier,
 			KontoIdentifier konto,

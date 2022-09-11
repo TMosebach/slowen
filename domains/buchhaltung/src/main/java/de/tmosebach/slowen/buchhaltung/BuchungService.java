@@ -41,13 +41,14 @@ public class BuchungService {
 	
 	public Page<Buchung> findBuchung(BuchungSelection selection) {
 		int count = buchungRepository.count(selection);
-		List<Buchung> content = buchungRepository.findBuchung(selection);
-		return new Page.Builder<Buchung>()
-				.content(content)
-				.elementCount(count)
-				.page(selection.getPage())
-				.size(selection.getSize())
-				.get();
+		List<Buchung> content = buchungRepository.findBuchungPagedByKonto(selection);
+		
+		return
+			new Page<Buchung>()
+			.elementCount(count)
+			.content(content)
+			.page(selection.getPage())
+			.size(selection.getSize());
 	}
 
 	private void uebernehmeInsHauptbuch(Umsatz umsatz) {

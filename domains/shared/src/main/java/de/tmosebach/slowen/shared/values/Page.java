@@ -4,46 +4,12 @@ import java.util.List;
 
 public class Page<T> {
 	
-	public static class Builder<T> {
-		
-		private Page<T> page;
-
-		public Builder() {
-			page = new Page<>();
-		}
-
-		public Builder<T> content(List<T> content) {
-			page.setContent(content);
-			return this;
-		}
-
-		public Builder<T> elementCount(int elementCount) {
-			page.setElementCount(elementCount);
-			return this;
-		}
-
-		public Builder<T> page(int page) {
-			this.page.setPage(page);
-			return this;
-		}
-
-		public Builder<T> size(int size) {
-			page.setSize(size);
-			return this;
-		}
-
-		public Page<T> get() {
-			return page;
-		}
-		
-	}
-
 	private List<T> content;
 	private int elementCount;
 	private int page;
 	private int size;
 	
-	private Page() {}
+	public Page() {}
 	
 	@Override
 	public String toString() {
@@ -75,19 +41,23 @@ public class Page<T> {
 		return size;
 	}
 
-	protected void setContent(List<T> content) {
+	public Page<T> content(List<T> content) {
 		this.content = content;
+		return this;
 	}
 
-	protected void setElementCount(int elementCount) {
+	public Page<T> elementCount(int elementCount) {
 		this.elementCount = elementCount;
+		return this;
 	}
 
-	protected void setPage(int page) {
+	public Page<T> page(int page) {
 		this.page = page;
+		return this;
 	}
 
-	protected void setSize(int size) {
+	public Page<T> size(int size) {
 		this.size = size;
+		return this;
 	}
 }

@@ -1,6 +1,7 @@
 drop table BHT_BUCHUNG if exists;
 create table BHT_BUCHUNG (
 	id VARCHAR(36) NOT NULL,
+	art VARCHAR(20) NOT NULL,
 	datum DATE NOT NULL,
 	verwendung VARCHAR(50),
 	empfaenger VARCHAR(50)
