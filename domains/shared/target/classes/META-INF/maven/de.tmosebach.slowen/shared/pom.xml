@@ -10,4 +10,11 @@
 	<artifactId>shared</artifactId>
 	<name>Shared</name>
 	<description>Geteilte Klassen und Komponenten</description>
+	
+	<dependencies>
+		<dependency>
+			<groupId>org.junit.jupiter</groupId>
+			<artifactId>junit-jupiter</artifactId>
+		</dependency>
+	</dependencies>
 </project>

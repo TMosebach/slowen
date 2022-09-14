@@ -1,49 +1,19 @@
 package de.tmosebach.slowen.buchhaltung.builder;
 
-import static de.tmosebach.slowen.shared.values.Functions.createId;
-
 import java.math.BigDecimal;
 import java.time.LocalDate;
 
 import de.tmosebach.slowen.buchhaltung.Buchung;
 import de.tmosebach.slowen.buchhaltung.BuchungArt;
-import de.tmosebach.slowen.buchhaltung.BuchungIdentifier;
 import de.tmosebach.slowen.buchhaltung.Umsatz;
 import de.tmosebach.slowen.shared.values.AssetIdentifier;
 import de.tmosebach.slowen.shared.values.Betrag;
 import de.tmosebach.slowen.shared.values.KontoIdentifier;
 
-public class VerkaufBuilder {
+public class VerkaufBuilder extends HandelBuilder {
 	
-	private Buchung buchung;
-	private LocalDate buchungsDatum;
-	private LocalDate valutaDepot;
-	private LocalDate valutaKonto;
-	
-	private AssetIdentifier asset;
-	private KontoIdentifier depot;
-	private BigDecimal menge;
-	private BigDecimal kurs;
-	private KontoIdentifier verrechnungsKonto;
-
-	public VerkaufBuilder(LocalDate buchungsDatum) {
-		this.buchungsDatum = buchungsDatum;
-		this.valutaDepot = buchungsDatum.plusDays(1L);
-		this.valutaKonto = buchungsDatum.plusDays(2L);
-	}
-
-	public VerkaufBuilder verkauf(AssetIdentifier asset) {
-		this.asset = asset;
-				
-		String id = createId();
-
-		buchung = 
-			new Buchung(
-				new BuchungIdentifier(id),
-				BuchungArt.Kauf,
-				buchungsDatum);
-		
-		return this;
+	public VerkaufBuilder(LocalDate buchungsDatum, AssetIdentifier asset) {
+		super(buchungsDatum, BuchungArt.Verkauf, asset);
 	}
 
 	public VerkaufBuilder ausDepot(KontoIdentifier depot) {
@@ -76,41 +46,13 @@ public class VerkaufBuilder {
 		return this;
 	}
 
-	public VerkaufBuilder gebuehr(KontoIdentifier gebuehrenKonto, Betrag gebuehr) {
+	public HandelBuilder gebuehr(KontoIdentifier gebuehrenKonto, Betrag gebuehr) {
 		buchung.addUmsatz(
 				new Umsatz(buchung.getId(), gebuehrenKonto, valutaKonto, gebuehr));
 		return this;
 	}
 
 	public Buchung build() {
-		
-		Betrag summeGebuehr = 
-			buchung.getUmsaetze().stream()
-			.map( umsatz -> umsatz.getBetrag())
-			.reduce(Betrag.NULL_EUR, (a, b) -> a.add(b));
-		
-		Betrag verkaufWert = 
-				new Betrag( 
-					menge.multiply(kurs), 
-					summeGebuehr.getWaehrung());
-		
-		buchung.addUmsatz(
-			new Umsatz(
-				buchung.getId(),
-				depot,
-				valutaDepot,
-				verkaufWert.invert(),
-				asset,
-				menge.negate()));
-		
-		buchung.addUmsatz(
-			new Umsatz(
-					buchung.getId(),
-					verrechnungsKonto,
-					valutaKonto,
-					verkaufWert.subtract(summeGebuehr) ) );
-		
-		return buchung;
+		return super.build(false);
 	}
-
 }

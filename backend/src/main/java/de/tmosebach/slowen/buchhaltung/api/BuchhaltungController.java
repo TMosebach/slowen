@@ -48,8 +48,7 @@ public class BuchhaltungController {
 					LocalDate.now():
 						request.getBuchungsDatum();
 		BuchungBuilder builder = 
-			new BuchungBuilder(buchungsDatum)
-			.buchung()
+			BuchungBuilder.buche(buchungsDatum)
 			.verwendung(request.getVerwendung())
 			.empfaenger(request.getEmpfaenger());
 		
@@ -77,8 +76,9 @@ public class BuchhaltungController {
 					LocalDate.now():
 						request.getBuchungsDatum();
 		KaufBuilder builder = 
-			new KaufBuilder(buchungsDatum)
-			.kauf( new AssetIdentifier(request.getAsset()) )
+			BuchungBuilder.kauf(
+					buchungsDatum, 
+					new AssetIdentifier(request.getAsset()))
 			.verwendung(request.getVerwendung())
 			.empfaenger(request.getEmpfaenger())
 			.insDepot(new KontoIdentifier(request.getDepot()))
@@ -107,8 +107,9 @@ public class BuchhaltungController {
 					LocalDate.now():
 						request.getBuchungsDatum();
 		VerkaufBuilder builder = 
-				new VerkaufBuilder(buchungsDatum)
-				.verkauf(new AssetIdentifier(request.getAsset()))
+				BuchungBuilder.verkauf(
+						buchungsDatum, 
+						new AssetIdentifier(request.getAsset()))
 				.ausDepot(new KontoIdentifier(request.getDepot()))
 				.menge(request.getMenge())
 				.kurs(request.getKurs())

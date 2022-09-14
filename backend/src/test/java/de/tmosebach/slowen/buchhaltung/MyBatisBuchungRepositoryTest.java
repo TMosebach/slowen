@@ -11,7 +11,7 @@ import org.mybatis.spring.boot.test.autoconfigure.MybatisTest;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.test.context.jdbc.Sql;
 
-import de.tmosebach.slowen.buchhaltung.builder.KaufBuilder;
+import de.tmosebach.slowen.buchhaltung.builder.BuchungBuilder;
 import de.tmosebach.slowen.shared.values.AssetIdentifier;
 import de.tmosebach.slowen.shared.values.KontoIdentifier;
 
@@ -32,8 +32,7 @@ public class MyBatisBuchungRepositoryTest {
 		AssetIdentifier asset = new AssetIdentifier("asset");
 		
 		Buchung buchung = 
-				new KaufBuilder(LocalDate.now()) // Buchungsdatum
-				.kauf(asset) // Typ + Asset
+				BuchungBuilder.kauf(LocalDate.now(), asset)
 				.insDepot(depot)
 				.menge(BigDecimal.valueOf(20.0))
 				.kurs(BigDecimal.valueOf(50.0))

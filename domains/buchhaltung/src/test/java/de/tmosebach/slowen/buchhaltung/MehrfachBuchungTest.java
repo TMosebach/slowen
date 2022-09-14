@@ -58,8 +58,7 @@ class MehrfachBuchungTest {
 		.thenReturn(Optional.of(stromKonto));
 		
 		BuchungBuilder builder = 
-				new BuchungBuilder(now) // Buchungsdatum
-				.buchung() // Typ
+				BuchungBuilder.buche(now)
 				.umsatz(giro, new Betrag(-600.0))
 				.umsatz(gas, new Betrag(400.0))
 				.umsatz(strom, new Betrag(200.0));
@@ -67,7 +66,8 @@ class MehrfachBuchungTest {
 		Buchung buchung = impl.buche(builder.build());
 		
 		assertNotNull(buchung);
-		verify(buchungRepositoryMock, only()).save(buchung);
+		verify(buchungRepositoryMock).save(buchung);
+		verify(buchungRepositoryMock, times(3)).saveUmsatz(isA(Umsatz.class));
 		
 		assertEquals(new Betrag(-600.0), giroKonto.getSaldo());
 		assertEquals(new Betrag(400.0), gasKonto.getSaldo());

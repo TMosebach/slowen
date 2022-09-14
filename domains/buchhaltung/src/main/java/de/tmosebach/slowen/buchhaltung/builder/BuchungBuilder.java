@@ -8,19 +8,32 @@ import de.tmosebach.slowen.buchhaltung.Buchung;
 import de.tmosebach.slowen.buchhaltung.BuchungArt;
 import de.tmosebach.slowen.buchhaltung.BuchungIdentifier;
 import de.tmosebach.slowen.buchhaltung.Umsatz;
+import de.tmosebach.slowen.shared.values.AssetIdentifier;
 import de.tmosebach.slowen.shared.values.Betrag;
 import de.tmosebach.slowen.shared.values.KontoIdentifier;
 
 public class BuchungBuilder {
 	
-	private Buchung buchung;
-	private LocalDate buchungsDatum;
-
-	public BuchungBuilder(LocalDate buchungsDatum) {
-		this.buchungsDatum = buchungsDatum;
+	public static BuchungBuilder buche(LocalDate buchungsDatum) {
+		return new BuchungBuilder(buchungsDatum);
 	}
+	
+	public static KaufBuilder kauf(LocalDate buchungsDatum, AssetIdentifier asset) {
+		return new KaufBuilder(buchungsDatum, asset);
+	}
+	
+	public static VerkaufBuilder verkauf(LocalDate buchungsDatum, AssetIdentifier asset) {
+		return new VerkaufBuilder(buchungsDatum, asset);
+	}
+	
+	protected Buchung buchung;
+	protected LocalDate buchungsDatum;
 
-	public BuchungBuilder buchung() {
+	protected BuchungBuilder() {}
+	
+	private BuchungBuilder(LocalDate buchungsDatum) {
+		this.buchungsDatum = buchungsDatum;
+		
 		String id = createId();
 		
 		buchung = 
@@ -28,8 +41,6 @@ public class BuchungBuilder {
 				new BuchungIdentifier(id),
 				BuchungArt.Buchung,
 				buchungsDatum);
-		
-		return this;
 	}
 
 	public Buchung build() {

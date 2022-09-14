@@ -14,7 +14,8 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.mockito.Mock;
 
-import de.tmosebach.slowen.buchhaltung.builder.KaufBuilder;
+import de.tmosebach.slowen.buchhaltung.builder.BuchungBuilder;
+import de.tmosebach.slowen.buchhaltung.builder.HandelBuilder;
 import de.tmosebach.slowen.konten.Bestand;
 import de.tmosebach.slowen.konten.BilanzType;
 import de.tmosebach.slowen.konten.Depot;
@@ -64,9 +65,8 @@ class KaufTest {
 		
 		AssetIdentifier asset = new AssetIdentifier("Aktie");
 		
-		KaufBuilder builder = 
-				new KaufBuilder(now) // Buchungsdatum
-				.kauf(asset) // Typ + Asset
+		HandelBuilder builder = 
+				BuchungBuilder.kauf(now, asset)
 				.insDepot(DEPOT)
 				.menge(BigDecimal.valueOf(20.0))
 				.kurs(BigDecimal.valueOf(50.0))
@@ -108,9 +108,8 @@ class KaufTest {
 		
 		AssetIdentifier asset = new AssetIdentifier("Aktie");
 		
-		KaufBuilder builder = 
-			new KaufBuilder(now) // Buchungsdatum
-			.kauf(asset) // Typ + Asset
+		HandelBuilder builder = 
+			BuchungBuilder.kauf(now, asset)
 			.insDepot(DEPOT)
 			.menge(BigDecimal.valueOf(20.0))
 			.kurs(BigDecimal.valueOf(50.0))

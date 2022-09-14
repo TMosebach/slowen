@@ -15,7 +15,8 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.mockito.Mock;
 
-import de.tmosebach.slowen.buchhaltung.builder.VerkaufBuilder;
+import de.tmosebach.slowen.buchhaltung.builder.BuchungBuilder;
+import de.tmosebach.slowen.buchhaltung.builder.HandelBuilder;
 import de.tmosebach.slowen.konten.Bestand;
 import de.tmosebach.slowen.konten.BilanzType;
 import de.tmosebach.slowen.konten.Depot;
@@ -75,9 +76,8 @@ class VerkaufTest {
 		depotKonto.addBestand(vorBestand);
 		
 		
-		VerkaufBuilder builder = 
-				new VerkaufBuilder(now) // Buchungsdatum
-				.verkauf(asset) // Typ + Asset
+		HandelBuilder builder = 
+				BuchungBuilder.verkauf(now, asset)
 				.ausDepot(DEPOT)
 				.menge(BigDecimal.valueOf(20.0))
 				.kurs(BigDecimal.valueOf(50.0))
@@ -128,9 +128,8 @@ class VerkaufTest {
 		depotKonto.addBestand(vorBestand);
 		
 		
-		VerkaufBuilder builder = 
-				new VerkaufBuilder(now) // Buchungsdatum
-				.verkauf(asset) // Typ + Asset
+		HandelBuilder builder = 
+				BuchungBuilder.verkauf(now, asset)
 				.ausDepot(DEPOT)
 				.menge(BigDecimal.valueOf(20.0))
 				.kurs(BigDecimal.valueOf(50.0))

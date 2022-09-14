@@ -1,5 +1,6 @@
 package de.tmosebach.slowen.buchhaltung;
 
+import static org.mockito.ArgumentMatchers.isA;
 import static org.mockito.Mockito.*;
 import static org.mockito.MockitoAnnotations.openMocks;
 
@@ -53,15 +54,15 @@ class SimpleBuchungTest {
 		.thenReturn(Optional.of(mietKonto));
 		
 		BuchungBuilder builder = 
-				new BuchungBuilder(now) // Buchungsdatum
-				.buchung() // Typ
+				BuchungBuilder.buche(now)
 				.umsatz(giro, new Betrag(-500.0))
 				.umsatz(miete, now.plusDays(1), new Betrag(500.0));
 		
 		Buchung buchung = impl.buche(builder.build());
 		
 		assertNotNull(buchung);
-		verify(buchungRepositoryMock, only()).save(buchung);
+		verify(buchungRepositoryMock).save(buchung);
+		verify(buchungRepositoryMock, times(2)).saveUmsatz(isA(Umsatz.class));
 		
 		assertEquals(new Betrag(-500.0), giroKonto.getSaldo());
 		assertEquals(new Betrag(500.0), mietKonto.getSaldo());
@@ -84,8 +85,7 @@ class SimpleBuchungTest {
 		.thenReturn(Optional.of(mietKonto));
 		
 		BuchungBuilder builder = 
-			new BuchungBuilder(now) // Buchungsdatum
-			.buchung() // Typ
+			BuchungBuilder.buche(now)
 			.verwendung("Mietzahlung")
 			.empfaenger("Vermieter")
 			.umsatz(giro, new Betrag(-500.0))
@@ -94,7 +94,8 @@ class SimpleBuchungTest {
 		Buchung buchung = impl.buche(builder.build());
 		
 		assertNotNull(buchung);
-		verify(buchungRepositoryMock, only()).save(buchung);
+		verify(buchungRepositoryMock).save(buchung);
+		verify(buchungRepositoryMock, times(2)).saveUmsatz(isA(Umsatz.class));
 		
 		assertEquals(new Betrag(-500.0), giroKonto.getSaldo());
 		assertEquals(new Betrag(500.0), mietKonto.getSaldo());
