@@ -94,4 +94,12 @@ public class MyBatisBuchungRepositoryTest {
 		// Älteste zuletzt
 		assertEquals("1", seite2.get(0).getId().getId());
 	}
+	
+	@Test
+	@Sql("/findBuchung.sql")
+	void testFind_by_Patterb() {
+		List<Buchung> patternList = buchungRepository.findBuchungByPattern("pattern");
+		
+		assertEquals(3, patternList.size());
+	}
 }

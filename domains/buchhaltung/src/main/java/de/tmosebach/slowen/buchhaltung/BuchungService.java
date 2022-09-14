@@ -133,4 +133,8 @@ public class BuchungService {
 			.orElseGet( () -> depot.addBestand(new Bestand(depot.getId(), asset)));
 		return bestand;
 	}
+	
+	public List<Buchung> findBuchungByPattern(String pattern) {
+		return buchungRepository.findBuchungByPattern(pattern);
+	}
 }

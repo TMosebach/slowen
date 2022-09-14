@@ -3,6 +3,7 @@ package de.tmosebach.slowen.buchhaltung.api;
 import static java.util.Objects.isNull;
 
 import java.time.LocalDate;
+import java.util.List;
 
 import javax.validation.Valid;
 
@@ -30,7 +31,7 @@ import de.tmosebach.slowen.shared.values.Page;
 import de.tmosebach.slowen.shared.values.Waehrung;
 
 @RestController
-@RequestMapping("api/v1")
+@RequestMapping("api/v1/buchungen/")
 public class BuchhaltungController {
 	
 	private BuchungService buchungService;
@@ -39,7 +40,7 @@ public class BuchhaltungController {
 		this.buchungService = buchungService;
 	}
 
-	@PostMapping("buchungen/buchung")
+	@PostMapping("buchung")
 	public BucheResponse buche(@RequestBody @Valid BucheRequest request) {
 		
 		LocalDate buchungsDatum = 
@@ -68,7 +69,7 @@ public class BuchhaltungController {
 		return ToApiMapper.map(buchung);
 	}
 	
-	@PostMapping("buchungen/kauf")
+	@PostMapping("kauf")
 	public BucheResponse buche(@RequestBody @Valid KaufRequest request) {
 		
 		LocalDate buchungsDatum = 
@@ -98,7 +99,7 @@ public class BuchhaltungController {
 		return ToApiMapper.map(buchung);
 	}
 	
-	@PostMapping("buchungen/verkauf")
+	@PostMapping("verkauf")
 	public BucheResponse buche(@RequestBody @Valid VerkaufRequest request) {
 		
 		LocalDate buchungsDatum = 
@@ -126,7 +127,7 @@ public class BuchhaltungController {
 		return ToApiMapper.map(buchung);
 	}
 	
-	@GetMapping("buchungen")
+	@GetMapping
 	public Page<Buchung> findBuchungen(
 			@RequestParam(required = true) String kontoId,
 			@RequestParam(name = "page", required = false, defaultValue = "1") Integer page,
@@ -134,5 +135,10 @@ public class BuchhaltungController {
 		
 		BuchungSelection selection = new BuchungSelection(kontoId).page(page).size(size);
 		return buchungService.findBuchung(selection);
+	}
+	
+	@GetMapping("/typeahead")
+	public List<Buchung> findBuchungByPattern(@RequestParam String pattern) {
+		return buchungService.findBuchungByPattern(pattern);
 	}
 }

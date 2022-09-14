@@ -67,6 +67,21 @@
    order by u.valuta asc, b.datum asc
   </select>
   
+  <select id="findBuchungByPattern" resultMap="buchungMap">
+  	select
+  	    id, art, datum, verwendung, empfaenger,
+ 		konto_id, valuta, betrag, waehrung, asset, menge
+ 	 from (
+	 	select id, art, datum, verwendung, empfaenger
+	  	  from BHT_BUCHUNG b
+	  	 where upper(b.empfaenger) like upper(concat('%', #{pattern}, '%'))
+  	           or upper(b.verwendung) like upper(concat('%', #{pattern}, '%'))
+	     order by b.datum desc
+	  	 limit 10
+          ) b
+  	 join BHT_UMSATZ u on u.buchung_id = b.id
+  </select>
+  
   <resultMap id="buchungMap" type="de.tmosebach.slowen.buchhaltung.Buchung">
   	<constructor>
 	    <idArg column="id" javaType="string"/>

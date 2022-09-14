@@ -17,4 +17,11 @@ public interface BuchungRepository {
 	int count(BuchungSelection selection);
 
 	List<Buchung> findBuchungPagedByKonto(BuchungSelection selection);
+
+	/**
+	 * Suche Buchungen deren Verwendungszweck bzw. Empfänger das Pattern enthalten.
+	 * @param pattern
+	 * @return Ergebnisliste, maximal 10 Einträge.
+	 */
+	List<Buchung> findBuchungByPattern(String pattern);
 }
