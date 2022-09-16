@@ -29,3 +29,10 @@
 **/.classpath
 **/target/**
 **/db/**
+
+# Javascript Entwicklung
+**/node/**
+**/node_modules/**
+
+
+domains/buchhaltung/.classpath
