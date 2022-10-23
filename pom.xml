@@ -19,12 +19,14 @@
 
 	<properties>
 		<java.version>17</java.version>
+		<mybatis.version>2.2.2</mybatis.version>
 	</properties>
 
 	<modules>
 		<module>domains</module>
 		<module>backend</module>
 		<module>frontend</module>
+		<module>import</module>
 	</modules>
 
 	<dependencies>

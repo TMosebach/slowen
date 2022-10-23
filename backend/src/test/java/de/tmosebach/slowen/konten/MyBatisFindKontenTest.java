@@ -9,7 +9,7 @@ import org.mybatis.spring.boot.test.autoconfigure.MybatisTest;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.test.context.jdbc.Sql;
 
-@MybatisTest
+@MybatisTest(properties = { "mybatis.mapper-locations=classpath*:mappings/*.xml" })
 class MyBatisFindKontenTest {
 
 	@Autowired

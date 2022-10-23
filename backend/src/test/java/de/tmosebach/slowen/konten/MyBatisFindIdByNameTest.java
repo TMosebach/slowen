@@ -11,7 +11,7 @@ import org.springframework.test.context.jdbc.Sql;
 
 import de.tmosebach.slowen.shared.values.KontoIdentifier;
 
-@MybatisTest
+@MybatisTest(properties = { "mybatis.mapper-locations=classpath*:mappings/*.xml" })
 class MyBatisFindIdByNameTest {
 
 	@Autowired

@@ -11,7 +11,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 
 import de.tmosebach.slowen.shared.values.Waehrung;
 
-@MybatisTest
+@MybatisTest(properties = { "mybatis.mapper-locations=classpath*:mappings/*.xml" })
 class MyBatisSaveTest {
 
 	@Autowired

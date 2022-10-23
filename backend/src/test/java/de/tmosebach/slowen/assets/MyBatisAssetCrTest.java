@@ -8,7 +8,7 @@ import org.junit.jupiter.api.Test;
 import org.mybatis.spring.boot.test.autoconfigure.MybatisTest;
 import org.springframework.beans.factory.annotation.Autowired;
 
-@MybatisTest
+@MybatisTest(properties = { "mybatis.mapper-locations=classpath*:mappings/*.xml" })
 public class MyBatisAssetCrTest {
 
 	@Autowired

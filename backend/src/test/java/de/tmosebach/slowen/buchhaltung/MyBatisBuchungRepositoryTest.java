@@ -15,7 +15,7 @@ import de.tmosebach.slowen.buchhaltung.builder.BuchungBuilder;
 import de.tmosebach.slowen.shared.values.AssetIdentifier;
 import de.tmosebach.slowen.shared.values.KontoIdentifier;
 
-@MybatisTest
+@MybatisTest(properties = { "mybatis.mapper-locations=classpath*:mappings/*.xml" })
 public class MyBatisBuchungRepositoryTest {
 	
 	private static final BuchungSelection BASIS_SELECTION = 
