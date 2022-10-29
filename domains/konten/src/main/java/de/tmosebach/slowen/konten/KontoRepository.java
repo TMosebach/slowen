@@ -17,5 +17,5 @@ public interface KontoRepository {
 
 	void merge(Bestand bestand);
 
-	List<Konto> findByName(String name);
+	Optional<Konto> findByName(String name);
 }

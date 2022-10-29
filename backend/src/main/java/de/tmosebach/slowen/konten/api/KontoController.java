@@ -2,7 +2,7 @@ package de.tmosebach.slowen.konten.api;
 
 import static java.util.Objects.isNull;
 
-import java.util.List;
+import java.util.Optional;
 
 import javax.validation.Valid;
 
@@ -32,9 +32,10 @@ public class KontoController {
 	}
 
 	@GetMapping("konten")
-	public List<Konto> findKonten(@RequestParam(name = "name", required = false) String name) {
+	public Optional<Konto> findKonten(@RequestParam(name = "name", required = false) String name) {
 		if (isNull(name)) {
-			return kontoService.findKonten();
+			// TODO, das geht schöner
+			return Optional.empty();
 		}
 		return kontoService.findByName(name);
 	}

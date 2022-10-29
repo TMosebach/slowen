@@ -6,7 +6,7 @@ import static org.mockito.Mockito.when;
 import static org.mockito.MockitoAnnotations.openMocks;
 
 import java.math.BigDecimal;
-import java.util.List;
+import java.util.Optional;
 
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -33,18 +33,18 @@ class FindIdByNameTest {
 	void testFindeByName() {
 		
 		when(kontoRepositoryMock.findByName("Giro"))
-		.thenReturn( List.of(new SimpleKonto("id", "Giro", BilanzType.Bestand, BigDecimal.ZERO, Waehrung.EUR) ) );
+		.thenReturn( Optional.of(new SimpleKonto("id", "Giro", BilanzType.Bestand, BigDecimal.ZERO, Waehrung.EUR) ) );
 		
-		List<Konto> result = impl.findByName("Giro");
+		Optional<Konto> result = impl.findByName("Giro");
 
-		assertEquals(new KontoIdentifier("id"), result.get(0).getId());
+		assertEquals(new KontoIdentifier("id"), result.get().getId());
 	}
 
 	@Test
 	void testUnbekannter_Name() {
 		
 		when(kontoRepositoryMock.findByName("Giro"))
-		.thenReturn(List.of());
+		.thenReturn(Optional.empty());
 
 		assertTrue(impl.findByName("Giro").isEmpty());
 	}

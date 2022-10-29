@@ -2,7 +2,7 @@ package de.tmosebach.slowen.konten;
 
 import static org.junit.jupiter.api.Assertions.*;
 
-import java.util.List;
+import java.util.Optional;
 
 import org.junit.jupiter.api.Test;
 import org.mybatis.spring.boot.test.autoconfigure.MybatisTest;
@@ -20,9 +20,9 @@ class MyBatisFindIdByNameTest {
 	@Test
 	@Sql("/FindIdByName.sql")
 	void testKontoExistiert() {
-		List<Konto> result = kontoRepository.findByName("Giro");
+		Optional<Konto> result = kontoRepository.findByName("Giro");
 		assertFalse(result.isEmpty());
-		assertEquals(new KontoIdentifier("theid"), result.get(0).getId());
+		assertEquals(new KontoIdentifier("theid"), result.get().getId());
 	}
 	
 	@Test

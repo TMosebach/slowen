@@ -59,7 +59,7 @@ public class KontoService {
 		kontoRepository.merge(bestand);
 	}
 
-	public List<Konto> findByName(String name) {
+	public Optional<Konto> findByName(String name) {
 		return kontoRepository.findByName(name);
 	}
 }
