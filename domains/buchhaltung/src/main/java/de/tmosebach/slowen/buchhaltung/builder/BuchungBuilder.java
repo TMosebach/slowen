@@ -29,7 +29,7 @@ public class BuchungBuilder {
 	protected Buchung buchung;
 	protected LocalDate buchungsDatum;
 
-	protected BuchungBuilder() {}
+	public BuchungBuilder() {}
 	
 	private BuchungBuilder(LocalDate buchungsDatum) {
 		this.buchungsDatum = buchungsDatum;
