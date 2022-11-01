@@ -8,6 +8,8 @@ import static java.math.BigDecimal.ZERO;
 import java.math.BigDecimal;
 import java.util.Objects;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
+
 public class Betrag {
 
 	public final static Betrag NULL_EUR = new Betrag(ZERO, EUR);
@@ -101,6 +103,7 @@ public class Betrag {
 		return new Betrag(this.wert.subtract(betrag.wert), theWaehrung);
 	}
 
+	@JsonIgnore
 	public boolean istPositiv() {
 		return wert.compareTo(ZERO) > 0;
 	}
@@ -109,6 +112,7 @@ public class Betrag {
 		return new Betrag(wert.multiply(BigDecimal.valueOf(d)), waehrung);
 	}
 	
+	@JsonIgnore
 	public boolean istNegativ() {
 		return wert.compareTo(ZERO) < 0;
 	}
