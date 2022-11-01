@@ -2,10 +2,12 @@ package de.tmosebach.slowen.konten.api;
 
 import static java.util.Objects.isNull;
 
+import java.util.List;
 import java.util.Optional;
 
 import javax.validation.Valid;
 
+import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
@@ -32,11 +34,19 @@ public class KontoController {
 	}
 
 	@GetMapping("konten")
-	public Optional<Konto> findKonten(@RequestParam(name = "name", required = false) String name) {
+	public ResponseEntity<List<Konto>>  findKonten(@RequestParam(name = "name", required = false) String name) {
 		if (isNull(name)) {
-			// TODO, das geht schöner
-			return Optional.empty();
+			return ResponseEntity.ok(kontoService.findKonten());
 		}
-		return kontoService.findByName(name);
+		
+		return findByName(name);
+	}
+
+	private ResponseEntity<List<Konto>>  findByName(String name) {
+		Optional<Konto> foundKonto = kontoService.findByName(name);
+		if (foundKonto.isPresent()) {
+			return ResponseEntity.ok(List.of( foundKonto.get() ));
+		}
+		return ResponseEntity.notFound().build();
 	}
 }
