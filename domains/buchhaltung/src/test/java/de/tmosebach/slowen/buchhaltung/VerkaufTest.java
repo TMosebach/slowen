@@ -1,15 +1,16 @@
 package de.tmosebach.slowen.buchhaltung;
 
 import static java.math.BigDecimal.ZERO;
-import static org.mockito.Mockito.*;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertTrue;
+import static org.mockito.Mockito.when;
 import static org.mockito.MockitoAnnotations.openMocks;
 
 import java.math.BigDecimal;
 import java.time.LocalDate;
 import java.util.List;
 import java.util.Optional;
-
-import static org.junit.jupiter.api.Assertions.*;
 
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -19,8 +20,7 @@ import de.tmosebach.slowen.buchhaltung.builder.BuchungBuilder;
 import de.tmosebach.slowen.buchhaltung.builder.HandelBuilder;
 import de.tmosebach.slowen.konten.Bestand;
 import de.tmosebach.slowen.konten.BilanzType;
-import de.tmosebach.slowen.konten.Depot;
-import de.tmosebach.slowen.konten.SimpleKonto;
+import de.tmosebach.slowen.konten.Konto;
 import de.tmosebach.slowen.konten.KontoService;
 import de.tmosebach.slowen.shared.values.AssetIdentifier;
 import de.tmosebach.slowen.shared.values.Betrag;
@@ -51,10 +51,11 @@ class VerkaufTest {
 	
 	@Test
 	void testVollstaendigerVerkaufMitGewinn() {
-		SimpleKonto giroKonto = new SimpleKonto(GIRO, "Giro", BilanzType.Bestand);
-		Depot depotKonto = new Depot(DEPOT, "Depot", BilanzType.Bestand);
-		SimpleKonto provisionKonto = new SimpleKonto(DEPOT, "Provision", BilanzType.GuV);
-		SimpleKonto kursgewinnKonto = new SimpleKonto(KURSGEWINN, "Kursgewinn", BilanzType.GuV);
+		
+		Konto giroKonto = Konto.newKonto(GIRO, "Giro", BilanzType.Bestand);
+		Konto depotKonto = Konto.newDepot(DEPOT, "Depot");
+		Konto provisionKonto = Konto.newKonto(PROVISION, "Provision", BilanzType.GuV);
+		Konto kursgewinnKonto = Konto.newKonto(KURSGEWINN, "Kursgewinn", BilanzType.GuV);
 		
 		LocalDate now = LocalDate.now();
 		
@@ -103,10 +104,11 @@ class VerkaufTest {
 	
 	@Test
 	void testTeilverkaufMitVerlust() {
-		SimpleKonto giroKonto = new SimpleKonto(GIRO, "Giro", BilanzType.Bestand);
-		Depot depotKonto = new Depot(DEPOT, "Depot", BilanzType.Bestand);
-		SimpleKonto provisionKonto = new SimpleKonto(DEPOT, "Provision", BilanzType.GuV);
-		SimpleKonto kursverlustKonto = new SimpleKonto(KURSVERLUST, "Kursverlust", BilanzType.GuV);
+		
+		Konto giroKonto = Konto.newKonto(GIRO, "Giro", BilanzType.Bestand);
+		Konto depotKonto = Konto.newDepot(DEPOT, "Depot");
+		Konto provisionKonto = Konto.newKonto(PROVISION, "Provision", BilanzType.GuV);
+		Konto kursverlustKonto = Konto.newKonto(KURSVERLUST, "Kursverlust", BilanzType.GuV);
 		
 		LocalDate now = LocalDate.now();
 		

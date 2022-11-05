@@ -18,8 +18,7 @@ import de.tmosebach.slowen.buchhaltung.builder.BuchungBuilder;
 import de.tmosebach.slowen.buchhaltung.builder.HandelBuilder;
 import de.tmosebach.slowen.konten.Bestand;
 import de.tmosebach.slowen.konten.BilanzType;
-import de.tmosebach.slowen.konten.Depot;
-import de.tmosebach.slowen.konten.SimpleKonto;
+import de.tmosebach.slowen.konten.Konto;
 import de.tmosebach.slowen.konten.KontoService;
 import de.tmosebach.slowen.shared.values.AssetIdentifier;
 import de.tmosebach.slowen.shared.values.Betrag;
@@ -48,10 +47,10 @@ class KaufTest {
 	
 	@Test
 	void testKauf() {
-		SimpleKonto giroKonto = new SimpleKonto(GIRO, "Giro", BilanzType.Bestand);
-		Depot depotKonto = new Depot(DEPOT, "Depot", BilanzType.Bestand);
-		SimpleKonto provisionKonto = new SimpleKonto(DEPOT, "Provision", BilanzType.GuV);
-		
+		Konto giroKonto = Konto.newKonto(GIRO, "Giro", BilanzType.Bestand);
+		Konto depotKonto = Konto.newDepot(DEPOT, "Depot");
+		Konto provisionKonto = Konto.newKonto(PROVISION, "Provision", BilanzType.GuV);
+
 		LocalDate now = LocalDate.now();
 		
 		when(kontoServiceMock.findById(GIRO))
@@ -91,9 +90,9 @@ class KaufTest {
 	
 	@Test
 	void testZukauf() {
-		SimpleKonto giroKonto = new SimpleKonto(GIRO, "Giro", BilanzType.Bestand);
-		Depot depotKonto = new Depot(DEPOT, "Depot", BilanzType.Bestand);
-		SimpleKonto provisionKonto = new SimpleKonto(DEPOT, "Provision", BilanzType.GuV);
+		Konto giroKonto = Konto.newKonto(GIRO, "Giro", BilanzType.Bestand);
+		Konto depotKonto = Konto.newDepot(DEPOT, "Depot");
+		Konto provisionKonto = Konto.newKonto(PROVISION, "Provision", BilanzType.GuV);
 		
 		LocalDate now = LocalDate.now();
 		

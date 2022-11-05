@@ -6,9 +6,7 @@ import java.util.Optional;
 import org.springframework.stereotype.Service;
 
 import de.tmosebach.slowen.konten.Bestand;
-import de.tmosebach.slowen.konten.Depot;
 import de.tmosebach.slowen.konten.Konto;
-import de.tmosebach.slowen.konten.SimpleKonto;
 import de.tmosebach.slowen.konten.KontoService;
 import de.tmosebach.slowen.konten.KontoType;
 import de.tmosebach.slowen.shared.values.AssetIdentifier;
@@ -56,11 +54,11 @@ public class BuchungService {
 			kontoService.findById(umsatz.getKonto())
 			.orElseThrow( () -> new IllegalArgumentException("Unbekanntes Konto: "+umsatz.getKonto()) );
 		
-		if (konto.getType() == KontoType.Depot) {
-			bucheBestand((Depot)konto, umsatz)
+		if (konto.getKontoType() == KontoType.Depot) {
+			bucheBestand(konto, umsatz)
 			.ifPresent( guv -> bucheUmsatz(guv));
 		} else {
-			bucheUmsatz((SimpleKonto)konto, umsatz);
+			bucheUmsatz(konto, umsatz);
 		}
 	}
 
@@ -68,15 +66,15 @@ public class BuchungService {
 		Konto konto = 
 				kontoService.findById(guv.getKonto())
 				.orElseThrow( () -> new IllegalStateException("Basiskonto Kursverlust nicht gefunden.") );
-		bucheUmsatz((SimpleKonto)konto, guv);
+		bucheUmsatz(konto, guv);
 	}
 
-	private void bucheUmsatz(SimpleKonto konto, Umsatz umsatz) {
+	private void bucheUmsatz(Konto konto, Umsatz umsatz) {
 		konto.addToSaldo(umsatz.getBetrag());
 		kontoService.update(konto);
 	}
 
-	private Optional<Umsatz> bucheBestand(Depot depot, Umsatz umsatz) {
+	private Optional<Umsatz> bucheBestand(Konto depot, Umsatz umsatz) {
 		Bestand bestand = findOrCreateBestand(depot, umsatz);
 		
 		Optional<Umsatz> result = Optional.empty();
@@ -126,7 +124,7 @@ public class BuchungService {
 		bestand.addBestand(umsatz.getMenge(), umsatz.getBetrag());
 	}
 
-	private Bestand findOrCreateBestand(Depot depot, Umsatz umsatz) {
+	private Bestand findOrCreateBestand(Konto depot, Umsatz umsatz) {
 		AssetIdentifier asset = umsatz.getAsset();
 		Bestand bestand = 
 			depot.findBestand(asset)

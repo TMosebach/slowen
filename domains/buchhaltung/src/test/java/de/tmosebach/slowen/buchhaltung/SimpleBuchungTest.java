@@ -15,7 +15,7 @@ import org.mockito.Mock;
 
 import de.tmosebach.slowen.buchhaltung.builder.BuchungBuilder;
 import de.tmosebach.slowen.konten.BilanzType;
-import de.tmosebach.slowen.konten.SimpleKonto;
+import de.tmosebach.slowen.konten.Konto;
 import de.tmosebach.slowen.konten.KontoService;
 import de.tmosebach.slowen.shared.values.Betrag;
 import de.tmosebach.slowen.shared.values.KontoIdentifier;
@@ -42,8 +42,8 @@ class SimpleBuchungTest {
 		KontoIdentifier giro = new KontoIdentifier("Giro");
 		KontoIdentifier miete = new KontoIdentifier("Miete");
 		
-		SimpleKonto giroKonto = new SimpleKonto(giro, "Giro", BilanzType.Bestand);
-		SimpleKonto mietKonto = new SimpleKonto(miete, "Miete", BilanzType.GuV);
+		Konto giroKonto = Konto.newKonto(giro, "Giro", BilanzType.Bestand);
+		Konto mietKonto = Konto.newKonto(miete, "Miete", BilanzType.GuV);
 		
 		LocalDate now = LocalDate.now();
 		
@@ -73,8 +73,8 @@ class SimpleBuchungTest {
 		KontoIdentifier giro = new KontoIdentifier("Giro");
 		KontoIdentifier miete = new KontoIdentifier("Miete");
 		
-		SimpleKonto giroKonto = new SimpleKonto(giro, "Giro", BilanzType.Bestand);
-		SimpleKonto mietKonto = new SimpleKonto(miete, "Miete", BilanzType.GuV);
+		Konto giroKonto = Konto.newKonto(giro, "Giro", BilanzType.Bestand);
+		Konto mietKonto = Konto.newKonto(miete, "Miete", BilanzType.GuV);
 		
 		LocalDate now = LocalDate.now();
 		

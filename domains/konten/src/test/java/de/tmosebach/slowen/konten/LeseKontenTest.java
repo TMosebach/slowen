@@ -27,7 +27,7 @@ class LeseKontenTest {
 
 	@Test
 	void testCreateKonto() {
-		List<Konto> konten = List.of(new SimpleKonto(null, "Name", BilanzType.Bestand));
+		List<Konto> konten = List.of( Konto.newKonto(null, "Name", BilanzType.Bestand) );
 		when(kontoRepositoryMock.findKonten())
 		.thenReturn(konten);
 			

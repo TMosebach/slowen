@@ -14,7 +14,7 @@ import org.mockito.Mock;
 
 import de.tmosebach.slowen.buchhaltung.builder.BuchungBuilder;
 import de.tmosebach.slowen.konten.BilanzType;
-import de.tmosebach.slowen.konten.SimpleKonto;
+import de.tmosebach.slowen.konten.Konto;
 import de.tmosebach.slowen.konten.KontoService;
 import de.tmosebach.slowen.shared.values.Betrag;
 import de.tmosebach.slowen.shared.values.KontoIdentifier;
@@ -42,10 +42,10 @@ class MehrfachBuchungTest {
 		KontoIdentifier gas = new KontoIdentifier("Gas");
 		KontoIdentifier strom = new KontoIdentifier("Strom");
 		
-		SimpleKonto giroKonto = new SimpleKonto(giro, "Giro", BilanzType.Bestand);
-		SimpleKonto gasKonto = new SimpleKonto(gas, "Gas", BilanzType.GuV);
-		SimpleKonto stromKonto = new SimpleKonto(strom, "Konto", BilanzType.GuV);
-		
+		Konto giroKonto = Konto.newKonto(giro, "Giro", BilanzType.Bestand);
+		Konto gasKonto = Konto.newKonto(gas, "Gas", BilanzType.GuV);
+		Konto stromKonto = Konto.newKonto(strom, "Strom", BilanzType.GuV);
+
 		LocalDate now = LocalDate.now();
 		
 		when(kontoServiceMock.findById(giro))

@@ -22,7 +22,7 @@ class MyBatisSaveTest {
 		List<Konto> result = kontoRepository.findKonten();
 		int countVorher = result.size();
 		
-		Konto konto = new SimpleKonto("id", "name", BilanzType.GuV, BigDecimal.TEN, Waehrung.USD);
+		Konto konto = new Konto("id", "name", KontoType.Konto, BilanzType.GuV, BigDecimal.TEN, Waehrung.USD);
 		kontoRepository.save(konto);
 		
 		result = kontoRepository.findKonten();

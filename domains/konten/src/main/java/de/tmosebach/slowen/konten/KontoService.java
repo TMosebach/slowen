@@ -32,11 +32,11 @@ public class KontoService {
 		
 		String id = createId();
 		KontoIdentifier identifier = new KontoIdentifier(id);
-		Konto konto;
-		if (type == KontoType.Depot) {
-			konto = new Depot(identifier, name, BilanzType.Bestand);
+		Konto konto = null;
+		if (type == KontoType.Konto) {
+			konto = Konto.newKonto(identifier, name, bilanzType);
 		} else {
-			konto = new SimpleKonto(identifier, name, bilanzType);
+			konto = Konto.newDepot(identifier, name);
 		}
 		kontoRepository.save(konto);
 		

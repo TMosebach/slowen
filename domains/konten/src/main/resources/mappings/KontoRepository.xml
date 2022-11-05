@@ -8,14 +8,14 @@
   	insert into KTO_KONTO (
   		id,
 		name,
-		type,
+		konto_type,
 		bilanz_Typ,
 		saldo,
 		waehrung
   	) values (
   		#{id.id},
   		#{name},
-  		#{type},
+  		#{kontoType},
   		#{bilanzType},
   		#{saldo.wert},
   		#{saldo.waehrung}
@@ -24,10 +24,7 @@
   
   <update id="update">
   	update KTO_KONTO
-  	   set name=#{name},
-		   bilanz_Typ=#{bilanzType},
-		   saldo=#{saldo.wert},
-		   waehrung=#{saldo.waehrung}
+  	   set saldo=#{saldo.wert}
 	 where id = #{id.id}
   </update>
   
@@ -59,7 +56,7 @@
   	select 
 		k.id,
 		k.name,
-		type,
+		k.konto_type,
 		k.bilanz_Typ,
 		k.saldo,
 		k.waehrung as "kontoWaehrung",
@@ -73,31 +70,15 @@
 	  	on b.konto_id = k.id
   </sql>
   
-  <resultMap id="kontoMap" type="de.tmosebach.slowen.konten.SimpleKonto">
-  	<discriminator javaType="string" column="type">
-  	  <case value="Konto" resultMap="simpleKontoMap"/>
-	  <case value="Depot" resultMap="depotMap"/>
-	</discriminator>
-  </resultMap>
-  
-  <resultMap id="simpleKontoMap" type="de.tmosebach.slowen.konten.SimpleKonto">
-  	<constructor>
-	    <idArg column="id" javaType="string"></idArg>
+  <resultMap id="kontoMap" type="de.tmosebach.slowen.konten.Konto">
+	<constructor>
+		<idArg column="id" javaType="string"></idArg>
 		<arg column="name" javaType="string"></arg>
+		<arg column="konto_Type" javaType="de.tmosebach.slowen.konten.KontoType"></arg>
 		<arg column="bilanz_Typ" javaType="de.tmosebach.slowen.konten.BilanzType"></arg>
 		<arg column="saldo" javaType="java.math.BigDecimal"></arg>
 		<arg column="kontoWaehrung" javaType="de.tmosebach.slowen.shared.values.Waehrung"></arg>
-	 </constructor>
-  </resultMap>
-  
-  <resultMap id="depotMap" type="de.tmosebach.slowen.konten.Depot">
-  	<constructor>
-	    <idArg column="id" javaType="string"></idArg>
-		<arg column="name" javaType="string"></arg>
-		<arg column="bilanz_Typ" javaType="de.tmosebach.slowen.konten.BilanzType"></arg>
-		<arg column="saldo" javaType="java.math.BigDecimal"></arg>
-		<arg column="kontoWaehrung" javaType="de.tmosebach.slowen.shared.values.Waehrung"></arg>
-	 </constructor>
+	</constructor>
   	<collection property="bestaende" ofType="de.tmosebach.slowen.konten.Bestand">
 		 <constructor>
 		    <idArg column="konto_id" javaType="string"></idArg>

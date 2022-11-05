@@ -33,7 +33,7 @@ class FindIdByNameTest {
 	void testFindeByName() {
 		
 		when(kontoRepositoryMock.findByName("Giro"))
-		.thenReturn( Optional.of(new SimpleKonto("id", "Giro", BilanzType.Bestand, BigDecimal.ZERO, Waehrung.EUR) ) );
+		.thenReturn( Optional.of(new Konto("id", "Giro", KontoType.Konto, BilanzType.Bestand, BigDecimal.ZERO, Waehrung.EUR) ) );
 		
 		Optional<Konto> result = impl.findByName("Giro");
 

@@ -32,7 +32,7 @@ class CreateKontoTest {
 		
 		assertNotNull(konto.getId(), "Id wurde generiert.");
 		assertEquals("Giro", konto.getName());
-		assertEquals(KontoType.Konto, konto.getType());
+		assertEquals(KontoType.Konto, konto.getKontoType());
 		assertEquals(BilanzType.Bestand, konto.getBilanzType());
 		assertEquals(Betrag.NULL_EUR, konto.getSaldo(), "Saldo mit 0 EUR initialisiert.");
 		
@@ -45,7 +45,7 @@ class CreateKontoTest {
 		
 		assertNotNull(konto.getId(), "Id wurde generiert.");
 		assertEquals("Giro", konto.getName());
-		assertEquals(KontoType.Depot, konto.getType());
+		assertEquals(KontoType.Depot, konto.getKontoType());
 		assertEquals(BilanzType.Bestand, konto.getBilanzType());
 		
 		verify(kontoRepositoryMock, only()).save(konto);
