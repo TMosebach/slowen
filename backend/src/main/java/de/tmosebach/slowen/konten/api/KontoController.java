@@ -1,6 +1,7 @@
 package de.tmosebach.slowen.konten.api;
 
 import static java.util.Objects.isNull;
+import static java.util.Objects.nonNull;
 
 import java.util.List;
 import java.util.Optional;
@@ -15,6 +16,7 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
+import de.tmosebach.slowen.konten.BilanzType;
 import de.tmosebach.slowen.konten.Konto;
 import de.tmosebach.slowen.konten.KontoService;
 
@@ -34,19 +36,23 @@ public class KontoController {
 	}
 
 	@GetMapping("konten")
-	public ResponseEntity<List<Konto>>  findKonten(@RequestParam(name = "name", required = false) String name) {
-		if (isNull(name)) {
-			return ResponseEntity.ok(kontoService.findKonten());
+	public ResponseEntity<List<Konto>>  findKonten(
+			@RequestParam(name = "name", required = false) String name,
+			@RequestParam(name = "bilanzType", required = false) BilanzType bilanzType) {
+		
+		List<Konto> result = List.of();
+		if (isNull(name) && isNull(bilanzType)) {
+			result = kontoService.findKonten();
 		}
 		
-		return findByName(name);
-	}
-
-	private ResponseEntity<List<Konto>>  findByName(String name) {
-		Optional<Konto> foundKonto = kontoService.findByName(name);
-		if (foundKonto.isPresent()) {
-			return ResponseEntity.ok(List.of( foundKonto.get() ));
+		if (nonNull(name) && isNull(bilanzType)) {
+			Optional<Konto> foundKonto = kontoService.findByName(name);
+			result = foundKonto.isPresent()?
+					List.of(foundKonto.get()):
+						result;
+		} else {
+			result = kontoService.findByFilter(name, bilanzType);
 		}
-		return ResponseEntity.notFound().build();
+		return ResponseEntity.ok(result);
 	}
 }

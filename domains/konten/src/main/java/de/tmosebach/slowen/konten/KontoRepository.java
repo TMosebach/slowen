@@ -3,6 +3,8 @@ package de.tmosebach.slowen.konten;
 import java.util.List;
 import java.util.Optional;
 
+import org.apache.ibatis.annotations.Param;
+
 import de.tmosebach.slowen.shared.values.KontoIdentifier;
 
 public interface KontoRepository {
@@ -18,4 +20,8 @@ public interface KontoRepository {
 	void merge(Bestand bestand);
 
 	Optional<Konto> findByName(String name);
+
+	List<Konto> findByFilter(
+			@Param("name") String name,
+			@Param("bilanzType") BilanzType bilanzType);
 }

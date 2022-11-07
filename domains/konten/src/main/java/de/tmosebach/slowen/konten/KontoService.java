@@ -62,4 +62,8 @@ public class KontoService {
 	public Optional<Konto> findByName(String name) {
 		return kontoRepository.findByName(name);
 	}
+
+	public List<Konto> findByFilter(String name, BilanzType bilanzType) {
+		return kontoRepository.findByFilter(name, bilanzType);
+	}
 }

@@ -47,6 +47,18 @@
 	<include refid="kontoSelection" />
   </select>
   
+  <select id="findByFilter" resultMap="kontoMap">
+	<include refid="kontoSelection" />
+	<where>
+		<if test="name != null">
+			name = #{name}
+		</if>
+		<if test="bilanzType">
+			bilanz_Typ = #{bilanzType}
+		</if>
+	</where>
+  </select>
+  
   <select id="findByName" resultMap="kontoMap">
 	<include refid="kontoSelection" />
 	 where name = #{name}
