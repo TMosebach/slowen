@@ -1,1 +1,7 @@
 /target/
+/H2 Server.launch
+/Import Buchungen.launch
+/Import Konten.launch
+/ing-giro.csv
+/konten.csv
+/testdb/
