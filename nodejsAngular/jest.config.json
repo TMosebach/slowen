@@ -1,0 +1,9 @@
+{
+  "verbose": true,
+  "collectCoverage": true,
+  "coverageProvider": "v8",
+  "roots": [
+    "<rootDir>/app/",
+    "<rootDir>/test/"
+  ]
+}

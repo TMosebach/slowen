@@ -1,0 +1,12 @@
+### Events abrufen
+GET http://localhost:3000/api/events
+
+### Commands absetzen
+POST http://localhost:3000/api/commands
+Content-Type: application/json
+
+{
+  "commandType": "erstelleKonto",
+  "name": "Test"
+}
+
