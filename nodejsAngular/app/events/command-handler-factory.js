@@ -1,10 +1,10 @@
 const erstelleKonto = require('./handler/erstelle-konto');
+const validatoren = require('./validatoren');
 
 function commandHandlerFactory(command) {
   const { commandType } = command;
-  if (!commandType) {
-    throw new Error('Kein Command-Type gegeben.');
-  }
+  validatoren.checkExists(commandType, 'commandType');
+
   switch (commandType) {
     case 'erstelleKonto':
       return erstelleKonto;
