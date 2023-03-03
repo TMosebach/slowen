@@ -1,7 +1,7 @@
 ### Events abrufen
 GET http://localhost:3000/api/events
 
-### Commands absetzen
+### Giro-Konto anlegen
 POST http://localhost:3000/api/commands
 Content-Type: application/json
 
@@ -12,7 +12,32 @@ Content-Type: application/json
   "bilanzType": "Bestand"
 }
 
+### Tagesgeld-Konto anlegen
+POST http://localhost:3000/api/commands
+Content-Type: application/json
+
+{
+  "commandType": "erstelleKonto",
+  "kontoType" : "Konto",
+  "name": "ING-Extra",
+  "bilanzType": "Bestand"
+}
+
+### Asset erstellen
+
+POST http://localhost:3000/api/commands
+Content-Type: application/json
+
+{
+  "commandType" : "erstelleAsset",
+  "isin" : "DE0005933956",
+  "wkn" : "593395",
+  "assetType" : "ETF",
+  "name" : "iShare Core EURO STOCC 50 UCITS ETF (DE)"
+}
+
 ### Hauptbuch abfragen
 GET http://localhost:3000/api/views/hauptbuch
 
-### 
+### Liste der Assets abfragen
+GET http://localhost:3000/api/views/assets

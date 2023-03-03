@@ -13,12 +13,11 @@ function erstelleKonto(command) {
   const { name, kontoType, bilanzType } = command;
 
   validatoren.checkExists(name, 'Name', command);
-  checkKontoNotExists(name);
-
   validatoren.checkExists(kontoType, 'kontoType');
-  validatoren.checkValueIsIn(kontoType, ['Konto', 'Depot']);
-
   validatoren.checkExists(bilanzType, 'bilanzType');
+
+  checkKontoNotExists(name);
+  validatoren.checkValueIsIn(kontoType, ['Konto', 'Depot']);
   validatoren.checkValueIsIn(bilanzType, ['Bestand', 'GuV']);
 
   return {
