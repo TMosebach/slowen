@@ -13,7 +13,7 @@ function erstelleKonto(event) {
   };
 }
 
-function hauptbuch() {
+function getHauptbuch() {
   const konten = [];
 
   eventStore.getEvents().forEach((event) => {
@@ -29,4 +29,4 @@ function hauptbuch() {
   return konten;
 }
 
-module.exports = hauptbuch;
+module.exports = getHauptbuch;
