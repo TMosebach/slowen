@@ -1,12 +1,19 @@
 const validatoren = require('../validatoren');
+const getHauptbuch = require('../../views/hauptbuch');
+
+function checkKontoNotExists(kontoName) {
+  const bekannteKonten = getHauptbuch();
+  const treffer = bekannteKonten.filter((konto) => konto.name === kontoName);
+  if (treffer && treffer.length > 0) {
+    throw new Error(`Konto ${kontoName} existiert bereits.`);
+  }
+}
 
 function erstelleKonto(command) {
   const { name, kontoType, bilanzType } = command;
 
   validatoren.checkExists(name, 'Name', command);
-
-  // Todo: Zugriff auf aktulle View erst ermöglichen
-  // validatoren.checkNotKontoExists(name);
+  checkKontoNotExists(name);
 
   validatoren.checkExists(kontoType, 'kontoType');
   validatoren.checkValueIsIn(kontoType, ['Konto', 'Depot']);
