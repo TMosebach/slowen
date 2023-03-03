@@ -12,3 +12,7 @@ Content-Type: application/json
   "bilanzType": "Bestand"
 }
 
+### Hauptbuch abfragen
+GET http://localhost:3000/api/views/hauptbuch
+
+### 
