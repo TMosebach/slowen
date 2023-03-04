@@ -21,15 +21,13 @@ function buche(command) {
     throw new Error(`Die Summe von Soll und Haben sind unterschhiedlich, Differenz: ${summe}`);
   }
 
-  return [
-    {
-      eventType: 'gebucht',
-      created: new Date().toISOString(),
-      verwendung,
-      empfaenger,
-      umsaetze,
-    },
-  ];
+  return {
+    eventType: 'gebucht',
+    created: new Date().toISOString(),
+    verwendung,
+    empfaenger,
+    umsaetze,
+  };
 }
 
 module.exports = buche;
