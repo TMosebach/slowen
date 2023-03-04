@@ -23,6 +23,38 @@ Content-Type: application/json
   "bilanzType": "Bestand"
 }
 
+### Buchung
+
+POST http://localhost:3000/api/commands HTTP/1.1
+Content-Type: application/json
+
+{
+  "commandType": "buche",
+  "verwendung": "Verwendung",
+  "empfaenger": "ich",
+  "umsaetze": [
+    {
+      "konto": "ING-Giro",
+      "valuta": "2022-12-27",
+      "betrag": {
+        "wert": -243.42,
+        "waehrung": "EUR"
+      }
+    },
+    {
+      "konto": "ING-Extra",
+      "valuta": "2022-12-27",
+      "betrag": {
+        "wert": 243.42,
+        "waehrung": "EUR"
+      }
+    }
+  ]
+}
+
+### Hauptbuch abfragen
+GET http://localhost:3000/api/views/hauptbuch
+
 ### Asset erstellen
 
 POST http://localhost:3000/api/commands
@@ -35,9 +67,6 @@ Content-Type: application/json
   "assetType" : "ETF",
   "name" : "iShare Core EURO STOCC 50 UCITS ETF (DE)"
 }
-
-### Hauptbuch abfragen
-GET http://localhost:3000/api/views/hauptbuch
 
 ### Liste der Assets abfragen
 GET http://localhost:3000/api/views/assets
