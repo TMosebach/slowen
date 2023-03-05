@@ -22,7 +22,7 @@ function zugangBuchen(command) {
   validatoren.checkExists(betrag, 'betrag');
 
   return {
-    type: 'zugangEvent',
+    eventType: 'assetZugang',
     created: new Date().toISOString(),
     depot,
     valuta,

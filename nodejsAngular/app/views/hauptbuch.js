@@ -20,6 +20,43 @@ function buche(konten, event) {
     theKonto.saldo.wert += umsatz.betrag.wert;
   });
 }
+function addBestand(bestaende, zugang) {
+  const result = bestaende
+    ? [
+      ...bestaende,
+    ]
+    : [];
+  const index = result.findIndex((bst) => bst.asset === zugang.asset);
+  let bestand;
+  if (index < 0) {
+    bestand = {
+      asset: zugang.asset,
+      menge: 0,
+      kaufwert: {
+        wert: 0,
+        waehrung: 'EUR',
+      },
+    };
+    result.push(bestand);
+  } else {
+    bestand = result[index];
+  }
+
+  bestand.menge += zugang.menge;
+  bestand.kaufwert.wert += zugang.betrag.wert;
+
+  return result;
+}
+
+function assetZugang(konten, event) {
+  const theDepot = konten.find((aKonto) => aKonto.name === event.depot);
+  const { asset, menge, betrag } = event;
+  theDepot.bestaende = addBestand(theDepot.bestaende, {
+    asset,
+    menge,
+    betrag,
+  });
+}
 
 function getHauptbuch() {
   const konten = [];
@@ -31,6 +68,9 @@ function getHauptbuch() {
         break;
       case 'gebucht':
         buche(konten, event);
+        break;
+      case 'assetZugang':
+        assetZugang(konten, event);
         break;
       default:
         // Die übrigen Events ignorieren

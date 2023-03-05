@@ -109,7 +109,7 @@ Content-Type: application/json
   "asset": "DE0005933956",
   "menge": 400,
   "betrag": {
-    "betrag": 2029.11,
+    "wert": 2029.11,
     "waehrung": "EUR"
   }
 }
