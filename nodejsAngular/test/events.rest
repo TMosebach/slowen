@@ -97,6 +97,41 @@ Content-Type: application/json
 ### Liste der Assets abfragen
 GET http://localhost:3000/api/views/assets
 
+### Kauf sollte mehrfach funktionieren
+
+POST http://localhost:3000/api/commands HTTP/1.1
+Content-Type: application/json
+
+{
+  "commandType": "kaufVerbuchen",
+  "depot": "ING-Depot",
+  "valuta": "2022-12-27",
+  "asset": "DE0005933956",
+  "menge": 400,
+  "betrag": {
+    "wert": 2000,
+    "waehrung": "EUR"
+  },
+  "umsaetze": [
+    {
+      "konto": "ING-Giro",
+      "valuta": "2022-12-27",
+      "betrag": {
+        "wert": -2020,
+        "waehrung": "EUR"
+      }
+    },
+    {
+      "konto": "Provision",
+      "valuta": "2022-12-27",
+      "betrag": {
+        "wert": 20,
+        "waehrung": "EUR"
+      }
+    }
+  ]
+}
+
 ### Zugang buchen sollte mehrfach funktionieren
 
 POST http://localhost:3000/api/commands HTTP/1.1

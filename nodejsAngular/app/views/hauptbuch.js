@@ -69,7 +69,7 @@ function getHauptbuch() {
       case 'gebucht':
         buche(konten, event);
         break;
-      case 'assetZugang':
+      case 'Zugang':
         assetZugang(konten, event);
         break;
       default:

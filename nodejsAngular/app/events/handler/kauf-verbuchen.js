@@ -1,5 +1,5 @@
 const validatoren = require('../validatoren');
-const { checkDepotExists } = require('./check-konto-exists');
+const { checkDepotExists, checkKontoExists } = require('./check-konto-exists');
 const checkAssetExists = require('./check-asset-exists');
 
 function zugangBuchen(command) {
@@ -9,6 +9,7 @@ function zugangBuchen(command) {
     asset,
     menge,
     betrag,
+    umsaetze,
   } = command;
 
   validatoren.checkExists(depot, 'Depot');
@@ -21,14 +22,25 @@ function zugangBuchen(command) {
   validatoren.checkExists(menge, 'menge');
   validatoren.checkExists(betrag, 'betrag');
 
+  validatoren.checkExists(umsaetze, 'umsaetze');
+  let summe = betrag.wert;
+  umsaetze.forEach((umsatz) => {
+    checkKontoExists(umsatz.konto);
+    summe += umsatz.betrag.wert;
+  });
+  if (summe !== 0) {
+    throw new Error(`Die Summe von Soll und Haben sind unterschhiedlich, Differenz: ${summe}`);
+  }
+
   return {
-    eventType: 'Zugang',
+    eventType: 'Kauf',
     created: new Date().toISOString(),
     depot,
     valuta,
     asset,
     menge,
     betrag,
+    umsaetze,
   };
 }
 
