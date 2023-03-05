@@ -56,6 +56,12 @@ function assetZugang(konten, event) {
     menge,
     betrag,
   });
+  theDepot.saldo.wert += betrag.wert;
+}
+
+function assetKauf(konten, event) {
+  assetZugang(konten, event);
+  buche(konten, event);
 }
 
 function getHauptbuch() {
@@ -71,6 +77,9 @@ function getHauptbuch() {
         break;
       case 'Zugang':
         assetZugang(konten, event);
+        break;
+      case 'Kauf':
+        assetKauf(konten, event);
         break;
       default:
         // Die übrigen Events ignorieren
