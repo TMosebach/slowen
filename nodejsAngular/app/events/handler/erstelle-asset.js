@@ -1,12 +1,14 @@
 const validatoren = require('../validatoren');
-const getAssets = require('../../views/assets');
+const checkAssetExists = require('./check-asset-exists');
 
 function checkAssetNotExists(assetIsin) {
-  const bekannteAssets = getAssets();
-  const treffer = bekannteAssets.filter((asset) => asset.isin === assetIsin);
-  if (treffer && treffer.length > 0) {
-    throw new Error(`Asset ${assetIsin} existiert bereits.`);
+  try {
+    checkAssetExists(assetIsin);
+  } catch (err) {
+    // Dann existiert es noch nicht, ok
+    return;
   }
+  throw new Error(`Asset ${assetIsin} existiert bereits.`);
 }
 
 function erstelleAsset(command) {

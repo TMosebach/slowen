@@ -1,12 +1,14 @@
 const validatoren = require('../validatoren');
-const getHauptbuch = require('../../views/hauptbuch');
+const { checkKontoExists } = require('./check-konto-exists');
 
 function checkKontoNotExists(kontoName) {
-  const bekannteKonten = getHauptbuch();
-  const treffer = bekannteKonten.filter((konto) => konto.name === kontoName);
-  if (treffer && treffer.length > 0) {
-    throw new Error(`Konto ${kontoName} existiert bereits.`);
+  try {
+    checkKontoExists(kontoName);
+  } catch (err) {
+    // Dann existiert es noch nicht, ok
+    return;
   }
+  throw new Error(`Konto ${kontoName} existiert bereits.`);
 }
 
 function erstelleKonto(command) {
@@ -17,6 +19,7 @@ function erstelleKonto(command) {
   validatoren.checkExists(bilanzType, 'bilanzType');
 
   checkKontoNotExists(name);
+
   validatoren.checkValueIsIn(kontoType, ['Konto', 'Depot']);
   validatoren.checkValueIsIn(bilanzType, ['Bestand', 'GuV']);
 
