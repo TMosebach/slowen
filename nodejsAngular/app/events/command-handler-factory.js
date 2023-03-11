@@ -5,6 +5,7 @@ const erstelleAsset = require('./handler/erstelle-asset');
 const buche = require('./handler/buche');
 const zugangVerbuchen = require('./handler/zugang-verbuchen');
 const kaufVerbuchen = require('./handler/kauf-verbuchen');
+const abgangBuchen = require('./handler/abgang-verbuchen');
 
 function commandHandlerFactory(command) {
   const { commandType } = command;
@@ -21,6 +22,8 @@ function commandHandlerFactory(command) {
       return zugangVerbuchen;
     case 'kaufVerbuchen':
       return kaufVerbuchen;
+    case 'abgangVerbuchen':
+      return abgangBuchen;
     default:
       throw new Error(`Unbekannter Command-Type ${commandType} - ${JSON.stringify(command)}`);
   }

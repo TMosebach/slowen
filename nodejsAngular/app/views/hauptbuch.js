@@ -59,6 +59,22 @@ function assetZugang(konten, event) {
   theDepot.saldo.wert += betrag.wert;
 }
 
+function assetAbgang(konten, event) {
+  const theDepot = konten.find((aKonto) => aKonto.name === event.depot);
+  const { bestaende } = theDepot;
+
+  const bestand = bestaende.find((bst) => bst.asset === event.asset);
+  const anteilAbgang = event.menge / bestand.menge;
+
+  theDepot.saldo.wert -= bestand.kaufwert.wert * anteilAbgang;
+
+  bestand.menge -= event.menge;
+  bestand.kaufwert.wert -= bestand.kaufwert.wert * anteilAbgang;
+  if (bestand.menge === 0) {
+    bestaende.splice(bestaende.indexOf(bestand), 1);
+  }
+}
+
 function assetKauf(konten, event) {
   assetZugang(konten, event);
   buche(konten, event);
@@ -80,6 +96,9 @@ function getHauptbuch() {
         break;
       case 'Kauf':
         assetKauf(konten, event);
+        break;
+      case 'Abgang':
+        assetAbgang(konten, event);
         break;
       default:
         // Die übrigen Events ignorieren

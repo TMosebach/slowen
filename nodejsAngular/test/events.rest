@@ -148,3 +148,16 @@ Content-Type: application/json
     "waehrung": "EUR"
   }
 }
+
+### Abgang buchen 
+
+POST http://localhost:3000/api/commands HTTP/1.1
+Content-Type: application/json
+
+{
+  "commandType": "abgangVerbuchen",
+  "depot": "ING-Depot",
+  "valuta": "2022-12-27",
+  "asset": "DE0005933956",
+  "menge": 400
+}
