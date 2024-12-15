@@ -5,6 +5,8 @@ import java.util.List;
 
 import org.springframework.stereotype.Service;
 
+import de.tmosebach.slowen.values.KontoArt;
+
 @Service
 public class BuchungService {
 	
@@ -19,8 +21,13 @@ public class BuchungService {
 	public void buche(Buchung buchung) {
 		buchungen.add(buchung);
 		
-		buchung.getUmsaetze().forEach( kontoUmsatz -> {
-			kontoService.buche(kontoUmsatz);
-		});
+		buchung.getUmsaetze()
+			.forEach( umsatz -> {
+				if (umsatz.getArt()==KontoArt.Konto) {
+					kontoService.bucheKontoUmsatz(umsatz);
+				} else  {
+					kontoService.bucheDepotUmsatz(umsatz);
+				}
+			});
 	}
 }

@@ -1,5 +1,13 @@
 scalar Date
 
+enum AssetTyp {
+	Aktie
+	Anleihe
+	ETF
+	Fonds
+	Zertifikat
+}
+
 enum BilanzPosition {
  	Aktiv
 	Aufwand
@@ -17,6 +25,13 @@ enum Ertragsart {
 enum KontoArt {
 	Konto
 	Depot
+}
+
+input AssetInput {
+	name: String!,
+	typ: AssetTyp!,
+	isin: String!,
+	wkn: String!
 }
 
 input Buchung {
@@ -102,6 +117,7 @@ input Verkauf {
 
 # The Root Mutation for the application
 type Mutation {
+	neuesAsset(input: AssetInput!) : ID!
 	neuesKonto(input: KontoInput!) : ID!
 	buche(buchung: Buchung!) : ID!
 	liefereEin(einlieferung: Einlieferung!): ID!
@@ -110,7 +126,6 @@ type Mutation {
     verkaufe(verkauf: Verkauf!) : ID!
     tilge(tilgung: Tilgung!) : ID!
 }
-
 
 type Konto {
 	name: String!,

@@ -10,4 +10,8 @@ public interface EventRepository {
 	void saveBuchung(Buchung buchung);
 
 	void saveKontoUmsatz(KontoUmsatz umsatz);
+
+	void saveAsset(Asset asset);
+
+	void saveDepotUmsatz(DepotUmsatz umsatz);
 }

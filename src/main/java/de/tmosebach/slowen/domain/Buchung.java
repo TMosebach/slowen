@@ -14,7 +14,7 @@ public class Buchung {
 	private LocalDate datum;
 	private String empfaenger;
 	private String verwendung;
-	private List<KontoUmsatz> umsaetze = new ArrayList<>();
+	private List<Umsatz> umsaetze = new ArrayList<>();
 	
 	@Override
 	public String toString() {
@@ -30,11 +30,11 @@ public class Buchung {
 	public String getVerwendung() {
 		return verwendung;
 	}
-	public void addUmsatz(KontoUmsatz kontoUmsatz) {
-		kontoUmsatz.setBuchung(this);
-		umsaetze.add(kontoUmsatz);
+	public void addUmsatz(Umsatz umsatz) {
+		umsatz.setBuchung(this);
+		umsaetze.add(umsatz);
 	}
-	public List<KontoUmsatz> getUmsaetze() {
+	public List<Umsatz> getUmsaetze() {
 		return umsaetze;
 	}
 	@Override
@@ -69,7 +69,7 @@ public class Buchung {
 	public void setVerwendung(String verwendung) {
 		this.verwendung = verwendung;
 	}
-	public void setUmsaetze(List<KontoUmsatz> umsaetze) {
+	public void setUmsaetze(List<Umsatz> umsaetze) {
 		this.umsaetze = umsaetze;
 	}
 	public Vorgang getVorgang() {

@@ -51,14 +51,39 @@
   )
   </insert>
   
-  <!-- Depotumsatz
-  ART VARCHAR(5) NOT NULL,
-	BUCHUNG_ID VARCHAR(30) NOT NULL,
-	KONTO_ID VARCHAR(255) NOT NULL,
-	TYP VARCHAR(11),
-	VALUTA DATE NOT NULL,
-	BETRAG DECIMAL(12,2) NOT NULL,
-	MENGE DECIMAL(16, 6),
-	ASSET_ID
-  -->
+  <insert id="saveDepotUmsatz">
+  INSERT INTO UMSATZ (
+	ART,
+	BUCHUNG_ID,
+	KONTO_ID,
+	VALUTA,
+	BETRAG,
+	ASSET_ID,
+	MENGE
+  )
+  VALUES (
+    #{art},
+    #{buchung.id},
+    #{konto},
+    #{valuta},
+    #{betrag},
+    #{asset},
+    #{menge}
+  )
+  </insert>
+
+  <insert id="saveAsset">
+  INSERT INTO ASSET (
+	ISIN,
+	WPK,
+	NAME,
+	TYP
+  )
+  VALUES (
+    #{isin},
+    #{wpk},
+    #{name},
+    #{typ}
+  )
+  </insert>
 </mapper>
