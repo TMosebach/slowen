@@ -1,12 +1,13 @@
-package de.tmosebach.slowen;
+package de.tmosebach.slowen.domain;
 
 import org.apache.ibatis.annotations.Mapper;
-
-import de.tmosebach.slowen.api.types.Konto;
 
 @Mapper
 public interface EventRepository {
 
 	void saveKontoanlage(Konto konto);
 
+	void saveBuchung(Buchung buchung);
+
+	void saveKontoUmsatz(KontoUmsatz umsatz);
 }

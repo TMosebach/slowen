@@ -1,7 +1,4 @@
-package de.tmosebach.slowen.api.types;
-
-import java.math.BigDecimal;
-import java.time.LocalDate;
+package de.tmosebach.slowen.domain;
 
 import de.tmosebach.slowen.values.BilanzPosition;
 import de.tmosebach.slowen.values.KontoArt;
@@ -12,13 +9,10 @@ public class Konto {
 	private KontoArt art;
 	private String waehrung;
 	private BilanzPosition bilanzPosition;
-	private BigDecimal saldo;
-	private LocalDate datum;
-	
 	@Override
 	public String toString() {
 		return "Konto [name=" + name + ", art=" + art + ", waehrung=" + waehrung + ", bilanzPosition=" + bilanzPosition
-				+ ", saldo=" + saldo + ", datum=" + datum + "]";
+				+ "]";
 	}
 	public String getName() {
 		return name;
@@ -43,17 +37,5 @@ public class Konto {
 	}
 	public void setBilanzPosition(BilanzPosition bilanzPosition) {
 		this.bilanzPosition = bilanzPosition;
-	}
-	public BigDecimal getSaldo() {
-		return saldo;
-	}
-	public void setSaldo(BigDecimal saldo) {
-		this.saldo = saldo;
-	}
-	public LocalDate getDatum() {
-		return datum;
-	}
-	public void setDatum(LocalDate datum) {
-		this.datum = datum;
 	}
 }

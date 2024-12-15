@@ -6,17 +6,21 @@ import org.springframework.graphql.data.method.annotation.Argument;
 import org.springframework.graphql.data.method.annotation.MutationMapping;
 import org.springframework.stereotype.Controller;
 
-import de.tmosebach.slowen.EventRepository;
+import de.tmosebach.slowen.Utils;
 import de.tmosebach.slowen.api.input.Buchung;
 import de.tmosebach.slowen.api.input.Einlieferung;
 import de.tmosebach.slowen.api.input.Ertrag;
 import de.tmosebach.slowen.api.input.Kauf;
 import de.tmosebach.slowen.api.input.Tilgung;
+import de.tmosebach.slowen.api.input.Umsatz;
 import de.tmosebach.slowen.api.input.Verkauf;
-import de.tmosebach.slowen.api.types.Konto;
+import de.tmosebach.slowen.domain.BuchungService;
+import de.tmosebach.slowen.domain.EventService;
 import de.tmosebach.slowen.domain.KontoService;
+import de.tmosebach.slowen.domain.KontoUmsatz;
 import de.tmosebach.slowen.values.BilanzPosition;
 import de.tmosebach.slowen.values.KontoArt;
+import de.tmosebach.slowen.values.Vorgang;
 
 @Controller
 public class MutationController {
@@ -24,11 +28,13 @@ public class MutationController {
 	private static final Logger LOG = LoggerFactory.getLogger(MutationController.class);
 	
 	private KontoService kontoService;
-	private EventRepository repository;
-	
-	public MutationController(KontoService kontoService, EventRepository repository) {
+	private BuchungService buchungService;
+	private EventService eventService;
+
+	public MutationController(KontoService kontoService, BuchungService buchungService, EventService eventService) {
 		this.kontoService = kontoService;
-		this.repository = repository;
+		this.buchungService = buchungService;
+		this.eventService = eventService;
 	}
 
 	@MutationMapping
@@ -36,7 +42,7 @@ public class MutationController {
 
 		// TODO Validierung
 		
-		Konto konto = new Konto();
+		de.tmosebach.slowen.domain.Konto konto = new de.tmosebach.slowen.domain.Konto();
 		konto.setName(input.getName());
 		
 		KontoArt kontoArt = input.getArt();
@@ -52,21 +58,47 @@ public class MutationController {
 
 		LOG.info("neues Konto: {}", konto);
 		
-		repository.saveKontoanlage(konto);
+		eventService.saveKontoanlage(konto);
 		
 		kontoService.neuesKonto(konto);
 		
-		return null;
+		return input.getName();
 	}
 	
 	@MutationMapping
     public String buche(@Argument Buchung buchung) {
 
 		// TODO Validierung
+		
+		String id = Utils.createId();
     	
-		return null;
+		de.tmosebach.slowen.domain.Buchung result = new de.tmosebach.slowen.domain.Buchung();
+		result.setVorgang(Vorgang.Buchung);
+		result.setId(id);
+		result.setDatum(buchung.getDatum());
+		result.setEmpfaenger(buchung.getEmpfaenger());
+		result.setVerwendung(buchung.getVerwendung());
+		
+		buchung.getUmsaetze().forEach( umsatz -> {
+			result.addUmsatz(map(umsatz));
+		});
+		
+		eventService.saveBuchung(result);
+		
+		buchungService.buche(result);
+
+		return id;
     }
 	
+	private KontoUmsatz map(Umsatz umsatz) {
+		KontoUmsatz kontoUmsatz = new KontoUmsatz();
+		kontoUmsatz.setArt(KontoArt.Konto);
+		kontoUmsatz.setKonto(umsatz.getKonto());
+		kontoUmsatz.setValuta(umsatz.getValuta());
+		kontoUmsatz.setBetrag(umsatz.getBetrag());
+		return kontoUmsatz;
+	}
+
 	@MutationMapping
     public String liefereEin(@Argument Einlieferung einlieferung) {
 

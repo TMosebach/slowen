@@ -24,6 +24,14 @@ public class QueryController {
 
 	@QueryMapping
 	public Konto findKontoByName(String kontoName) {
-		return kontoService.findByName(kontoName).orElseThrow();
+		de.tmosebach.slowen.domain.Konto konto = kontoService.findByName(kontoName).orElseThrow();
+		
+		Konto result = new Konto();
+		result.setName(konto.getName());
+		result.setArt(konto.getArt());
+		result.setBilanzPosition(konto.getBilanzPosition());
+		result.setWaehrung(konto.getWaehrung());
+		
+		return result;
 	}
 }

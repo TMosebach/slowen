@@ -1,0 +1,64 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="de.tmosebach.slowen.domain.EventRepository">
+
+  <insert id="saveKontoanlage">
+  INSERT INTO KONTO (
+	NAME,
+	ART,
+	BILANZPOSITION,
+	WAEHRUNG
+  )
+  VALUES (
+    #{name},
+    #{art},
+    #{bilanzPosition},
+    #{waehrung}
+  )
+  </insert>
+  
+  <insert id="saveBuchung">
+  INSERT INTO BUCHUNG (
+	ID,
+	VORGANG,
+	DATUM,
+	EMPFAENGER,
+	VERWENDUNG 
+  )
+  VALUES (
+	#{id},
+    #{vorgang},
+    #{datum},
+    #{empfaenger},
+    #{verwendung}
+  )
+  </insert>
+  
+  <insert id="saveKontoUmsatz">
+  INSERT INTO UMSATZ (
+	ART,
+	BUCHUNG_ID,
+	KONTO_ID,
+	VALUTA,
+	BETRAG
+  )
+  VALUES (
+    #{art},
+    #{buchung.id},
+    #{konto},
+    #{valuta},
+    #{betrag}
+  )
+  </insert>
+  
+  <!-- Depotumsatz
+  ART VARCHAR(5) NOT NULL,
+	BUCHUNG_ID VARCHAR(30) NOT NULL,
+	KONTO_ID VARCHAR(255) NOT NULL,
+	TYP VARCHAR(11),
+	VALUTA DATE NOT NULL,
+	BETRAG DECIMAL(12,2) NOT NULL,
+	MENGE DECIMAL(16, 6),
+	ASSET_ID
+  -->
+</mapper>

@@ -116,7 +116,9 @@ type Konto {
 	name: String!,
 	art: KontoArt!,
 	waehrung: String,
-	bilanzPosition: BilanzPosition
+	bilanzPosition: BilanzPosition!,
+	saldo: Float!,
+	datum: Date!
 }
 
 # The Root Query for the application

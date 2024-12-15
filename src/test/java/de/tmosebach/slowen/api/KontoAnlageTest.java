@@ -52,5 +52,4 @@ class KontoAnlageTest {
 		
 		assertNotNull(queryController.findKontoByName("MeinDepot"));
 	}
-
 }
