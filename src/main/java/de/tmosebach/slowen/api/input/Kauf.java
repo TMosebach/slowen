@@ -3,7 +3,7 @@ package de.tmosebach.slowen.api.input;
 import java.math.BigDecimal;
 import java.time.LocalDate;
 
-public class Kauf implements AssetBewegung {
+public class Kauf {
 
 	private LocalDate datum;
 	private String depot;
