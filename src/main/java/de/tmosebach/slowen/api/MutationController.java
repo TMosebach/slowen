@@ -107,6 +107,10 @@ public class MutationController {
 				umsatz.getBetrag())
 		);
 		
+		return verarbeiteBuchung(builder);
+    }
+
+	private String verarbeiteBuchung(BuchungBuilder builder) {
 		de.tmosebach.slowen.domain.Buchung result =
 				builder.getBuchung();
 		
@@ -115,7 +119,7 @@ public class MutationController {
 		buchungService.buche(result);
 
 		return result.getId();
-    }
+	}
 
 	@MutationMapping
 	public String neuesAsset(AssetInput input) {
@@ -158,16 +162,7 @@ public class MutationController {
 				einlieferung.getValuta(),
 				einlieferung.getMenge());
 		
-		de.tmosebach.slowen.domain.Buchung buchung =
-				builder.getBuchung();
-		
-		eventService.saveBuchung(buchung);
-    	
-    	LOG.info("Einlieferung: {}", einlieferung);
-    	
-    	buchungService.buche(buchung);
-    	
-    	return buchung.getId();
+		return verarbeiteBuchung(builder);
     }
 
 	@MutationMapping
@@ -208,13 +203,7 @@ public class MutationController {
 			builder.addKontoUmsatz(STUECKZINS, kauf.getValuta(), stueckzins);
 		}
 		
-		de.tmosebach.slowen.domain.Buchung buchung = builder.getBuchung();
-		
-		eventService.saveBuchung(buchung);
-		
-		buchungService.buche(buchung);
- 	
-    	return buchung.getId();
+		return verarbeiteBuchung(builder);
     }
 
 	@MutationMapping
@@ -262,13 +251,7 @@ public class MutationController {
 			builder.addKontoUmsatz(SOLI, ertrag.getValuta(), soli);
 		}
 		
-		de.tmosebach.slowen.domain.Buchung buchung = builder.getBuchung();
-		
-		eventService.saveBuchung(buchung);
-		
-		buchungService.buche(buchung);
-
-    	return buchung.getId();
+		return verarbeiteBuchung(builder);
     }
 	
 	@MutationMapping
@@ -335,13 +318,7 @@ public class MutationController {
 			builder.addKontoUmsatz(SOLI, verkauf.getValuta(), soli);
 		}
 		
-		de.tmosebach.slowen.domain.Buchung buchung = builder.getBuchung();
-				
-		eventService.saveBuchung(buchung);
-		
-		buchungService.buche(buchung);
-
-    	return buchung.getId();
+		return verarbeiteBuchung(builder);
     }
 
 	
@@ -402,12 +379,6 @@ public class MutationController {
 			builder.addKontoUmsatz(SOLI, tilgung.getValuta(), soli);
 		}
 		
-		de.tmosebach.slowen.domain.Buchung buchung = builder.getBuchung();
-		
-		eventService.saveBuchung(buchung);
-		
-		buchungService.buche(buchung);
-		
-		return buchung.getId();
+		return verarbeiteBuchung(builder);
     }
 }
