@@ -1,15 +1,16 @@
 package de.tmosebach.slowen.api;
 
-import static java.math.BigDecimal.ZERO;
 import static de.tmosebach.slowen.Utils.getBetragOder0;
 import static de.tmosebach.slowen.Utils.notZero;
-import static de.tmosebach.slowen.domain.DomainFunctions.createKontoUmsatz;
-import static de.tmosebach.slowen.domain.Kontonamen.*;
+import static de.tmosebach.slowen.domain.Kontonamen.DIVIDENDE;
+import static de.tmosebach.slowen.domain.Kontonamen.KEST;
 import static de.tmosebach.slowen.domain.Kontonamen.KURSGEWINN;
 import static de.tmosebach.slowen.domain.Kontonamen.KURSVERLUST;
 import static de.tmosebach.slowen.domain.Kontonamen.PROVISION;
 import static de.tmosebach.slowen.domain.Kontonamen.SOLI;
 import static de.tmosebach.slowen.domain.Kontonamen.STUECKZINS;
+import static de.tmosebach.slowen.domain.Kontonamen.ZINSKUPON;
+import static java.math.BigDecimal.ZERO;
 import static java.util.Objects.nonNull;
 
 import java.math.BigDecimal;
@@ -20,7 +21,6 @@ import org.springframework.graphql.data.method.annotation.Argument;
 import org.springframework.graphql.data.method.annotation.MutationMapping;
 import org.springframework.stereotype.Controller;
 
-import de.tmosebach.slowen.Utils;
 import de.tmosebach.slowen.api.input.AssetInput;
 import de.tmosebach.slowen.api.input.Buchung;
 import de.tmosebach.slowen.api.input.Einlieferung;
@@ -34,12 +34,10 @@ import de.tmosebach.slowen.domain.AssetService;
 import de.tmosebach.slowen.domain.Bestand;
 import de.tmosebach.slowen.domain.BuchungService;
 import de.tmosebach.slowen.domain.DepotBestand;
-import de.tmosebach.slowen.domain.DepotUmsatz;
 import de.tmosebach.slowen.domain.EventService;
 import de.tmosebach.slowen.domain.KontoService;
 import de.tmosebach.slowen.values.BilanzPosition;
 import de.tmosebach.slowen.values.KontoArt;
-import de.tmosebach.slowen.values.Vorgang;
 
 @Controller
 public class MutationController {
@@ -94,27 +92,29 @@ public class MutationController {
     public String buche(@Argument Buchung buchung) {
 
 		// TODO Validierung
+
+		BuchungBuilder builder = 
+			BuchungBuilder
+			.newBuchung(
+				buchung.getDatum(),
+				buchung.getEmpfaenger(),
+				buchung.getVerwendung());
+
+		buchung.getUmsaetze().forEach( umsatz -> 
+			builder.addKontoUmsatz(
+				umsatz.getKonto(),
+				umsatz.getValuta(),
+				umsatz.getBetrag())
+		);
 		
-		String id = Utils.createId();
-    	
-		de.tmosebach.slowen.domain.Buchung result = new de.tmosebach.slowen.domain.Buchung();
-		result.setVorgang(Vorgang.Buchung);
-		result.setId(id);
-		result.setDatum(buchung.getDatum());
-		result.setEmpfaenger(buchung.getEmpfaenger());
-		result.setVerwendung(buchung.getVerwendung());
-		
-		buchung.getUmsaetze().forEach( umsatz -> {
-			result.addUmsatz(
-				createKontoUmsatz(
-					umsatz.getKonto(), umsatz.getValuta(), umsatz.getBetrag()));
-		});
+		de.tmosebach.slowen.domain.Buchung result =
+				builder.getBuchung();
 		
 		eventService.saveBuchung(result);
 		
 		buchungService.buche(result);
 
-		return id;
+		return result.getId();
     }
 
 	@MutationMapping
@@ -141,27 +141,25 @@ public class MutationController {
     public String liefereEin(@Argument Einlieferung einlieferung) {
 
     	// TODO Validierung
+
+		BuchungBuilder builder = 
+			BuchungBuilder.newEinlieferung(
+				einlieferung.getDatum(),
+				einlieferung.getAsset()
+					+" "+einlieferung.getMenge()
+					+ (nonNull(einlieferung.getBetrag())
+							?" zu "+einlieferung.getBetrag()
+							:""));
 		
-		String id = Utils.createId();
-    	
-		de.tmosebach.slowen.domain.Buchung buchung = new de.tmosebach.slowen.domain.Buchung();
-		buchung.setVorgang(Vorgang.Einlieferung);
-		buchung.setId(id);
-		buchung.setDatum(einlieferung.getDatum());
-		buchung.setVerwendung(
-				einlieferung.getAsset()+" "+einlieferung.getMenge()
-				+ (nonNull(einlieferung.getBetrag())
-						?" zu "+einlieferung.getBetrag()
-						:""));
+		builder.addDepotUmsatz(
+				einlieferung.getDepot(),
+				einlieferung.getAsset(),
+				einlieferung.getBetrag(),
+				einlieferung.getValuta(),
+				einlieferung.getMenge());
 		
-		DepotUmsatz umsatz = new DepotUmsatz();
-		umsatz.setArt(KontoArt.Depot);
-		umsatz.setKonto(einlieferung.getDepot());
-		umsatz.setAsset(einlieferung.getAsset());
-		umsatz.setBetrag(einlieferung.getBetrag());
-		umsatz.setValuta(einlieferung.getValuta());
-		umsatz.setMenge(einlieferung.getMenge());
-		buchung.addUmsatz(umsatz);
+		de.tmosebach.slowen.domain.Buchung buchung =
+				builder.getBuchung();
 		
 		eventService.saveBuchung(buchung);
     	
@@ -169,7 +167,7 @@ public class MutationController {
     	
     	buchungService.buche(buchung);
     	
-    	return id;
+    	return buchung.getId();
     }
 
 	@MutationMapping
@@ -179,13 +177,10 @@ public class MutationController {
     	
     	// TODO Validierung
     	
-    	String id = Utils.createId();
-    	
-    	de.tmosebach.slowen.domain.Buchung buchung = new de.tmosebach.slowen.domain.Buchung();
-		buchung.setVorgang(Vorgang.Kauf);
-		buchung.setId(id);
-		buchung.setDatum(kauf.getDatum());
-		buchung.setVerwendung(
+    	BuchungBuilder builder = 
+			BuchungBuilder
+			.newKauf(
+				kauf.getDatum(),
 				kauf.getAsset()+" "+kauf.getMenge()
 				+ " zu "+ kauf.getBetrag());
 		
@@ -196,30 +191,30 @@ public class MutationController {
 		BigDecimal belastung = 
 				einstandswert.add(provision).add(stueckzins).negate();
 		
-		DepotUmsatz depotUmsatz = new DepotUmsatz();
-		depotUmsatz.setArt(KontoArt.Depot);
-		depotUmsatz.setKonto(kauf.getDepot());
-		depotUmsatz.setAsset(kauf.getAsset());
-		depotUmsatz.setBetrag(einstandswert);
-		depotUmsatz.setValuta(kauf.getValuta());
-		depotUmsatz.setMenge(kauf.getMenge());
-		buchung.addUmsatz(depotUmsatz);
-
-		buchung.addUmsatz(createKontoUmsatz(kauf.getKonto(), kauf.getValuta(), belastung));
+		builder.addDepotUmsatz(
+			kauf.getDepot(),
+			kauf.getAsset(),
+			einstandswert,
+			kauf.getValuta(),
+			kauf.getMenge());
+		
+		builder.addKontoUmsatz(kauf.getKonto(), kauf.getValuta(), belastung);
 		
 		if (notZero(provision)) {
-			buchung.addUmsatz(createKontoUmsatz(PROVISION, kauf.getValuta(), provision));
+			builder.addKontoUmsatz(PROVISION, kauf.getValuta(), provision);
 		}
 		
 		if (notZero(stueckzins)) {
-			buchung.addUmsatz(createKontoUmsatz(STUECKZINS, kauf.getValuta(), stueckzins));
+			builder.addKontoUmsatz(STUECKZINS, kauf.getValuta(), stueckzins);
 		}
+		
+		de.tmosebach.slowen.domain.Buchung buchung = builder.getBuchung();
 		
 		eventService.saveBuchung(buchung);
 		
 		buchungService.buche(buchung);
  	
-    	return id;
+    	return buchung.getId();
     }
 
 	@MutationMapping
@@ -229,13 +224,12 @@ public class MutationController {
 
     	// TODO validierung
     	
-    	String id = Utils.createId();
     	
-    	de.tmosebach.slowen.domain.Buchung buchung = new de.tmosebach.slowen.domain.Buchung();
-		buchung.setVorgang(Vorgang.Ertrag);
-		buchung.setId(id);
-		buchung.setDatum(ertrag.getDatum());
-		buchung.setVerwendung("Ertrag zu "+ertrag.getAsset());
+		BuchungBuilder builder = 
+			BuchungBuilder
+			.newErtrag(
+				ertrag.getDatum(),
+				"Ertrag zu "+ertrag.getAsset());
 		
 		BigDecimal bruttowert = ertrag.getBetrag();
 		BigDecimal kest = getBetragOder0(ertrag.getKest());
@@ -246,35 +240,35 @@ public class MutationController {
 				.subtract(soli)
 				.subtract(kest);
 		
-		DepotUmsatz depotUmsatz = new DepotUmsatz();
-		depotUmsatz.setArt(KontoArt.Depot);
-		depotUmsatz.setKonto(ertrag.getDepot());
-		depotUmsatz.setAsset(ertrag.getAsset());
-		depotUmsatz.setBetrag(ZERO);
-		depotUmsatz.setValuta(ertrag.getValuta());
-		depotUmsatz.setMenge(ZERO);
-		buchung.addUmsatz(depotUmsatz);
+		builder.addDepotUmsatz(
+				ertrag.getDepot(),
+				ertrag.getAsset(),
+				ZERO,
+				ertrag.getValuta(),
+				ZERO);
 
 		if (ertrag.getErtragsart() == Ertragsart.Dividende) {
-			buchung.addUmsatz(createKontoUmsatz(DIVIDENDE, ertrag.getValuta(), bruttowert.negate()));
+			builder.addKontoUmsatz(DIVIDENDE, ertrag.getValuta(), bruttowert.negate());
 		} else {
-			buchung.addUmsatz(createKontoUmsatz(ZINSKUPON, ertrag.getValuta(), bruttowert.negate()));
+			builder.addKontoUmsatz(ZINSKUPON, ertrag.getValuta(), bruttowert.negate());
 		}
-		buchung.addUmsatz(createKontoUmsatz(ertrag.getKonto(), ertrag.getValuta(), gutschrift));
+		builder.addKontoUmsatz(ertrag.getKonto(), ertrag.getValuta(), gutschrift);
 
 		if (notZero(kest)) {
-			buchung.addUmsatz(createKontoUmsatz(KEST, ertrag.getValuta(), kest));
+			builder.addKontoUmsatz(KEST, ertrag.getValuta(), kest);
 		}
 		
 		if (notZero(soli)) {
-			buchung.addUmsatz(createKontoUmsatz(SOLI, ertrag.getValuta(), soli));
+			builder.addKontoUmsatz(SOLI, ertrag.getValuta(), soli);
 		}
+		
+		de.tmosebach.slowen.domain.Buchung buchung = builder.getBuchung();
 		
 		eventService.saveBuchung(buchung);
 		
 		buchungService.buche(buchung);
 
-    	return id;
+    	return buchung.getId();
     }
 	
 	@MutationMapping
@@ -284,15 +278,12 @@ public class MutationController {
     	
     	// TODO Validierung
     	
-    	String id = Utils.createId();
-    	
-    	de.tmosebach.slowen.domain.Buchung buchung = new de.tmosebach.slowen.domain.Buchung();
-		buchung.setVorgang(Vorgang.Verkauf);
-		buchung.setId(id);
-		buchung.setDatum(verkauf.getDatum());
-		buchung.setVerwendung(
-				verkauf.getAsset()+" "+verkauf.getMenge()
-				+ " zu "+ verkauf.getBetrag());
+    	BuchungBuilder builder = 
+    			BuchungBuilder
+    			.newVerkauf(
+    				verkauf.getDatum(),
+					verkauf.getAsset()+" "+verkauf.getMenge()
+					+ " zu "+ verkauf.getBetrag());
 		
 		BigDecimal kurswert = verkauf.getBetrag();
 		BigDecimal provision = getBetragOder0(verkauf.getProvision());
@@ -318,39 +309,39 @@ public class MutationController {
 		
 		// Falls es GuV gab
 		if (guv.compareTo(BigDecimal.ZERO) > 0) {
-			buchung.addUmsatz(createKontoUmsatz(KURSVERLUST, verkauf.getValuta(), guv));
+			builder.addKontoUmsatz(KURSVERLUST, verkauf.getValuta(), guv);
 		} else if (guv.compareTo(BigDecimal.ZERO) < 0){
-			buchung.addUmsatz(createKontoUmsatz(KURSGEWINN, verkauf.getValuta(), guv));
+			builder.addKontoUmsatz(KURSGEWINN, verkauf.getValuta(), guv);
 		}
 		
-		DepotUmsatz depotUmsatz = new DepotUmsatz();
-		depotUmsatz.setArt(KontoArt.Depot);
-		depotUmsatz.setKonto(verkauf.getDepot());
-		depotUmsatz.setAsset(verkauf.getAsset());
-		depotUmsatz.setBetrag(wertabgang);
-		depotUmsatz.setValuta(verkauf.getValuta());
-		depotUmsatz.setMenge(bestandsaenderung);
-		buchung.addUmsatz(depotUmsatz);
+		builder.addDepotUmsatz(
+				verkauf.getDepot(),
+				verkauf.getAsset(),
+				wertabgang,
+				verkauf.getValuta(),
+				bestandsaenderung);
 
-		buchung.addUmsatz(createKontoUmsatz(verkauf.getKonto(), verkauf.getValuta(), gutschrift));
+		builder.addKontoUmsatz(verkauf.getKonto(), verkauf.getValuta(), gutschrift);
 		
 		if (notZero(provision)) {
-			buchung.addUmsatz(createKontoUmsatz(PROVISION, verkauf.getValuta(), provision));
+			builder.addKontoUmsatz(PROVISION, verkauf.getValuta(), provision);
 		}
 		
 		if (notZero(kest)) {
-			buchung.addUmsatz(createKontoUmsatz(KEST, verkauf.getValuta(), kest));
+			builder.addKontoUmsatz(KEST, verkauf.getValuta(), kest);
 		}
 		
 		if (notZero(soli)) {
-			buchung.addUmsatz(createKontoUmsatz(SOLI, verkauf.getValuta(), soli));
+			builder.addKontoUmsatz(SOLI, verkauf.getValuta(), soli);
 		}
 		
+		de.tmosebach.slowen.domain.Buchung buchung = builder.getBuchung();
+				
 		eventService.saveBuchung(buchung);
 		
 		buchungService.buche(buchung);
 
-    	return id;
+    	return buchung.getId();
     }
 
 	
@@ -361,13 +352,11 @@ public class MutationController {
     	
     	// TODO validierung
     	
-    	String id = Utils.createId();
-    	
-    	de.tmosebach.slowen.domain.Buchung buchung = new de.tmosebach.slowen.domain.Buchung();
-		buchung.setVorgang(Vorgang.Tilgung);
-		buchung.setId(id);
-		buchung.setDatum(tilgung.getDatum());
-		buchung.setVerwendung(tilgung.getAsset()+" "+tilgung.getMenge());
+    	BuchungBuilder builder = 
+			BuchungBuilder
+			.newTilgung(
+				tilgung.getDatum(),
+				tilgung.getAsset()+" "+tilgung.getMenge());
 		
 		BigDecimal kurswert = tilgung.getBetrag();
 		BigDecimal kest = getBetragOder0(tilgung.getKest());
@@ -391,34 +380,34 @@ public class MutationController {
 		
 		// Falls es GuV gab
 		if (guv.compareTo(BigDecimal.ZERO) > 0) {
-			buchung.addUmsatz(createKontoUmsatz(KURSVERLUST, tilgung.getValuta(), guv));
+			builder.addKontoUmsatz(KURSVERLUST, tilgung.getValuta(), guv);
 		} else if (guv.compareTo(BigDecimal.ZERO) < 0){
-			buchung.addUmsatz(createKontoUmsatz(KURSGEWINN, tilgung.getValuta(), guv));
+			builder.addKontoUmsatz(KURSGEWINN, tilgung.getValuta(), guv);
 		}
 		
-		DepotUmsatz depotUmsatz = new DepotUmsatz();
-		depotUmsatz.setArt(KontoArt.Depot);
-		depotUmsatz.setKonto(tilgung.getDepot());
-		depotUmsatz.setAsset(tilgung.getAsset());
-		depotUmsatz.setBetrag(wertabgang);
-		depotUmsatz.setValuta(tilgung.getValuta());
-		depotUmsatz.setMenge(bestandsaenderung);
-		buchung.addUmsatz(depotUmsatz);
+		builder.addDepotUmsatz(
+				tilgung.getDepot(),
+				tilgung.getAsset(),
+				wertabgang,
+				tilgung.getValuta(),
+				bestandsaenderung);
 
-		buchung.addUmsatz(createKontoUmsatz(tilgung.getKonto(), tilgung.getValuta(), gutschrift));
+		builder.addKontoUmsatz(tilgung.getKonto(), tilgung.getValuta(), gutschrift);
 
 		if (notZero(kest)) {
-			buchung.addUmsatz(createKontoUmsatz(KEST, tilgung.getValuta(), kest));
+			builder.addKontoUmsatz(KEST, tilgung.getValuta(), kest);
 		}
 		
 		if (notZero(soli)) {
-			buchung.addUmsatz(createKontoUmsatz(SOLI, tilgung.getValuta(), soli));
+			builder.addKontoUmsatz(SOLI, tilgung.getValuta(), soli);
 		}
+		
+		de.tmosebach.slowen.domain.Buchung buchung = builder.getBuchung();
 		
 		eventService.saveBuchung(buchung);
 		
 		buchungService.buche(buchung);
 		
-		return id;
+		return buchung.getId();
     }
 }
