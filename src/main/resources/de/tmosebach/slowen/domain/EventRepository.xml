@@ -17,6 +17,15 @@
   )
   </insert>
   
+  <select id="getKonten" resultType="de.tmosebach.slowen.domain.Konto">
+  select 
+  	NAME,
+	ART,
+	BILANZPOSITION,
+	WAEHRUNG
+  from KONTO
+  </select>
+  
   <insert id="saveBuchung">
   INSERT INTO BUCHUNG (
 	ID,
@@ -71,6 +80,57 @@
     #{menge}
   )
   </insert>
+  
+  <select id="getBuchungen" resultMap="buchungMap">
+  select
+	ID,
+	VORGANG,
+	DATUM,
+	EMPFAENGER,
+	VERWENDUNG,
+	ART,
+	BUCHUNG_ID,
+	KONTO_ID,
+	VALUTA,
+	BETRAG,
+	ASSET_ID,
+	MENGE
+  from BUCHUNG
+  join UMSATZ on ID = BUCHUNG_ID
+  </select>
+  
+  <resultMap id="buchungMap" type="de.tmosebach.slowen.domain.Buchung">
+	  <id column="ID" property="id" />
+	  <result column="VORGANG" property="vorgang" />
+	  <result column="DATUM" property="datum" />
+	  <result column="EMPFAENGER" property="empfaenger" />
+	  <result column="VERWENDUNG" property="verwendung" /> 
+	  <collection property="umsaetze">
+	  
+    	<discriminator javaType="string" column="ART">
+		  	<case value="Konto" resultType="de.tmosebach.slowen.domain.KontoUmsatz">
+			  	<result column="ART" property="art" />
+			  	<result column="KONTO_ID" property="konto" />
+			  	<result column="VALUTA" property="valuta" />
+			  	<result column="BETRAG" property="betrag" />
+			  	<association property="buchung" foreignColumn="BUCHUNG_ID" resultMap="buchungMap"></association>
+		  	</case>
+		  	<case value="Depot" resultType="de.tmosebach.slowen.domain.DepotUmsatz">
+		  		<result column="ART" property="art" />
+			  	<result column="KONTO_ID" property="konto" />
+			  	<result column="VALUTA" property="valuta" />
+			  	<result column="BETRAG" property="betrag" />
+			  	<result column="ASSET_ID" property="asset" />
+			  	<result column="MENGE" property="menge" />
+			  	<association property="buchung" foreignColumn="BUCHUNG_ID" resultMap="buchungMap"></association>
+		  	</case>
+		</discriminator>
+	  </collection>
+  </resultMap>
+  
+  <resultMap id="umsatzMap" type="de.tmosebach.slowen.domain.Umsatz">
+
+  </resultMap>
 
   <insert id="saveAsset">
   INSERT INTO ASSET (
@@ -86,4 +146,13 @@
     #{typ}
   )
   </insert>
+  
+  <select id="getAssets" resultType="de.tmosebach.slowen.domain.Asset">
+  select
+  	ISIN,
+	WPK,
+	NAME,
+	TYP
+  from ASSET
+  </select>
 </mapper>

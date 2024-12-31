@@ -1,5 +1,7 @@
 package de.tmosebach.slowen.domain;
 
+import java.util.List;
+
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -18,6 +20,10 @@ public class EventService {
 	public void saveKontoanlage(Konto konto) {
 		eventRepository.saveKontoanlage(konto);
 	}
+	
+	public List<Konto> getKonten() {
+		return eventRepository.getKonten();
+	}
 
 	@Transactional
 	public void saveBuchung(Buchung result) {
@@ -30,10 +36,17 @@ public class EventService {
 			}
 		});
 	}
+	
+	public List<Buchung> getBuchungen() {
+		return eventRepository.getBuchungen();
+	}
 
 	@Transactional
 	public void saveAsset(Asset asset) {
 		eventRepository.saveAsset(asset);
 	}
 
+	public List<Asset> getAssets() {
+		return eventRepository.getAssets();
+	}
 }

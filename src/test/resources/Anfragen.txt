@@ -1,0 +1,119 @@
+mutation Kontoanlage {
+  neuesKonto(input:{
+    name: "Tagesgeld",
+    art:Konto,
+    waehrung: "EUR",
+    bilanzPosition: Aktiv,
+    saldo: 0.0,
+    datum: "2024-11-17"
+  })
+}
+
+mutation Depotanlage {
+  neuesDepot(name:"Depot")
+}
+
+mutation Buchen {
+  buche(buchung: {
+    datum: "2024-11-16",
+    empfaenger: "ich",
+    verwendung: "Übertrag",
+    umsaetze: [
+      {
+        konto: "Giro",
+        valuta: "2024-11-16",
+        betrag: -100
+      },
+      {
+        konto: "Tagesgeld",
+        valuta: "2024-11-16",
+        betrag: 100
+      }
+    ]
+  })
+}
+
+mutation Einlieferungsanzeige {
+  lieferEin(einlieferung:{
+      datum: "2024-11-15",
+      depot: "Depot",
+      asset: "Asset",
+      valuta: "2024-11-19",
+      menge: 42.21,
+      betrag: 815.6
+  })
+}
+
+mutation KaufAuftrag {
+  kaufe(kauf: {
+      datum: "2024-11-15",
+      depot: "Depot",
+      konto: "Konto",
+      asset: "Asset",
+      valuta: "2024-11-19",
+      menge: 42.21,
+      betrag: 815.63,
+      provision: 2.5,
+      stueckzins: 0.0
+    })
+}
+
+mutation Ertragsbuchung {
+  bucheErtrag(ertrag: {
+      datum: "2024-11-15",
+      depot: "Depot",
+      konto: "Konto",
+      asset: "Asset",
+      valuta: "2024-11-19",
+      menge: 42.21,
+      betrag: 815.63,
+    	ertragsart: Dividende
+      kest: 0.1,
+    	soli:0.2
+    })
+}
+
+mutation VerkaufAuftrag {
+  verkaufe(verkauf: {
+      datum: "2024-11-15",
+      depot: "Depot",
+      konto: "Konto",
+      asset: "Asset",
+      valuta: "2024-11-19",
+      menge: 42.21,
+      betrag: 815.63,
+      provision: 2.5,
+      kest: 0.1,
+    	soli:0.2
+    })
+}
+
+mutation Tilgungsanzeige {
+  tilge(tilgung: {
+      datum: "2024-11-15",
+      depot: "Depot",
+      konto: "Konto",
+      asset: "Asset",
+      valuta: "2024-11-19",
+      menge: 42.21,
+      betrag: 815.63,
+      kest: 0.1,
+    	soli:0.2
+    })
+}
+
+query abfrage {
+  konten {
+    name
+    art
+    bilanzPosition
+    waehrung
+    saldo
+    datum
+    bestaende {
+      asset
+      menge
+      einstand
+    }
+  }
+}

@@ -130,15 +130,26 @@ type Mutation {
 type Konto {
 	name: String!,
 	art: KontoArt!,
-	waehrung: String,
 	bilanzPosition: BilanzPosition!,
-	saldo: Float!,
-	datum: Date!
+}
+
+type Bestand {
+ 	asset: String!,
+ 	menge: Float!
+ 	einstand: Float!
+}
+
+extend type Konto {
+	waehrung: String,
+	saldo: Float,
+	datum: Date!,
+	bestaende: [Bestand]
 }
 
 # The Root Query for the application
 type Query {
 	findKontoByName(kontoName: String): Konto!
     buchungen(konto: String): [String]!
+    konten: [Konto]!
 }
 

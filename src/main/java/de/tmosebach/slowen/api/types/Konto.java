@@ -2,6 +2,7 @@ package de.tmosebach.slowen.api.types;
 
 import java.math.BigDecimal;
 import java.time.LocalDate;
+import java.util.List;
 
 import de.tmosebach.slowen.values.BilanzPosition;
 import de.tmosebach.slowen.values.KontoArt;
@@ -14,11 +15,12 @@ public class Konto {
 	private BilanzPosition bilanzPosition;
 	private BigDecimal saldo;
 	private LocalDate datum;
+	private List<Bestand> bestaende;
 	
 	@Override
 	public String toString() {
 		return "Konto [name=" + name + ", art=" + art + ", waehrung=" + waehrung + ", bilanzPosition=" + bilanzPosition
-				+ ", saldo=" + saldo + ", datum=" + datum + "]";
+				+ ", saldo=" + saldo + ", datum=" + datum + ", bestaende=" + bestaende + "]";
 	}
 	public String getName() {
 		return name;
@@ -55,5 +57,11 @@ public class Konto {
 	}
 	public void setDatum(LocalDate datum) {
 		this.datum = datum;
+	}
+	public List<Bestand> getBestaende() {
+		return bestaende;
+	}
+	public void setBestaende(List<Bestand> bestaende) {
+		this.bestaende = bestaende;
 	}
 }

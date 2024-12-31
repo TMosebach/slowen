@@ -2,6 +2,7 @@ package de.tmosebach.slowen.api.conf;
 
 import java.time.Instant;
 import java.time.LocalDate;
+import java.time.ZoneId;
 import java.util.Locale;
 
 import graphql.GraphQLContext;
@@ -20,7 +21,8 @@ public class DateCoercing implements Coercing<LocalDate, String>{
 	 @Override
      public String serialize(Object dataFetcherResult, GraphQLContext graphQLContext, Locale locale) throws CoercingSerializeException {
          try {
-             Instant publishedTime = (Instant) dataFetcherResult;
+             LocalDate date = (LocalDate)dataFetcherResult;
+             Instant publishedTime = date.atStartOfDay(ZoneId.systemDefault()).toInstant();
              
              return publishedTime.toString();
          } catch (CoercingSerializeException exception) {

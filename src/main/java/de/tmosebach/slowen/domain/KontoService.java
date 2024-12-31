@@ -2,7 +2,9 @@ package de.tmosebach.slowen.domain;
 
 import java.math.BigDecimal;
 import java.time.LocalDate;
+import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 
@@ -65,5 +67,10 @@ public class KontoService {
 
 	public DepotBestand findDepotBestandByName(String depotName) {
 		return depotBestaende.get(depotName);
+	}
+
+	public List<Konto> getKonten() {
+		
+		return new ArrayList<>( konten.values() );
 	}
 }
