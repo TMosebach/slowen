@@ -7,8 +7,10 @@ import java.util.NoSuchElementException;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.test.context.jdbc.Sql;
 
+import de.tmosebach.slowen.DataInitializer;
 import de.tmosebach.slowen.api.input.KontoInput;
 import de.tmosebach.slowen.values.BilanzPosition;
 import de.tmosebach.slowen.values.KontoArt;
@@ -16,6 +18,9 @@ import de.tmosebach.slowen.values.KontoArt;
 @SpringBootTest
 @Sql({"clearDB.sql"})
 class KontoAnlageTest {
+	
+	@MockitoBean // Datainitializer für Test kalt stellen.
+	private DataInitializer dataInitializer;
 
 	@Autowired
 	private MutationController impl;

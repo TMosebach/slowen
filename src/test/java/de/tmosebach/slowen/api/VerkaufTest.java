@@ -15,8 +15,10 @@ import java.util.List;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.test.context.jdbc.Sql;
 
+import de.tmosebach.slowen.DataInitializer;
 import de.tmosebach.slowen.api.input.Verkauf;
 import de.tmosebach.slowen.domain.Bestand;
 import de.tmosebach.slowen.domain.DepotBestand;
@@ -34,6 +36,9 @@ class VerkaufTest {
 	private static final String KONTO = "Konto";
 	private static final String ISIN = "DE000801108150";
 	private static final LocalDate VALUTA = of(2024, 9, 2);
+	
+	@MockitoBean // Datainitializer für Test kalt stellen.
+	private DataInitializer dataInitializer;
 
 	@Autowired
 	private KontoService kontoService;

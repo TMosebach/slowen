@@ -5,8 +5,10 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.test.context.jdbc.Sql;
 
+import de.tmosebach.slowen.DataInitializer;
 import de.tmosebach.slowen.api.input.AssetInput;
 import de.tmosebach.slowen.domain.AssetService;
 import de.tmosebach.slowen.values.AssetTyp;
@@ -17,6 +19,9 @@ class AssetAnlageTest {
 	
 	private static final String ISIN = "DE0008032001";
 	private static final String WPK = "803200";
+	
+	@MockitoBean // Datainitializer für Test kalt stellen.
+	private DataInitializer dataInitializer;
 	
 	@Autowired
 	private MutationController impl;

@@ -15,8 +15,10 @@ import java.time.LocalDate;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.test.context.jdbc.Sql;
 
+import de.tmosebach.slowen.DataInitializer;
 import de.tmosebach.slowen.api.input.Ertrag;
 import de.tmosebach.slowen.api.input.Ertragsart;
 import de.tmosebach.slowen.domain.Bestand;
@@ -36,6 +38,9 @@ class ErtragTest {
 	private static final LocalDate DATUM = of(2024, 12, 2);
 	private static final LocalDate VALUTA = of(2024, 12, 4);
 
+	@MockitoBean // Datainitializer für Test kalt stellen.
+	private DataInitializer dataInitializer;
+	
 	@Autowired
 	private KontoService kontoService;
 
