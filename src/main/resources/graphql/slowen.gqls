@@ -35,6 +35,7 @@ input AssetInput {
 }
 
 input Buchung {
+	id: String,
     datum: Date!,
 	empfaenger: String,
 	verwendung: String,

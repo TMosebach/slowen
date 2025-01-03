@@ -1,6 +1,5 @@
 package de.tmosebach.slowen.api;
 
-import java.util.ArrayList;
 import java.util.List;
 
 import org.springframework.graphql.data.method.annotation.QueryMapping;

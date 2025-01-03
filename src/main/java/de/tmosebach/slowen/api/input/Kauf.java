@@ -3,7 +3,7 @@ package de.tmosebach.slowen.api.input;
 import java.math.BigDecimal;
 import java.time.LocalDate;
 
-public class Kauf {
+public class Kauf implements Bestandsvorgang {
 
 	private LocalDate datum;
 	private String depot;
@@ -26,9 +26,11 @@ public class Kauf {
 	public void setDatum(LocalDate datum) {
 		this.datum = datum;
 	}
+	@Override
 	public String getDepot() {
 		return depot;
 	}
+	@Override
 	public void setDepot(String depot) {
 		this.depot = depot;
 	}
@@ -38,9 +40,11 @@ public class Kauf {
 	public void setKonto(String konto) {
 		this.konto = konto;
 	}
+	@Override
 	public String getAsset() {
 		return asset;
 	}
+	@Override
 	public void setAsset(String asset) {
 		this.asset = asset;
 	}
@@ -50,9 +54,11 @@ public class Kauf {
 	public void setValuta(LocalDate valuta) {
 		this.valuta = valuta;
 	}
+	@Override
 	public BigDecimal getMenge() {
 		return menge;
 	}
+	@Override
 	public void setMenge(BigDecimal menge) {
 		this.menge = menge;
 	}

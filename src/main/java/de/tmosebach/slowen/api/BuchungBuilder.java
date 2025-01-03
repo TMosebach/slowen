@@ -1,5 +1,6 @@
 package de.tmosebach.slowen.api;
 
+import static java.util.Objects.nonNull;
 import static de.tmosebach.slowen.values.Vorgang.*;
 
 import java.math.BigDecimal;
@@ -20,6 +21,26 @@ public class BuchungBuilder {
 			LocalDate datum,
 			String empfaenfer,
 			String verwendung) {
+		
+		if (nonNull(id)) {
+			return createBuilder(
+					Buchung, Utils.createId(), datum, empfaenfer, verwendung);
+		}
+		
+		return createBuilder(
+				Buchung, datum, empfaenfer, verwendung);
+	}
+	
+	public static BuchungBuilder newBuchung(
+			String id,
+			LocalDate datum,
+			String empfaenfer,
+			String verwendung) {
+		
+		if (nonNull(id)) {
+			return createBuilder(
+					Buchung, id, datum, empfaenfer, verwendung);
+		}
 		
 		return createBuilder(
 				Buchung, datum, empfaenfer, verwendung);
@@ -75,15 +96,30 @@ public class BuchungBuilder {
 				null, // kein Empfänger
 				verwendung);
 	}
-	
+
 	private static BuchungBuilder createBuilder(
 			Vorgang vorgang,
 			LocalDate datum,
 			String empfaenger,
 			String verwendung) {
+		return createBuilder(
+				vorgang,
+				Utils.createId(),
+				datum,
+				empfaenger,
+				verwendung);
+	}
+	
+	private static BuchungBuilder createBuilder(
+			Vorgang vorgang,
+			String id,
+			LocalDate datum,
+			String empfaenger,
+			String verwendung) {
 		BuchungBuilder builder = new BuchungBuilder();
 		builder.createBuchung(
-				Verkauf, 
+				vorgang,
+				id,
 				datum,
 				empfaenger,
 				verwendung);
@@ -92,13 +128,14 @@ public class BuchungBuilder {
 	
 	public BuchungBuilder createBuchung(
 			Vorgang vorgang,
+			String id,
 			LocalDate datum,
 			String empfaenger,
 			String verwendung) {
 		
 		buchung = new Buchung();
 		buchung.setVorgang(vorgang);
-		buchung.setId(Utils.createId());
+		buchung.setId(id);
 		buchung.setDatum(datum);
 		buchung.setEmpfaenger(empfaenger);
 		buchung.setVerwendung(verwendung);

@@ -3,7 +3,7 @@ package de.tmosebach.slowen.api.input;
 import java.math.BigDecimal;
 import java.time.LocalDate;
 
-public class Verkauf {
+public class Verkauf implements Bestandsvorgang {
 
 	private LocalDate datum;
 	private String depot;
