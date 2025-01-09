@@ -143,7 +143,7 @@ type Bestand {
 extend type Konto {
 	waehrung: String,
 	saldo: Float,
-	datum: Date!,
+	datum: Date,
 	bestaende: [Bestand]
 }
 

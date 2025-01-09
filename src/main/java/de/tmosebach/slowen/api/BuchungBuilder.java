@@ -1,6 +1,5 @@
 package de.tmosebach.slowen.api;
 
-import static java.util.Objects.nonNull;
 import static de.tmosebach.slowen.values.Vorgang.*;
 
 import java.math.BigDecimal;
@@ -22,13 +21,7 @@ public class BuchungBuilder {
 			String empfaenfer,
 			String verwendung) {
 		
-		if (nonNull(id)) {
-			return createBuilder(
-					Buchung, Utils.createId(), datum, empfaenfer, verwendung);
-		}
-		
-		return createBuilder(
-				Buchung, datum, empfaenfer, verwendung);
+		return createBuilder(Buchung, Utils.createId(), datum, empfaenfer, verwendung);
 	}
 	
 	public static BuchungBuilder newBuchung(
@@ -37,13 +30,7 @@ public class BuchungBuilder {
 			String empfaenfer,
 			String verwendung) {
 		
-		if (nonNull(id)) {
-			return createBuilder(
-					Buchung, id, datum, empfaenfer, verwendung);
-		}
-		
-		return createBuilder(
-				Buchung, datum, empfaenfer, verwendung);
+		return createBuilder(Buchung, id, datum, empfaenfer, verwendung);
 	}
 	
 	public static BuchungBuilder newEinlieferung(

@@ -29,6 +29,7 @@ import de.tmosebach.slowen.domain.Asset;
 import de.tmosebach.slowen.domain.AssetService;
 import de.tmosebach.slowen.domain.Buchung;
 import de.tmosebach.slowen.domain.BuchungService;
+import de.tmosebach.slowen.domain.EventService;
 import de.tmosebach.slowen.domain.Konto;
 import de.tmosebach.slowen.domain.KontoService;
 
@@ -43,16 +44,19 @@ public class ImExporter {
 	private KontoService kontoService;
 	private AssetService assetService;
 	private BuchungService buchungService;
+	private EventService eventService;
 
 	public ImExporter(
 			ObjectMapper objectMapper,
 			KontoService kontoService,
 			AssetService assetService,
-			BuchungService buchungService) {
+			BuchungService buchungService,
+			EventService eventService) {
 		this.objectMapper = objectMapper;
 		this.kontoService = kontoService;
 		this.assetService = assetService;
 		this.buchungService = buchungService;
+		this.eventService = eventService;
 	}
 
 	public void exportKonten(List<Konto> konten) throws IOException {
@@ -113,6 +117,10 @@ public class ImExporter {
 	}
 
 	public int importKonten(File file) throws IOException {
+		if (! file.exists()) {
+			return 0;
+		}
+		
 		List<String> lines = Files.readAllLines(file.toPath(), Charset.defaultCharset());
 		
 		AtomicInteger counter = new AtomicInteger();
@@ -125,6 +133,7 @@ public class ImExporter {
 					counter.incrementAndGet();
 					
 					kontoService.neuesKonto(konto);
+					eventService.saveKontoanlage(konto);
 				}
 			} catch (IOException e) {
 				throw new RuntimeException(e);
@@ -134,6 +143,10 @@ public class ImExporter {
 	}
 
 	public int importAssets(File file) throws IOException {
+		if (! file.exists()) {
+			return 0;
+		}
+		
 		List<String> lines = Files.readAllLines(file.toPath(), Charset.defaultCharset());
 		
 		
@@ -153,6 +166,7 @@ public class ImExporter {
 					asset.setWpk(input.getWpk());
 					
 					assetService.neuesAsset(asset);
+					eventService.saveAsset(asset);
 				}
 			} catch (IOException e) {
 				throw new RuntimeException(e);
@@ -195,8 +209,8 @@ public class ImExporter {
 		JsonParser parser = objectMapper.createParser(line);
 		BuchungWrapper buchungWrapper = parser.readValueAs(BuchungWrapper.class);
 		
-		buchungService.buche(
-			DomainMapper.toBuchung(
-				buchungWrapper.getBuchung()));
+		Buchung buchung = DomainMapper.toBuchung(buchungWrapper.getBuchung());
+		buchungService.buche(buchung);
+		eventService.saveBuchung(buchung);
 	}
 }
