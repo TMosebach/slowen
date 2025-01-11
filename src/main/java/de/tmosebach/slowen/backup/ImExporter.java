@@ -3,6 +3,7 @@ package de.tmosebach.slowen.backup;
 import static org.apache.commons.lang3.StringUtils.trim;
 import static org.apache.commons.lang3.StringUtils.isNotBlank;
 import static de.tmosebach.slowen.DomainApiMapper.toApiKonto;
+import static de.tmosebach.slowen.Utils.notZero;
 import static de.tmosebach.slowen.DomainApiMapper.toApiAsset;
 import static de.tmosebach.slowen.DomainApiMapper.toApiBuchung;
 
@@ -22,9 +23,11 @@ import com.fasterxml.jackson.core.JsonGenerator;
 import com.fasterxml.jackson.core.JsonParser;
 import com.fasterxml.jackson.databind.ObjectMapper;
 
+import de.tmosebach.slowen.Utils;
 import de.tmosebach.slowen.api.DomainMapper;
 import de.tmosebach.slowen.api.input.AssetInput;
 import de.tmosebach.slowen.api.input.BuchungWrapper;
+import de.tmosebach.slowen.api.input.KontoInput;
 import de.tmosebach.slowen.domain.Asset;
 import de.tmosebach.slowen.domain.AssetService;
 import de.tmosebach.slowen.domain.Buchung;
@@ -32,6 +35,9 @@ import de.tmosebach.slowen.domain.BuchungService;
 import de.tmosebach.slowen.domain.EventService;
 import de.tmosebach.slowen.domain.Konto;
 import de.tmosebach.slowen.domain.KontoService;
+import de.tmosebach.slowen.domain.KontoUmsatz;
+import de.tmosebach.slowen.values.KontoArt;
+import de.tmosebach.slowen.values.Vorgang;
 
 @Service
 public class ImExporter {
@@ -129,11 +135,32 @@ public class ImExporter {
 				String trimedLine = trim(line);
 				if (isNotBlank(trim(trimedLine))) {
 					JsonParser parser = objectMapper.createParser(trimedLine);
-					Konto konto = parser.readValueAs(Konto.class);
+					KontoInput kontoInput = parser.readValueAs(KontoInput.class);
 					counter.incrementAndGet();
 					
+					Konto konto = DomainMapper.toKonto(kontoInput);
 					kontoService.neuesKonto(konto);
 					eventService.saveKontoanlage(konto);
+					
+					if (KontoArt.Konto == kontoInput.getArt()
+							&& notZero(kontoInput.getSaldo())) {
+						
+						KontoUmsatz kontoUmsatz = new KontoUmsatz();
+						kontoUmsatz.setArt(KontoArt.Konto);
+						kontoUmsatz.setKonto(kontoInput.getName());
+						kontoUmsatz.setValuta(kontoInput.getDatum());
+						kontoUmsatz.setBetrag(kontoInput.getSaldo());
+						
+						de.tmosebach.slowen.domain.Buchung eroeffnung = new de.tmosebach.slowen.domain.Buchung();
+						eroeffnung.setVorgang(Vorgang.Buchung);
+						eroeffnung.setId(Utils.createId());
+						eroeffnung.setDatum(kontoInput.getDatum());
+						eroeffnung.setVerwendung("Eröffnungssaldo");
+						eroeffnung.addUmsatz(kontoUmsatz);
+						
+						eventService.saveBuchung(eroeffnung);
+						buchungService.buche(eroeffnung);
+					}
 				}
 			} catch (IOException e) {
 				throw new RuntimeException(e);

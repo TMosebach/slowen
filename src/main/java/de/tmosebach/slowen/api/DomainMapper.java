@@ -19,11 +19,13 @@ import de.tmosebach.slowen.api.input.Einlieferung;
 import de.tmosebach.slowen.api.input.Ertrag;
 import de.tmosebach.slowen.api.input.Ertragsart;
 import de.tmosebach.slowen.api.input.Kauf;
+import de.tmosebach.slowen.api.input.KontoInput;
 import de.tmosebach.slowen.api.input.Tilgung;
 import de.tmosebach.slowen.api.input.Verkauf;
 import de.tmosebach.slowen.domain.Bestand;
 import de.tmosebach.slowen.domain.Buchung;
 import de.tmosebach.slowen.domain.DepotBestand;
+import de.tmosebach.slowen.domain.Konto;
 
 public class DomainMapper {
 
@@ -257,5 +259,14 @@ public class DomainMapper {
 		}
 		
 		return builder.getBuchung();
+	}
+
+	public static Konto toKonto(KontoInput kontoInput) {
+		Konto konto = new Konto();
+		konto.setArt(kontoInput.getArt());
+		konto.setBilanzPosition(kontoInput.getBilanzPosition());
+		konto.setName(kontoInput.getName());
+		konto.setWaehrung(kontoInput.getWaehrung());
+		return konto;
 	}
 }

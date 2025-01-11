@@ -21,6 +21,7 @@ import org.springframework.graphql.data.method.annotation.Argument;
 import org.springframework.graphql.data.method.annotation.MutationMapping;
 import org.springframework.stereotype.Controller;
 
+import de.tmosebach.slowen.Utils;
 import de.tmosebach.slowen.api.input.AssetInput;
 import de.tmosebach.slowen.api.input.Buchung;
 import de.tmosebach.slowen.api.input.Einlieferung;
@@ -36,8 +37,10 @@ import de.tmosebach.slowen.domain.BuchungService;
 import de.tmosebach.slowen.domain.DepotBestand;
 import de.tmosebach.slowen.domain.EventService;
 import de.tmosebach.slowen.domain.KontoService;
+import de.tmosebach.slowen.domain.KontoUmsatz;
 import de.tmosebach.slowen.values.BilanzPosition;
 import de.tmosebach.slowen.values.KontoArt;
+import de.tmosebach.slowen.values.Vorgang;
 
 @Controller
 public class MutationController {
@@ -76,7 +79,25 @@ public class MutationController {
 			konto.setBilanzPosition(input.getBilanzPosition());
 			konto.setWaehrung(input.getWaehrung());
 			
-			// TODO ggf. Eröffnungssaldo einrichtten
+			if (kontoArt == KontoArt.Konto
+					&& notZero(input.getSaldo())) {
+				
+				KontoUmsatz kontoUmsatz = new KontoUmsatz();
+				kontoUmsatz.setArt(KontoArt.Konto);
+				kontoUmsatz.setKonto(input.getName());
+				kontoUmsatz.setValuta(input.getDatum());
+				kontoUmsatz.setBetrag(input.getSaldo());
+				
+				de.tmosebach.slowen.domain.Buchung eroeffnung = new de.tmosebach.slowen.domain.Buchung();
+				eroeffnung.setVorgang(Vorgang.Buchung);
+				eroeffnung.setId(Utils.createId());
+				eroeffnung.setDatum(input.getDatum());
+				eroeffnung.setVerwendung("Eröffnungssaldo");
+				eroeffnung.addUmsatz(kontoUmsatz);
+				
+				eventService.saveBuchung(eroeffnung);
+				buchungService.buche(eroeffnung);
+			}
 		}
 
 		LOG.info("neues Konto: {}", konto);
