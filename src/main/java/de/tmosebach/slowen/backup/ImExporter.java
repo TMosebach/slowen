@@ -25,6 +25,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 
 import de.tmosebach.slowen.Utils;
 import de.tmosebach.slowen.api.DomainMapper;
+import de.tmosebach.slowen.api.InputValidator;
 import de.tmosebach.slowen.api.input.AssetInput;
 import de.tmosebach.slowen.api.input.BuchungWrapper;
 import de.tmosebach.slowen.api.input.KontoInput;
@@ -51,18 +52,21 @@ public class ImExporter {
 	private AssetService assetService;
 	private BuchungService buchungService;
 	private EventService eventService;
+	private InputValidator inputValidator;
 
 	public ImExporter(
 			ObjectMapper objectMapper,
 			KontoService kontoService,
 			AssetService assetService,
 			BuchungService buchungService,
-			EventService eventService) {
+			EventService eventService,
+			InputValidator inputValidator) {
 		this.objectMapper = objectMapper;
 		this.kontoService = kontoService;
 		this.assetService = assetService;
 		this.buchungService = buchungService;
 		this.eventService = eventService;
+		this.inputValidator = inputValidator;
 	}
 
 	public void exportKonten(List<Konto> konten) throws IOException {
@@ -136,9 +140,16 @@ public class ImExporter {
 				if (isNotBlank(trim(trimedLine))) {
 					JsonParser parser = objectMapper.createParser(trimedLine);
 					KontoInput kontoInput = parser.readValueAs(KontoInput.class);
-					counter.incrementAndGet();
+					
+					List<String> error = inputValidator.validate(kontoInput);
+					if (! error.isEmpty()) {
+						LOG.warn("Konto wird nicht importiert: {}", error);
+						return;
+					}
 					
 					Konto konto = DomainMapper.toKonto(kontoInput);
+					
+					counter.incrementAndGet();
 					kontoService.neuesKonto(konto);
 					eventService.saveKontoanlage(konto);
 					

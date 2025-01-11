@@ -14,6 +14,7 @@ import static java.math.BigDecimal.ZERO;
 import static java.util.Objects.nonNull;
 
 import java.math.BigDecimal;
+import java.util.List;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -51,22 +52,29 @@ public class MutationController {
 	private KontoService kontoService;
 	private BuchungService buchungService;
 	private EventService eventService;
+	private InputValidator inputValidator;
 
 	public MutationController(
 			AssetService assetService,
 			KontoService kontoService,
 			BuchungService buchungService,
-			EventService eventService) {
+			EventService eventService,
+			InputValidator inputValidator) {
 		this.assetService = assetService;
 		this.kontoService = kontoService;
 		this.buchungService = buchungService;
 		this.eventService = eventService;
+		this.inputValidator = inputValidator;
 	}
 
 	@MutationMapping
 	public String neuesKonto(@Argument de.tmosebach.slowen.api.input.KontoInput input) {
 
-		// TODO Validierung
+		List<String> error = inputValidator.validate(input);
+		if (! error.isEmpty()) {
+			LOG.warn("Konto wird nicht importiert: {}", error);
+			throw new IllegalArgumentException(error.toString());
+		}
 		
 		de.tmosebach.slowen.domain.Konto konto = new de.tmosebach.slowen.domain.Konto();
 		konto.setName(input.getName());
