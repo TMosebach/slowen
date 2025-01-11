@@ -60,22 +60,22 @@ public class DomainApiMapper {
 		return buchungWrapper;
 	}
 
-	// TODO
+	// TODO Tilgung auf API-Objekt mappen
 	private static BuchungWrapper mapTilgung(Buchung domainBuchung) {
 		throw new UnsupportedOperationException();
 	}
 
-	// TODO
+	// TODO Verkauf auf API-Objekt mappen
 	private static BuchungWrapper mapVerkauf(Buchung domainBuchung) {
 		throw new UnsupportedOperationException();
 	}
 
-	// TODO
+	// TODO Ertrag auf API-Objekt mappen
 	private static BuchungWrapper mapErtrag(Buchung domainBuchung) {
 		throw new UnsupportedOperationException();
 	}
 
-	// TODO
+	// TODO Kauf auf API-Objekt mappen
 	private static BuchungWrapper mapKauf(Buchung domainBuchung) {
 		throw new UnsupportedOperationException();
 	}

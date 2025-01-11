@@ -15,6 +15,7 @@ import de.tmosebach.slowen.domain.KontoService;
 import de.tmosebach.slowen.values.KontoArt;
 
 @Service
+// XXX Validierung sollte auf ein Standardverfahren geändert werden (Spring oder Jakarta?)
 public class InputValidator {
 	
 	private KontoService kontoService;
