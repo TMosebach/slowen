@@ -117,3 +117,19 @@ query abfrage {
     }
   }
 }
+
+query assetList {
+  konten {
+    name
+    art
+    bilanzPosition
+    waehrung
+    saldo
+    datum
+    bestaende {
+      asset
+      menge
+      einstand
+    }
+  }
+}
