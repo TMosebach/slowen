@@ -194,15 +194,17 @@ public class ImExporter {
 				String trimedLine = trim(line);
 				if (isNotBlank(trim(trimedLine))) {
 					JsonParser parser = objectMapper.createParser(trimedLine);
-					AssetInput input = parser.readValueAs(AssetInput.class);
+					AssetInput assetInput = parser.readValueAs(AssetInput.class);
+					
+					List<String> error = inputValidator.validate(assetInput);
+					if (! error.isEmpty()) {
+						LOG.warn("Asset wird nicht importiert: {}", error);
+						return;
+					}
+					
+					Asset asset = DomainMapper.toAsset(assetInput);
+					
 					counter.incrementAndGet();
-					
-					Asset asset = new Asset();
-					asset.setName(input.getName());
-					asset.setTyp(input.getTyp());
-					asset.setIsin(input.getIsin());
-					asset.setWpk(input.getWpk());
-					
 					assetService.neuesAsset(asset);
 					eventService.saveAsset(asset);
 				}

@@ -9,7 +9,10 @@ import java.util.Optional;
 
 import org.springframework.stereotype.Service;
 
+import de.tmosebach.slowen.api.input.AssetInput;
 import de.tmosebach.slowen.api.input.KontoInput;
+import de.tmosebach.slowen.domain.Asset;
+import de.tmosebach.slowen.domain.AssetService;
 import de.tmosebach.slowen.domain.Konto;
 import de.tmosebach.slowen.domain.KontoService;
 import de.tmosebach.slowen.values.KontoArt;
@@ -19,9 +22,13 @@ import de.tmosebach.slowen.values.KontoArt;
 public class InputValidator {
 	
 	private KontoService kontoService;
+	private AssetService assetService;
 
-	public InputValidator(KontoService kontoService) {
+	public InputValidator(
+			KontoService kontoService,
+			AssetService assetService) {
 		this.kontoService = kontoService;
+		this.assetService = assetService;
 	}
 
 	public List<String> validate(KontoInput kontoInput) {
@@ -34,12 +41,12 @@ public class InputValidator {
 			checkSize(kontoInput.getWaehrung(), 3, "Währung", errors);
 		}
 		
-		checkUnikat(kontoInput.getName(), errors);
+		checkKontoUnikat(kontoInput.getName(), errors);
 		
 		return errors;
 	}
 
-	private void checkUnikat(String kontoName, List<String> errors) {
+	private void checkKontoUnikat(String kontoName, List<String> errors) {
 		Optional<Konto> kontoOptional = kontoService.findByName(kontoName);
 		if (kontoOptional.isPresent()) {
 			errors.add("Konto "+kontoName+" existiert bereits.");
@@ -61,6 +68,24 @@ public class InputValidator {
 	private void checkNotNull(Object feld, String feldName, List<String> errors) {
 		if (isNull(feld)) {
 			errors.add("Feld "+ feldName + " ist nicht gefüllt.");
+		}
+	}
+
+	public List<String> validate(AssetInput assetInput) {
+		List<String> errors = new ArrayList<>();
+		checkNotNull(assetInput.getIsin(), "ISIN", errors);
+		checkNotNull(assetInput.getTyp(), "Typ", errors);
+		checkNotBlank(assetInput.getName(), "Name", errors);
+		
+		checkAssetUnikat(assetInput.getIsin(), errors);
+		
+		return errors;
+	}
+
+	private void checkAssetUnikat(String isin, List<String> errors) {
+		Optional<Asset> assetOptional = assetService.findAssetByIsin(isin);
+		if (assetOptional.isPresent()) {
+			errors.add("Asset "+isin+" existiert bereits.");
 		}
 	}
 }

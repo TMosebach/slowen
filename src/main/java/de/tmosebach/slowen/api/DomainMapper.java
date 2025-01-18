@@ -15,6 +15,7 @@ import static java.util.Objects.nonNull;
 
 import java.math.BigDecimal;
 
+import de.tmosebach.slowen.api.input.AssetInput;
 import de.tmosebach.slowen.api.input.Einlieferung;
 import de.tmosebach.slowen.api.input.Ertrag;
 import de.tmosebach.slowen.api.input.Ertragsart;
@@ -22,6 +23,7 @@ import de.tmosebach.slowen.api.input.Kauf;
 import de.tmosebach.slowen.api.input.KontoInput;
 import de.tmosebach.slowen.api.input.Tilgung;
 import de.tmosebach.slowen.api.input.Verkauf;
+import de.tmosebach.slowen.domain.Asset;
 import de.tmosebach.slowen.domain.Bestand;
 import de.tmosebach.slowen.domain.Buchung;
 import de.tmosebach.slowen.domain.DepotBestand;
@@ -268,5 +270,14 @@ public class DomainMapper {
 		konto.setName(kontoInput.getName());
 		konto.setWaehrung(kontoInput.getWaehrung());
 		return konto;
+	}
+
+	public static Asset toAsset(AssetInput assetInput) {
+		Asset asset = new Asset();
+		asset.setName(assetInput.getName());
+		asset.setTyp(assetInput.getTyp());
+		asset.setIsin(assetInput.getIsin());
+		asset.setWpk(assetInput.getWpk());
+		return asset;
 	}
 }
