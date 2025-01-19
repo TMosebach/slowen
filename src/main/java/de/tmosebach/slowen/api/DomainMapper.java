@@ -32,13 +32,21 @@ import de.tmosebach.slowen.domain.Konto;
 public class DomainMapper {
 
 	public static Buchung toBuchung(de.tmosebach.slowen.api.input.Buchung input) {
+
+		
 		BuchungBuilder builder = 
-				BuchungBuilder
-				.newBuchung(
-					input.getId(),
-					input.getDatum(),
-					input.getEmpfaenger(),
-					input.getVerwendung());
+			nonNull(input.getId())
+				?BuchungBuilder
+					.newBuchung(
+						input.getId(),
+						input.getDatum(),
+						input.getEmpfaenger(),
+						input.getVerwendung())
+				:BuchungBuilder
+					.newBuchung(
+						input.getDatum(),
+						input.getEmpfaenger(),
+						input.getVerwendung());
 
 		input.getUmsaetze().forEach( umsatz -> 
 				builder.addKontoUmsatz(
