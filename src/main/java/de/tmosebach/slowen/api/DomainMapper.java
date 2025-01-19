@@ -14,176 +14,52 @@ import static java.math.BigDecimal.ZERO;
 import static java.util.Objects.nonNull;
 
 import java.math.BigDecimal;
-import java.util.List;
 
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-import org.springframework.graphql.data.method.annotation.Argument;
-import org.springframework.graphql.data.method.annotation.MutationMapping;
-import org.springframework.stereotype.Controller;
-
-import de.tmosebach.slowen.Utils;
 import de.tmosebach.slowen.api.input.AssetInput;
-import de.tmosebach.slowen.api.input.Buchung;
 import de.tmosebach.slowen.api.input.Einlieferung;
 import de.tmosebach.slowen.api.input.Ertrag;
 import de.tmosebach.slowen.api.input.Ertragsart;
 import de.tmosebach.slowen.api.input.Kauf;
+import de.tmosebach.slowen.api.input.KontoInput;
 import de.tmosebach.slowen.api.input.Tilgung;
 import de.tmosebach.slowen.api.input.Verkauf;
 import de.tmosebach.slowen.domain.Asset;
-import de.tmosebach.slowen.domain.AssetService;
 import de.tmosebach.slowen.domain.Bestand;
-import de.tmosebach.slowen.domain.BuchungService;
+import de.tmosebach.slowen.domain.Buchung;
 import de.tmosebach.slowen.domain.DepotBestand;
-import de.tmosebach.slowen.domain.EventService;
-import de.tmosebach.slowen.domain.KontoService;
-import de.tmosebach.slowen.domain.KontoUmsatz;
-import de.tmosebach.slowen.values.BilanzPosition;
-import de.tmosebach.slowen.values.KontoArt;
-import de.tmosebach.slowen.values.Vorgang;
+import de.tmosebach.slowen.domain.Konto;
 
-@Controller
-public class MutationController {
-	
-	private static final Logger LOG = LoggerFactory.getLogger(MutationController.class);
-	
-	private AssetService assetService;
-	private KontoService kontoService;
-	private BuchungService buchungService;
-	private EventService eventService;
-	private InputValidator inputValidator;
+public class DomainMapper {
 
-	public MutationController(
-			AssetService assetService,
-			KontoService kontoService,
-			BuchungService buchungService,
-			EventService eventService,
-			InputValidator inputValidator) {
-		this.assetService = assetService;
-		this.kontoService = kontoService;
-		this.buchungService = buchungService;
-		this.eventService = eventService;
-		this.inputValidator = inputValidator;
+	public static Buchung toBuchung(de.tmosebach.slowen.api.input.Buchung input) {
+		BuchungBuilder builder = 
+				BuchungBuilder
+				.newBuchung(
+					input.getId(),
+					input.getDatum(),
+					input.getEmpfaenger(),
+					input.getVerwendung());
+
+		input.getUmsaetze().forEach( umsatz -> 
+				builder.addKontoUmsatz(
+					umsatz.getKonto(),
+					umsatz.getValuta(),
+					umsatz.getBetrag())
+			);
+		
+		return builder.getBuchung();
 	}
-
-	@MutationMapping
-	public String neuesKonto(@Argument de.tmosebach.slowen.api.input.KontoInput input) {
-
-		List<String> error = inputValidator.validate(input);
-		if (! error.isEmpty()) {
-			LOG.warn("Konto wird nicht importiert: {}", error);
-			throw new IllegalArgumentException(error.toString());
-		}
-		
-		de.tmosebach.slowen.domain.Konto konto = new de.tmosebach.slowen.domain.Konto();
-		konto.setName(input.getName());
-		
-		KontoArt kontoArt = input.getArt();
-		konto.setArt(kontoArt);
-		if (kontoArt == KontoArt.Depot) {
-			konto.setBilanzPosition(BilanzPosition.Aktiv);
-		} else {
-			konto.setBilanzPosition(input.getBilanzPosition());
-			konto.setWaehrung(input.getWaehrung());
+	
+	public static Buchung toBuchung(Einlieferung einlieferung) {
+		BuchungBuilder builder = 
+				BuchungBuilder.newEinlieferung(
+					einlieferung.getDatum(),
+					einlieferung.getAsset()
+						+" "+einlieferung.getMenge()
+						+ (nonNull(einlieferung.getBetrag())
+								?" zu "+einlieferung.getBetrag()
+								:""));
 			
-			if (kontoArt == KontoArt.Konto
-					&& notZero(input.getSaldo())) {
-				
-				KontoUmsatz kontoUmsatz = new KontoUmsatz();
-				kontoUmsatz.setArt(KontoArt.Konto);
-				kontoUmsatz.setKonto(input.getName());
-				kontoUmsatz.setValuta(input.getDatum());
-				kontoUmsatz.setBetrag(input.getSaldo());
-				
-				de.tmosebach.slowen.domain.Buchung eroeffnung = new de.tmosebach.slowen.domain.Buchung();
-				eroeffnung.setVorgang(Vorgang.Buchung);
-				eroeffnung.setId(Utils.createId());
-				eroeffnung.setDatum(input.getDatum());
-				eroeffnung.setVerwendung("Eröffnungssaldo");
-				eroeffnung.addUmsatz(kontoUmsatz);
-				
-				eventService.saveBuchung(eroeffnung);
-				buchungService.buche(eroeffnung);
-			}
-		}
-
-		LOG.info("neues Konto: {}", konto);
-		
-		eventService.saveKontoanlage(konto);
-		
-		kontoService.neuesKonto(konto);
-		
-		return input.getName();
-	}
-	
-	@MutationMapping
-    public String buche(@Argument Buchung buchung) {
-
-		// TODO Validierung
-
-		BuchungBuilder builder = 
-			BuchungBuilder
-			.newBuchung(
-				buchung.getDatum(),
-				buchung.getEmpfaenger(),
-				buchung.getVerwendung());
-
-		buchung.getUmsaetze().forEach( umsatz -> 
-			builder.addKontoUmsatz(
-				umsatz.getKonto(),
-				umsatz.getValuta(),
-				umsatz.getBetrag())
-		);
-		
-		return verarbeiteBuchung(builder);
-    }
-
-	private String verarbeiteBuchung(BuchungBuilder builder) {
-		de.tmosebach.slowen.domain.Buchung result =
-				builder.getBuchung();
-		
-		eventService.saveBuchung(result);
-		
-		buchungService.buche(result);
-
-		return result.getId();
-	}
-
-	@MutationMapping
-	public String neuesAsset(AssetInput input) {
-		
-		// TODO Validierung
-		
-		Asset asset = new Asset();
-		asset.setName(input.getName());
-		asset.setTyp(input.getTyp());
-		asset.setIsin(input.getIsin());
-		asset.setWpk(input.getWpk());
-		
-		eventService.saveAsset(asset);
-		
-		LOG.info("Neues Asset: {}", input);
-
-		assetService.neuesAsset(asset);
-    	
-    	return input.getIsin();
-	}
-	
-	@MutationMapping
-    public String liefereEin(@Argument Einlieferung einlieferung) {
-
-    	// TODO Validierung
-
-		BuchungBuilder builder = 
-			BuchungBuilder.newEinlieferung(
-				einlieferung.getDatum(),
-				einlieferung.getAsset()
-					+" "+einlieferung.getMenge()
-					+ (nonNull(einlieferung.getBetrag())
-							?" zu "+einlieferung.getBetrag()
-							:""));
-		
 		builder.addDepotUmsatz(
 				einlieferung.getDepot(),
 				einlieferung.getAsset(),
@@ -191,16 +67,10 @@ public class MutationController {
 				einlieferung.getValuta(),
 				einlieferung.getMenge());
 		
-		return verarbeiteBuchung(builder);
-    }
-
-	@MutationMapping
-    public String kaufe(@Argument Kauf kauf) {
-
-    	LOG.info("kaufe: {}", kauf);
-    	
-    	// TODO Validierung
-    	
+		return builder.getBuchung();
+	}
+	
+	public static Buchung toBuchung(Kauf kauf) {
     	BuchungBuilder builder = 
 			BuchungBuilder
 			.newKauf(
@@ -232,23 +102,16 @@ public class MutationController {
 			builder.addKontoUmsatz(STUECKZINS, kauf.getValuta(), stueckzins);
 		}
 		
-		return verarbeiteBuchung(builder);
-    }
-
-	@MutationMapping
-    public String bucheErtrag(@Argument Ertrag ertrag) {
-
-    	LOG.info("buche Ertrag: {}", ertrag);
-
-    	// TODO validierung
-    	
-    	
+		return builder.getBuchung();
+	}
+	
+	public static Buchung toBuchung(Ertrag ertrag) {
 		BuchungBuilder builder = 
-			BuchungBuilder
-			.newErtrag(
-				ertrag.getDatum(),
-				"Ertrag zu "+ertrag.getAsset());
-		
+				BuchungBuilder
+				.newErtrag(
+					ertrag.getDatum(),
+					"Ertrag zu "+ertrag.getAsset());
+			
 		BigDecimal bruttowert = ertrag.getBetrag();
 		BigDecimal kest = getBetragOder0(ertrag.getKest());
 		BigDecimal soli = getBetragOder0(ertrag.getSoli());
@@ -280,16 +143,12 @@ public class MutationController {
 			builder.addKontoUmsatz(SOLI, ertrag.getValuta(), soli);
 		}
 		
-		return verarbeiteBuchung(builder);
-    }
+		return builder.getBuchung();
+	}
 	
-	@MutationMapping
-    public String verkaufe(@Argument Verkauf verkauf) {
-
-    	LOG.info("verkaufe: {}", verkauf);
-    	
-    	// TODO Validierung
-    	
+	public static Buchung toBuchung(
+			Verkauf verkauf,
+			DepotBestand depotBestand) {
     	BuchungBuilder builder = 
     			BuchungBuilder
     			.newVerkauf(
@@ -308,7 +167,6 @@ public class MutationController {
 				.subtract(soli)
 				.subtract(kest);
 		
-		DepotBestand depotBestand = kontoService.findDepotBestandByName(verkauf.getDepot());
 		Bestand bestand = depotBestand.getBestandZu(verkauf.getAsset()).orElseThrow();
 		BigDecimal ausgangsbestand = bestand.getMenge();
 		BigDecimal bestandsaenderung = verkauf.getMenge().negate();
@@ -347,23 +205,18 @@ public class MutationController {
 			builder.addKontoUmsatz(SOLI, verkauf.getValuta(), soli);
 		}
 		
-		return verarbeiteBuchung(builder);
-    }
-
+		return builder.getBuchung();
+	}
 	
-	@MutationMapping
-    public String tilge(@Argument Tilgung tilgung) {
-
-    	LOG.info("tilge: {}", tilgung);
-    	
-    	// TODO validierung
-    	
-    	BuchungBuilder builder = 
-			BuchungBuilder
-			.newTilgung(
-				tilgung.getDatum(),
-				tilgung.getAsset()+" "+tilgung.getMenge());
-		
+	public static Buchung toBuchung(
+			Tilgung tilgung,
+			DepotBestand depotBestand) {
+		BuchungBuilder builder = 
+				BuchungBuilder
+				.newTilgung(
+					tilgung.getDatum(),
+					tilgung.getAsset()+" "+tilgung.getMenge());
+			
 		BigDecimal kurswert = tilgung.getBetrag();
 		BigDecimal kest = getBetragOder0(tilgung.getKest());
 		BigDecimal soli = getBetragOder0(tilgung.getSoli());
@@ -373,7 +226,6 @@ public class MutationController {
 				.subtract(soli)
 				.subtract(kest);
 		
-		DepotBestand depotBestand = kontoService.findDepotBestandByName(tilgung.getDepot());
 		Bestand bestand = depotBestand.getBestandZu(tilgung.getAsset()).orElseThrow();
 		BigDecimal ausgangsbestand = bestand.getMenge();
 		BigDecimal bestandsaenderung = tilgung.getMenge().negate();
@@ -408,6 +260,24 @@ public class MutationController {
 			builder.addKontoUmsatz(SOLI, tilgung.getValuta(), soli);
 		}
 		
-		return verarbeiteBuchung(builder);
-    }
+		return builder.getBuchung();
+	}
+
+	public static Konto toKonto(KontoInput kontoInput) {
+		Konto konto = new Konto();
+		konto.setArt(kontoInput.getArt());
+		konto.setBilanzPosition(kontoInput.getBilanzPosition());
+		konto.setName(kontoInput.getName());
+		konto.setWaehrung(kontoInput.getWaehrung());
+		return konto;
+	}
+
+	public static Asset toAsset(AssetInput assetInput) {
+		Asset asset = new Asset();
+		asset.setName(assetInput.getName());
+		asset.setTyp(assetInput.getTyp());
+		asset.setIsin(assetInput.getIsin());
+		asset.setWpk(assetInput.getWpk());
+		return asset;
+	}
 }

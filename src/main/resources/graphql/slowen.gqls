@@ -31,10 +31,11 @@ input AssetInput {
 	name: String!,
 	typ: AssetTyp!,
 	isin: String!,
-	wkn: String!
+	wpk: String!
 }
 
 input Buchung {
+	id: String,
     datum: Date!,
 	empfaenger: String,
 	verwendung: String,
@@ -127,6 +128,13 @@ type Mutation {
     tilge(tilgung: Tilgung!) : ID!
 }
 
+type Asset {
+	name: String!,
+	typ: AssetTyp!,
+	isin: String!,
+	wpk: String!
+}
+
 type Konto {
 	name: String!,
 	art: KontoArt!,
@@ -142,14 +150,17 @@ type Bestand {
 extend type Konto {
 	waehrung: String,
 	saldo: Float,
-	datum: Date!,
+	datum: Date,
 	bestaende: [Bestand]
 }
+
+
 
 # The Root Query for the application
 type Query {
 	findKontoByName(kontoName: String): Konto!
     buchungen(konto: String): [String]!
     konten: [Konto]!
+    assets: [Asset]!
 }
 

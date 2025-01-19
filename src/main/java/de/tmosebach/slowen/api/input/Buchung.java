@@ -3,8 +3,13 @@ package de.tmosebach.slowen.api.input;
 import java.time.LocalDate;
 import java.util.List;
 
+import com.fasterxml.jackson.annotation.JsonInclude;
+import com.fasterxml.jackson.annotation.JsonInclude.Include;
+
+@JsonInclude(Include.NON_NULL)
 public class Buchung {
 
+	private String id;
 	private LocalDate datum;
 	private String empfaenger;
 	private String verwendung;
@@ -12,8 +17,8 @@ public class Buchung {
 	
 	@Override
 	public String toString() {
-		return "Buchung [datum=" + datum + ", empfaenger=" + empfaenger + ", verwendung=" + verwendung + ", umsaetze="
-				+ umsaetze + "]";
+		return "Buchung [id=" + id + ", datum=" + datum + ", empfaenger=" + empfaenger + ", verwendung=" + verwendung
+				+ ", umsaetze=" + umsaetze + "]";
 	}
 	public LocalDate getDatum() {
 		return datum;
@@ -38,5 +43,11 @@ public class Buchung {
 	}
 	public void setUmsaetze(List<Umsatz> umsaetze) {
 		this.umsaetze = umsaetze;
+	}
+	public String getId() {
+		return id;
+	}
+	public void setId(String id) {
+		this.id = id;
 	}
 }

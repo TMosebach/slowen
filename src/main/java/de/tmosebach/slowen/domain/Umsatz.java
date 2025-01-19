@@ -14,8 +14,7 @@ public abstract class Umsatz {
 
 	@Override
 	public String toString() {
-		return "KontoUmsatz [konto=" + konto + ", art=" + art + ", valuta=" + valuta + ", betrag=" + betrag
-				+ ", buchung=" + buchung + "]";
+		return "KontoUmsatz [konto=" + konto + ", art=" + art + ", valuta=" + valuta + ", betrag=" + betrag + "]";
 	}
 
 	public String getKonto() {

@@ -52,9 +52,19 @@
 		</dependency>
 		
 		<dependency>
+	        <groupId>jakarta.validation</groupId>
+	        <artifactId>jakarta.validation-api</artifactId>
+      	</dependency>
+		
+		<dependency>
 			<groupId>org.flywaydb</groupId>
 			<artifactId>flyway-core</artifactId>
 		</dependency>
+		
+		<dependency>
+	        <groupId>org.apache.commons</groupId>
+	        <artifactId>commons-lang3</artifactId>
+      	</dependency>
 		
 		<dependency>
 			<groupId>com.h2database</groupId>

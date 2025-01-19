@@ -1,6 +1,8 @@
 package de.tmosebach.slowen.domain;
 
+import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 
@@ -17,5 +19,9 @@ public class AssetService {
 
 	public void neuesAsset(Asset asset) {
 		assets.put(asset.getIsin(), asset);
+	}
+
+	public List<Asset> getAssets() {
+		return new ArrayList<>(assets.values());
 	}
 }
