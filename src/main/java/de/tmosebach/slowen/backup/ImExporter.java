@@ -29,10 +29,13 @@ import de.tmosebach.slowen.api.InputValidator;
 import de.tmosebach.slowen.api.input.AssetInput;
 import de.tmosebach.slowen.api.input.BuchungWrapper;
 import de.tmosebach.slowen.api.input.KontoInput;
+import de.tmosebach.slowen.api.input.Tilgung;
+import de.tmosebach.slowen.api.input.Verkauf;
 import de.tmosebach.slowen.domain.Asset;
 import de.tmosebach.slowen.domain.AssetService;
 import de.tmosebach.slowen.domain.Buchung;
 import de.tmosebach.slowen.domain.BuchungService;
+import de.tmosebach.slowen.domain.DepotBestand;
 import de.tmosebach.slowen.domain.EventService;
 import de.tmosebach.slowen.domain.Konto;
 import de.tmosebach.slowen.domain.KontoService;
@@ -233,24 +236,43 @@ public class ImExporter {
 		return counter.get();
 	}
 
-	private void switchVorgang(String trimedLine) throws IOException {
-		int start = trimedLine.indexOf("vorgang\":");
-		String vorgang = trimedLine.substring(start+10, start+14);
-		switch (vorgang) {
-		case "Buch": 
-			importBuchung(trimedLine);
-			break;
-		default:
-			throw new IllegalArgumentException("Unexpected value: " + vorgang);
-		}
-	}
-
-	private void importBuchung(String line) throws IOException {
+	private void switchVorgang(String line) throws IOException {
 		JsonParser parser = objectMapper.createParser(line);
 		BuchungWrapper buchungWrapper = parser.readValueAs(BuchungWrapper.class);
-		
-		Buchung buchung = DomainMapper.toBuchung(buchungWrapper.getBuchung());
+
+		Buchung buchung = null;
+		DepotBestand depotBestand = null;
+		switch (buchungWrapper.getVorgang()) {
+		case Buchung: 
+			buchung = DomainMapper.toBuchung(buchungWrapper.getBuchung());
+			break;
+		case Einlieferung: 
+			buchung = DomainMapper.toBuchung(buchungWrapper.getEinlieferung());
+			break;
+		case Ertrag:
+			buchung = DomainMapper.toBuchung(buchungWrapper.getErtrag());
+			break;
+		case Kauf:
+			buchung = DomainMapper.toBuchung(buchungWrapper.getKauf());
+			break;
+		case Verkauf:
+			Verkauf verkauf = buchungWrapper.getVerkauf();
+			depotBestand = getDepotBestand(verkauf.getDepot());
+			buchung = DomainMapper.toBuchung(verkauf, depotBestand);
+			break;
+		case Tilgung:
+			Tilgung tilgung = buchungWrapper.getTilgung();
+			depotBestand = getDepotBestand(tilgung.getDepot());
+			buchung = DomainMapper.toBuchung(tilgung, depotBestand);
+			break;
+		default:
+			throw new IllegalArgumentException("Unexpected value: " + buchungWrapper.getVorgang());
+		}
 		buchungService.buche(buchung);
 		eventService.saveBuchung(buchung);
+	}
+
+	private DepotBestand getDepotBestand(String depotName) {
+		return kontoService.findDepotBestandByName(depotName);
 	}
 }
