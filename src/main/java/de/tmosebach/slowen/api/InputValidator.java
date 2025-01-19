@@ -34,11 +34,13 @@ public class InputValidator {
 	public List<String> validate(KontoInput kontoInput) {
 		List<String> errors = new ArrayList<>();
 		checkNotNull(kontoInput.getArt(), "Art", errors);
-		checkNotNull(kontoInput.getBilanzPosition(), "BilanzPosition", errors);
 		checkNotBlank(kontoInput.getName(), "Name", errors);
 		
 		if (KontoArt.Konto == kontoInput.getArt()) {
 			checkSize(kontoInput.getWaehrung(), 3, "Währung", errors);
+			checkNotNull(kontoInput.getBilanzPosition(), "BilanzPosition", errors);
+		} else {
+			
 		}
 		
 		checkKontoUnikat(kontoInput.getName(), errors);
