@@ -1,5 +1,6 @@
 package de.tmosebach.slowen;
 
+import static java.util.Objects.isNull;
 import static java.math.BigDecimal.ZERO;
 import static java.util.Objects.nonNull;
 
@@ -20,6 +21,9 @@ public class Utils {
 	}
 	
 	public static boolean notZero(BigDecimal betrag) {
+		if (isNull(betrag)) {
+			return false;
+		}
 		return ZERO.compareTo(betrag) != 0;
 	}
 	
