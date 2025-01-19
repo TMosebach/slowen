@@ -226,11 +226,11 @@ public class ImExporter {
 			try {
 				String trimedLine = trim(line);
 				if (isNotBlank(trim(trimedLine))) {
-					switchVorgang(trimedLine);
 					counter.incrementAndGet();
+					switchVorgang(trimedLine);
 				}
 			} catch (IOException e) {
-				throw new RuntimeException(e);
+				throw new RuntimeException("In Zeile "+counter.get()+"\n"+line, e);
 			}
 		});
 		return counter.get();
