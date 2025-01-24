@@ -1,0 +1,28 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="de.tmosebach.slowen.preis.PreisRepository">
+
+  <insert id="savePreis">
+	insert into PREISE (
+	    REFERENZ,
+		DATUM,
+		PREIS
+	) values (
+		#{referenz},
+	    #{datum},
+	    #{preis}
+	)
+  </insert>
+  
+  <select id="getLetztenPreis" resultType="de.tmosebach.slowen.preis.Preis">
+  select 
+  	REFERENZ,
+	DATUM,
+	PREIS
+  from PREISE
+  where REFERENZ = #{referenz}
+    and DATUM = (select max(DATUM) 
+                   from PREISE
+                  where REFERENZ = #{referenz})
+  </select>
+</mapper>
