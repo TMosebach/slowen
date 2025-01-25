@@ -4,6 +4,7 @@ import java.io.File;
 import java.io.IOException;
 import java.time.LocalDateTime;
 import java.util.Arrays;
+import java.util.function.Function;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -13,9 +14,7 @@ import de.tmosebach.slowen.domain.EventService;
 
 @Service
 public class AdminService {
-	
-	
-	
+
 	private static final Logger LOG = LoggerFactory.getLogger(AdminService.class);
 	
 	private EventService eventService;
@@ -44,30 +43,41 @@ public class AdminService {
 	}
 
 	public String importDb() {
-		int kontoCount;
-		int assetCount;
-		int buchungCount;
-		try {
-			kontoCount = imExporter.importKonten(new File("eingabe/konten.import"));
-			assetCount = imExporter.importAssets(new File("eingabe/assets.import"));
 
-			File[] files = 
-					new File("eingabe")
-					.listFiles(file -> file.getName().startsWith("buchungen"));
-			Arrays.sort(files);
+		int kontoCount = imExporter.importKonten(new File("eingabe/konten.import"));
+		int assetCount = imExporter.importAssets(new File("eingabe/assets.import"));
+
+		File[] files = findFiles("buchungen");
+		int buchungCount = 0;
+		buchungCount += importFile(files, file -> imExporter.importBuchungen(file) );
 			
-			buchungCount = 0;
-			for (int i = 0; i < files.length; i++) {
-				buchungCount += imExporter.importBuchungen(files[i]);
-			}
-		} catch (IOException e) {
-			throw new RuntimeException(e);
+		int preisCount = 0;
+		files = findFiles("preise");
+		for (int i = 0; i < files.length; i++) {
+			preisCount += imExporter.importPreise(files[i]);
 		}
 		
 		return new StringBuilder("Zusammen ")
 				.append(kontoCount).append(" Konten, ")
-				.append(assetCount).append(" Assets und ")
-				.append(buchungCount).append(" Buchungen importiert.")
+				.append(assetCount).append(" Assets, ")
+				.append(buchungCount).append(" Buchungen und")
+				.append(preisCount).append(" Preise importiert.")
 				.toString();
+	}
+
+	private int importFile(File[] files, Function<File, Integer> importStatement) {
+		int count = 0;
+		for (int i = 0; i < files.length; i++) {
+			count += importStatement.apply(files[i]);
+		}
+		return count;
+	}
+
+	private File[] findFiles(String namensanfang) {
+		File[] files = 
+				new File("eingabe")
+				.listFiles(file -> file.getName().startsWith(namensanfang));
+		Arrays.sort(files);
+		return files;
 	}
 }
