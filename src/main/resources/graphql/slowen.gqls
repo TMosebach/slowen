@@ -142,18 +142,26 @@ type Konto {
 }
 
 type Bestand {
- 	asset: String!,
+	depot: String!
+ 	asset: String!
  	menge: Float!
  	einstand: Float!
+ 	datum: Date
+ 	wert: Float!
 }
 
 extend type Konto {
-	waehrung: String,
-	saldo: Float,
-	datum: Date,
+	waehrung: String
+	saldo: Float
+	datum: Date
 	bestaende: [Bestand]
 }
 
+type Vermoegen {
+	summe: Float!
+	konten: [Konto!]!
+	bestaende: [Bestand!]!
+}
 
 
 # The Root Query for the application
@@ -162,5 +170,6 @@ type Query {
     buchungen(konto: String): [String]!
     konten: [Konto]!
     assets: [Asset]!
+    vermoegenReport(stichtag: Date): Vermoegen
 }
 

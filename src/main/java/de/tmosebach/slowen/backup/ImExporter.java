@@ -332,6 +332,7 @@ public class ImExporter {
 			preis.setPreis(new BigDecimal(fields[2]));
 
 			preisService.merge(preis);
+			counter.incrementAndGet();
 		}
 	}
 }

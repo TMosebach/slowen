@@ -60,7 +60,7 @@ public class AdminService {
 		return new StringBuilder("Zusammen ")
 				.append(kontoCount).append(" Konten, ")
 				.append(assetCount).append(" Assets, ")
-				.append(buchungCount).append(" Buchungen und")
+				.append(buchungCount).append(" Buchungen und ")
 				.append(preisCount).append(" Preise importiert.")
 				.toString();
 	}

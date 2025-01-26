@@ -101,4 +101,20 @@ mutation Tilgungsanzeige {
     })
 }
 
+query Vermoegensreport {
+  vermoegenReport(stichtag:"2025-01-26") {
+    summe
+    konten {
+      name
+      saldo
+    }
+    bestaende {
+      depot
+      asset
+      menge
+      wert
+    }
+  }
+}
+
 

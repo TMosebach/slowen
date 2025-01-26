@@ -25,4 +25,8 @@ public class PreisService {
 			LOG.info("Preis ist bekannt: {}", preis);
 		}
 	}
+	
+	public Optional<Preis> getLetztenPreis(String referenz) {
+		return preisRepository.getLetztenPreis(referenz);
+	}
 }
