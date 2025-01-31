@@ -132,7 +132,7 @@ type Asset {
 	name: String!,
 	typ: AssetTyp!,
 	isin: String!,
-	wpk: String!
+	wpk: String
 }
 
 type Konto {
@@ -143,7 +143,7 @@ type Konto {
 
 type Bestand {
 	depot: String!
- 	asset: String!
+ 	asset: Asset!
  	menge: Float!
  	einstand: Float!
  	datum: Date

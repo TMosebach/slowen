@@ -101,35 +101,3 @@ mutation Tilgungsanzeige {
     	soli:0.2
     })
 }
-
-query abfrage {
-  konten {
-    name
-    art
-    bilanzPosition
-    waehrung
-    saldo
-    datum
-    bestaende {
-      asset
-      menge
-      einstand
-    }
-  }
-}
-
-query assetList {
-  konten {
-    name
-    art
-    bilanzPosition
-    waehrung
-    saldo
-    datum
-    bestaende {
-      asset
-      menge
-      einstand
-    }
-  }
-}

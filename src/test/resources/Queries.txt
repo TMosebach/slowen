@@ -1,0 +1,36 @@
+query abfrage {
+  konten {
+    name
+    art
+    bilanzPosition
+    waehrung
+    saldo
+    datum
+    bestaende {
+      asset
+      menge
+      einstand
+    }
+  }
+}
+
+query Vermoegensreport {
+  vermoegenReport(stichtag:"2025-01-26") {
+    summe
+    konten {
+      name
+      datum
+      saldo
+    }
+    bestaende {
+      depot
+      asset {
+        isin
+        name
+        typ
+      }
+      menge
+      wert
+    }
+  }
+}

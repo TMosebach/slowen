@@ -90,7 +90,7 @@ public class QueryController {
 	@QueryMapping
 	public Vermoegen vermoegenReport(@Argument LocalDate stichtag) {
 		Vermoegen vermoegen = new Vermoegen();
-		
+
 		kontoService.getKonten().forEach( domainKonto -> {
 			Konto konto = new Konto();
 			konto.setArt(domainKonto.getArt());
@@ -114,7 +114,7 @@ public class QueryController {
 	private void bewerteDepotBestaende(List<Bestand> bestaende) {
 		bestaende.forEach( bestand -> {
 			Optional<Preis> preisOptional = 
-					preisService.getLetztenPreis(bestand.getAsset());
+					preisService.getLetztenPreis(bestand.getAsset().getIsin());
 			if (preisOptional.isPresent()) {
 				Preis preis = preisOptional.get();
 				bestand.setDatum(preis.getDatum());
@@ -133,7 +133,10 @@ public class QueryController {
 			depotBestaende.getBestaende().stream()
 			.map( depotBestand -> {
 				Bestand bestand = new Bestand();
-				bestand.setAsset(depotBestand.getAsset());
+				bestand.setAsset(
+					map2Api(
+						assetService.findAssetByIsin(
+							depotBestand.getAsset()).orElseThrow() ));
 				bestand.setMenge(depotBestand.getMenge());
 				bestand.setEinstand(depotBestand.getEinstand());
 
@@ -141,6 +144,15 @@ public class QueryController {
 			})
 			.toList();
 		konto.setBestaende(bestaende);
+	}
+
+	private Asset map2Api(de.tmosebach.slowen.domain.Asset domainAsset) {
+		Asset asset = new Asset();
+		asset.setIsin(domainAsset.getIsin());
+		asset.setName(domainAsset.getName());
+		asset.setTyp(domainAsset.getTyp());
+		asset.setWpk(domainAsset.getWpk());
+		return asset;
 	}
 
 	private void addKontoSaldo(Konto konto) {

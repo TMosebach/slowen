@@ -6,7 +6,7 @@ import java.time.LocalDate;
 public class Bestand {
 
 	private String depot;
-	private String asset;
+	private Asset asset;
 	private BigDecimal menge;
 	private BigDecimal einstand;
 	private LocalDate datum;
@@ -17,10 +17,10 @@ public class Bestand {
 		return "Bestand [depot=" + depot + ", asset=" + asset + ", menge=" + menge + ", einstand=" + einstand
 				+ ", datum=" + datum + ", wert=" + wert + "]";
 	}
-	public String getAsset() {
+	public Asset getAsset() {
 		return asset;
 	}
-	public void setAsset(String asset) {
+	public void setAsset(Asset asset) {
 		this.asset = asset;
 	}
 	public BigDecimal getMenge() {
