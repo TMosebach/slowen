@@ -18,6 +18,7 @@ import de.tmosebach.slowen.domain.KontoBestand;
 import de.tmosebach.slowen.domain.KontoService;
 import de.tmosebach.slowen.preis.Preis;
 import de.tmosebach.slowen.preis.PreisService;
+import de.tmosebach.slowen.values.BilanzPosition;
 import de.tmosebach.slowen.values.KontoArt;
 
 @Controller
@@ -91,7 +92,9 @@ public class QueryController {
 	public Vermoegen vermoegenReport(@Argument LocalDate stichtag) {
 		Vermoegen vermoegen = new Vermoegen();
 
-		kontoService.getKonten().forEach( domainKonto -> {
+		kontoService.getKonten().stream()
+			.filter( konto -> isBestandskonto(konto) )
+			.forEach( domainKonto -> {
 			Konto konto = new Konto();
 			konto.setArt(domainKonto.getArt());
 			konto.setBilanzPosition(domainKonto.getBilanzPosition());
@@ -109,6 +112,13 @@ public class QueryController {
 		});
 		
 		return vermoegen;
+	}
+
+	private boolean isBestandskonto(de.tmosebach.slowen.domain.Konto konto) {
+		BilanzPosition position = konto.getBilanzPosition();
+		return position == BilanzPosition.Aktiv
+				|| position == BilanzPosition.Passiv
+				|| position == BilanzPosition.Kontokorrent;
 	}
 
 	private void bewerteDepotBestaende(List<Bestand> bestaende) {
