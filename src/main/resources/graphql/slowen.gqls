@@ -168,7 +168,6 @@ type Vermoegen {
 type Query {
 	findKontoByName(kontoName: String): Konto!
     buchungen(konto: String): [String]!
-    konten: [Konto]!
     assets: [Asset]!
     vermoegenReport(stichtag: Date): Vermoegen
 }
