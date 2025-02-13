@@ -30,4 +30,17 @@ public class BuchungService {
 				}
 			});
 	}
+
+	public List<Buchung> findBuchungenZuKonto(String zielKonto) {
+		return buchungen.stream()
+				.filter( buchung -> buchungZu(buchung, zielKonto))
+				.toList();
+	}
+
+	private boolean buchungZu(Buchung buchung, String zielKonto) {
+		return buchung.getUmsaetze().stream()
+				.filter( umsatz -> umsatz.getKonto().equals(zielKonto))
+				.findFirst()
+				.isPresent();
+	}
 }

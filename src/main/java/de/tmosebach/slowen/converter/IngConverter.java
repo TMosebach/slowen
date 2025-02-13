@@ -1,33 +1,57 @@
 package de.tmosebach.slowen.converter;
 
+import static java.util.Objects.nonNull;
+import static java.util.Objects.isNull;
 import java.io.IOException;
 import java.io.Writer;
+import java.math.BigDecimal;
+import java.util.List;
 import java.util.stream.Stream;
+
+import org.apache.commons.lang3.StringUtils;
+import org.springframework.stereotype.Component;
 
 import com.fasterxml.jackson.core.JsonGenerator;
 import com.fasterxml.jackson.databind.ObjectMapper;
 
+import de.tmosebach.slowen.api.input.BuchungWrapper;
 import de.tmosebach.slowen.converter.mapper.IngMapper;
+import de.tmosebach.slowen.domain.AssetService;
+import de.tmosebach.slowen.domain.Buchung;
+import de.tmosebach.slowen.domain.BuchungService;
+import de.tmosebach.slowen.values.Vorgang;
 
+@Component
 public class IngConverter {
-
+	
+	private ObjectMapper objectMapper;
+	private AssetService assetService;
+	private BuchungService buchungService;
+	
+	private JsonGenerator generator;
+	
 	/**
 	 * Kopfzeilen für ING-Csv-Dateien
 	 */
 	private int offeneKopfzeilen = 14;
 	
 	private String zielKonto;
-	private ObjectMapper objectMapper;
-	
-	private JsonGenerator generator;
 
-	public IngConverter(String zielKonto, ObjectMapper objectMapper) {
-		this.zielKonto = zielKonto;
+	public IngConverter(
+			ObjectMapper objectMapper,
+			AssetService assetService,
+			BuchungService buchungService) {
 		this.objectMapper = objectMapper;
+		this.assetService = assetService;
+		this.buchungService = buchungService;
 	}
 
-	public void convert(Stream<String> lines, Writer writer) {
+	public void convert(Stream<String> lines, String zielKonto, Writer writer) {
+		this.zielKonto = zielKonto;
 		try {
+			// XXX Entwicklung
+//			OutputStreamWriter writer = new OutputStreamWriter(System.out);
+			
 			generator = objectMapper.createGenerator(writer);
 			
 			lines.filter( this::isDatenzeile )
@@ -40,16 +64,68 @@ public class IngConverter {
 	
 	private void toBuchung(String[] fields, Writer writer) {
 		try {
-			writer.append("TODO: ");
-			
-			generator.writeObject(IngMapper.map(zielKonto, fields));
-			
-			writer.append(System.lineSeparator());
+			BuchungWrapper wrapper = IngMapper.map(zielKonto, assetService, fields);
+			if (neueBuchung(wrapper)) {
+				writer.append("TODO: "); // Marker, hier ist zu kontrollieren
+				generator.writeObject(wrapper);
+				writer.append(System.lineSeparator());
+			}
 		} catch (IOException e) {
 			throw new RuntimeException(e.getMessage());
 		}
 	}
 	
+	/**
+	 * Prüfen, ob eine Buchung ggf. schon auf dem Konto verbucht ist.
+	 * 
+	 * Das kann als Ergebnis einer Umbuchung von einem anderen Konto
+	 * der Fall sein.
+	 * 
+	 * @param wrapper zu untersuchende Buchung
+	 * @return {@code true}, falls die Buchung neu ist.
+	 */
+	private boolean neueBuchung(BuchungWrapper wrapper) {
+		
+		if (wrapper.getVorgang() != Vorgang.Buchung) {
+			return true;
+		}
+		
+		List<Buchung> buchungen = buchungService.findBuchungenZuKonto(zielKonto);
+		if (match(buchungen, wrapper.getBuchung())) {
+			return false;
+		}
+		return true;
+	}
+
+	private boolean match(List<Buchung> buchungen, de.tmosebach.slowen.api.input.Buchung buchung) {
+		List<Buchung> treffer = 
+			buchungen.stream()
+			.filter( kontoBuchung -> 
+					StringUtils.equals(kontoBuchung.getEmpfaenger(), buchung.getEmpfaenger())
+				&& kontoBuchung.getDatum().equals(buchung.getDatum())
+				&& umsatzBetrag(kontoBuchung)
+					.compareTo(umsatzBetrag(buchung)) == 0)
+			.toList();
+		
+		return treffer.size() == 1;
+	}
+
+	private BigDecimal umsatzBetrag(Buchung buchung) {
+		return buchung.getUmsaetze().stream()
+				.filter( umsatz -> umsatz.getKonto().equals(zielKonto))
+				.map( umsatz -> umsatz.getBetrag())
+				.findFirst()
+				.orElseThrow();
+	}
+	
+	private BigDecimal umsatzBetrag(de.tmosebach.slowen.api.input.Buchung buchung) {
+		return buchung.getUmsaetze().stream()
+				.filter( umsatz -> umsatz.getKonto().equals(zielKonto))
+				.map( umsatz -> umsatz.getBetrag())
+				.findFirst()
+				.orElseThrow();
+	}
+
 	private String[] toFields(String line) {
 		return line.split(";");
 	}

@@ -12,17 +12,15 @@ import org.slf4j.LoggerFactory;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RestController;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
-
 @RestController
 public class ConverterController {
 	
 	private static final Logger LOG = LoggerFactory.getLogger(ConverterController.class);
 
-	private ObjectMapper objectMapper;
-
-	public ConverterController(ObjectMapper objectMapper) {
-		this.objectMapper = objectMapper;
+	private IngConverter ingConverter;
+	
+	public ConverterController(IngConverter ingConverter) {
+		this.ingConverter = ingConverter;
 	}
 
 	@GetMapping("api/convert")
@@ -31,11 +29,10 @@ public class ConverterController {
 		LOG.trace("convert({},{},{})", konto, datei, typ);
 		
 		Path filePath = Paths.get(datei+".csv");
-		IngConverter ingConverter = new IngConverter("ING Giro", objectMapper);
 		try (Stream<String> lines = Files.lines(filePath, StandardCharsets.ISO_8859_1);
 			 FileWriter writer = new FileWriter(datei+".input") ) {
 			
-			ingConverter.convert(lines, writer);
+			ingConverter.convert(lines, konto, writer);
 		} catch (Exception e) {
 			LOG.error(e.getMessage(), e);
 			return "Fehler: "+e.getClass().getSimpleName()+" "+ e.getMessage();

@@ -3,6 +3,7 @@ package de.tmosebach.slowen.api;
 import static de.tmosebach.slowen.Utils.getBetragOder0;
 import static de.tmosebach.slowen.Utils.notZero;
 import static de.tmosebach.slowen.domain.Kontonamen.DIVIDENDE;
+import static de.tmosebach.slowen.domain.Kontonamen.FONDSERTRAG;
 import static de.tmosebach.slowen.domain.Kontonamen.KEST;
 import static de.tmosebach.slowen.domain.Kontonamen.KURSGEWINN;
 import static de.tmosebach.slowen.domain.Kontonamen.KURSVERLUST;
@@ -18,7 +19,6 @@ import java.math.BigDecimal;
 import de.tmosebach.slowen.api.input.AssetInput;
 import de.tmosebach.slowen.api.input.Einlieferung;
 import de.tmosebach.slowen.api.input.Ertrag;
-import de.tmosebach.slowen.api.input.Ertragsart;
 import de.tmosebach.slowen.api.input.Kauf;
 import de.tmosebach.slowen.api.input.KontoInput;
 import de.tmosebach.slowen.api.input.Tilgung;
@@ -120,14 +120,14 @@ public class DomainMapper {
 					ertrag.getDatum(),
 					"Ertrag zu "+ertrag.getAsset());
 			
-		BigDecimal bruttowert = ertrag.getBetrag();
+		BigDecimal gutschrift = ertrag.getBetrag();
 		BigDecimal kest = getBetragOder0(ertrag.getKest());
 		BigDecimal soli = getBetragOder0(ertrag.getSoli());
 		
-		BigDecimal gutschrift = 
-				bruttowert
-				.subtract(soli)
-				.subtract(kest);
+		BigDecimal bruttowert = 
+				gutschrift
+				.add(soli)
+				.add(kest);
 		
 		builder.addDepotUmsatz(
 				ertrag.getDepot(),
@@ -136,11 +136,14 @@ public class DomainMapper {
 				ertrag.getValuta(),
 				ZERO);
 
-		if (ertrag.getErtragsart() == Ertragsart.Dividende) {
-			builder.addKontoUmsatz(DIVIDENDE, ertrag.getValuta(), bruttowert.negate());
-		} else {
-			builder.addKontoUmsatz(ZINSKUPON, ertrag.getValuta(), bruttowert.negate());
-		}
+		String ertragskonto = switch(ertrag.getErtragsart()) {
+			case Dividende -> DIVIDENDE;
+			case Zins -> ZINSKUPON;
+			case Fondsertrag -> FONDSERTRAG;
+			default -> throw new IllegalArgumentException("Unbekannte Ertragsart: "+ertrag.getErtragsart());
+		};
+		builder.addKontoUmsatz(ertragskonto, ertrag.getValuta(), bruttowert.negate());
+
 		builder.addKontoUmsatz(ertrag.getKonto(), ertrag.getValuta(), gutschrift);
 
 		if (notZero(kest)) {
