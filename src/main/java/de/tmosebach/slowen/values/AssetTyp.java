@@ -5,5 +5,7 @@ public enum AssetTyp {
 	ETF,
 	Anleihe,
 	Fonds,
-	Zertifikat
+	Zertifikat,
+	Devise,
+	Rohstoff
 }

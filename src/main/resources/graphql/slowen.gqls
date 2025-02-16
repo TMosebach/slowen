@@ -5,7 +5,9 @@ enum AssetTyp {
 	Anleihe
 	ETF
 	Fonds
-	Zertifikat
+	Zertifikat,
+	Devise,
+	Rohstoff
 }
 
 enum BilanzPosition {

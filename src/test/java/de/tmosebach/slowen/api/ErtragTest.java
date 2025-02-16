@@ -70,7 +70,7 @@ class ErtragTest {
 		ertrag.setErtragsart(Ertragsart.Zins);
 		ertrag.setKonto(KONTO);
 		ertrag.setValuta(VALUTA);
-		ertrag.setBetrag(valueOf(200.0));
+		ertrag.setBetrag(valueOf(146.0));
 		ertrag.setKest(valueOf(50.0));
 		ertrag.setSoli(valueOf(4.0));
 
