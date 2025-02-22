@@ -2,26 +2,24 @@ package de.tmosebach.slowen.converter.mapper;
 
 import static java.math.BigDecimal.ZERO;
 
-import java.math.BigDecimal;
 import java.text.DecimalFormat;
-import java.text.ParseException;
-import java.time.LocalDate;
-import java.time.format.DateTimeFormatter;
 import java.util.List;
+
+import org.springframework.stereotype.Component;
 
 import de.tmosebach.slowen.api.input.Buchung;
 import de.tmosebach.slowen.api.input.BuchungWrapper;
 import de.tmosebach.slowen.api.input.Ertrag;
 import de.tmosebach.slowen.api.input.Ertragsart;
 import de.tmosebach.slowen.api.input.Umsatz;
+import de.tmosebach.slowen.converter.EingabeTyp;
 import de.tmosebach.slowen.domain.Asset;
 import de.tmosebach.slowen.domain.AssetService;
 import de.tmosebach.slowen.values.AssetTyp;
 import de.tmosebach.slowen.values.Vorgang;
 
-public class IngMapper {
-	
-	private static final String BETRAG_FORMAT_PATTERN = "#,##0.00";
+@Component
+public class IngMapper implements IMapper {
 	
 	private static DecimalFormat betragFormat;
 
@@ -31,8 +29,15 @@ public class IngMapper {
 	static final int COL_BUCHUNGSTEXT = 3;
 	static final int COL_VERWENDUNG = 4;
 	static final int COL_BETRAG = 7;
+	
+	private AssetService assetService;
 
-	public static BuchungWrapper map(String zielKonto, AssetService assetService, String... fields) {
+	public IngMapper(AssetService assetService) {
+		this.assetService = assetService;
+	}
+
+	@Override
+	public BuchungWrapper map(String zielKonto, String... fields) {
 		
 		betragFormat = new DecimalFormat(BETRAG_FORMAT_PATTERN);
 		betragFormat.setParseBigDecimal(true);
@@ -62,7 +67,7 @@ public class IngMapper {
 		return wrapper;
 	}
 	
-	private static Ertrag mapErtrag(String zielKonto, AssetService assetService, String[] fields) {
+	private Ertrag mapErtrag(String zielKonto, AssetService assetService, String[] fields) {
 		
 		Ertrag ertrag = new Ertrag();
 		ertrag.setDepot("ING Depot");
@@ -91,7 +96,7 @@ public class IngMapper {
 		return ertrag;
 	}
 
-	private static Buchung mapBuchung(String zielKonto, String[] fields) {
+	private Buchung mapBuchung(String zielKonto, String[] fields) {
 		Umsatz umsatz = new Umsatz();
 		umsatz.setKonto(zielKonto);
 		umsatz.setValuta(mapDate(fields[COL_VALUTA]));
@@ -111,15 +116,13 @@ public class IngMapper {
 		return buchung;
 	}
 
-	private static LocalDate mapDate(String dateString) {
-		return LocalDate.parse(dateString, DateTimeFormatter.ofPattern("dd.MM.uuuu"));
+	@Override
+	public EingabeTyp getTyp() {
+		return EingabeTyp.ING;
 	}
-	
-	private static BigDecimal mapBetrag(String betragString) {
-		try {
-			return (BigDecimal)betragFormat.parse(betragString);
-		} catch (ParseException e) {
-			throw new IllegalArgumentException(e);
-		}
+
+	@Override
+	public int getAnzahlKopfzeilen() {
+		return 14;
 	}
 }

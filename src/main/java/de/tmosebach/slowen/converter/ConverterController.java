@@ -17,10 +17,10 @@ public class ConverterController {
 	
 	private static final Logger LOG = LoggerFactory.getLogger(ConverterController.class);
 
-	private IngConverter ingConverter;
+	private Converter converter;
 	
-	public ConverterController(IngConverter ingConverter) {
-		this.ingConverter = ingConverter;
+	public ConverterController(Converter converter) {
+		this.converter = converter;
 	}
 
 	@GetMapping("api/convert")
@@ -30,9 +30,9 @@ public class ConverterController {
 		
 		Path filePath = Paths.get(datei+".csv");
 		try (Stream<String> lines = Files.lines(filePath, StandardCharsets.ISO_8859_1);
-			 FileWriter writer = new FileWriter(datei+".input") ) {
+			FileWriter writer = new FileWriter(datei+".input") ) {
 			
-			ingConverter.convert(lines, konto, writer);
+			converter.convert(lines, typ, konto, writer);
 		} catch (Exception e) {
 			LOG.error(e.getMessage(), e);
 			return "Fehler: "+e.getClass().getSimpleName()+" "+ e.getMessage();

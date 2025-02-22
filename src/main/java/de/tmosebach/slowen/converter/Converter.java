@@ -1,11 +1,11 @@
 package de.tmosebach.slowen.converter;
 
-import static java.util.Objects.nonNull;
-import static java.util.Objects.isNull;
 import java.io.IOException;
 import java.io.Writer;
 import java.math.BigDecimal;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.stream.Stream;
 
 import org.apache.commons.lang3.StringUtils;
@@ -15,56 +15,65 @@ import com.fasterxml.jackson.core.JsonGenerator;
 import com.fasterxml.jackson.databind.ObjectMapper;
 
 import de.tmosebach.slowen.api.input.BuchungWrapper;
-import de.tmosebach.slowen.converter.mapper.IngMapper;
-import de.tmosebach.slowen.domain.AssetService;
+import de.tmosebach.slowen.converter.mapper.IMapper;
 import de.tmosebach.slowen.domain.Buchung;
 import de.tmosebach.slowen.domain.BuchungService;
 import de.tmosebach.slowen.values.Vorgang;
 
 @Component
-public class IngConverter {
+public class Converter {
 	
 	private ObjectMapper objectMapper;
-	private AssetService assetService;
 	private BuchungService buchungService;
 	
 	private JsonGenerator generator;
+	private Map<EingabeTyp, IMapper> mapper;
 	
 	/**
 	 * Kopfzeilen für ING-Csv-Dateien
 	 */
-	private int offeneKopfzeilen = 14;
+	private int offeneKopfzeilen = 0;
 	
 	private String zielKonto;
 
-	public IngConverter(
+	public Converter(
 			ObjectMapper objectMapper,
-			AssetService assetService,
-			BuchungService buchungService) {
+			BuchungService buchungService,
+			List<IMapper> mapper) {
 		this.objectMapper = objectMapper;
-		this.assetService = assetService;
 		this.buchungService = buchungService;
+		
+		this.mapper = new HashMap<>();
+		mapper.forEach( m -> this.mapper.put(m.getTyp(), m));
 	}
 
-	public void convert(Stream<String> lines, String zielKonto, Writer writer) {
+	public void convert(
+			Stream<String> lines, 
+			EingabeTyp typ, 
+			String zielKonto, 
+			Writer writer) {
 		this.zielKonto = zielKonto;
+		
+		IMapper theMapper = mapper.get(typ);
+		this.offeneKopfzeilen = theMapper.getAnzahlKopfzeilen();
 		try {
 			// XXX Entwicklung
 //			OutputStreamWriter writer = new OutputStreamWriter(System.out);
 			
 			generator = objectMapper.createGenerator(writer);
 			
-			lines.filter( this::isDatenzeile )
+			lines.filter( line -> isDatenzeile(line) )
 				.map( this::toFields )
-				.forEach( buchung -> toBuchung(buchung, writer) );
+				.filter( fields -> fields.length > 1)
+				.forEach( buchung -> toBuchung(buchung, theMapper, writer) );
 		} catch (IOException e) {
 			throw new RuntimeException(e.getMessage());
 		}
 	}
 	
-	private void toBuchung(String[] fields, Writer writer) {
+	private void toBuchung(String[] fields, IMapper mapper, Writer writer) {
 		try {
-			BuchungWrapper wrapper = IngMapper.map(zielKonto, assetService, fields);
+			BuchungWrapper wrapper = mapper.map(zielKonto, fields);
 			if (neueBuchung(wrapper)) {
 				writer.append("TODO: "); // Marker, hier ist zu kontrollieren
 				generator.writeObject(wrapper);
