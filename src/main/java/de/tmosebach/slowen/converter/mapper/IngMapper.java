@@ -89,8 +89,10 @@ public class IngMapper implements IMapper {
 		Asset asset = assetService.findAssetByIsin(isin).orElseThrow();
 		if (asset.getTyp() == AssetTyp.Aktie) {
 			ertrag.setErtragsart(Ertragsart.Dividende);
-		} else {
+		} else if (asset.getTyp() == AssetTyp.Anleihe) {
 			ertrag.setErtragsart(Ertragsart.Zins);
+		} else {
+			ertrag.setErtragsart(Ertragsart.Fondsertrag);
 		}
 
 		return ertrag;
