@@ -5,8 +5,6 @@ import java.util.List;
 
 import org.springframework.stereotype.Service;
 
-import de.tmosebach.slowen.values.KontoArt;
-
 @Service
 public class BuchungService {
 	
@@ -21,14 +19,7 @@ public class BuchungService {
 	public void buche(Buchung buchung) {
 		buchungen.add(buchung);
 		
-		buchung.getUmsaetze()
-			.forEach( umsatz -> {
-				if (umsatz.getArt()==KontoArt.Konto) {
-					kontoService.bucheKontoUmsatz(umsatz);
-				} else  {
-					kontoService.bucheDepotUmsatz(umsatz);
-				}
-			});
+		buchung.getUmsaetze().forEach( kontoService::bucheUmsatz );
 	}
 
 	public List<Buchung> findBuchungenZuKonto(String zielKonto) {
@@ -42,5 +33,9 @@ public class BuchungService {
 				.filter( umsatz -> umsatz.getKonto().equals(zielKonto))
 				.findFirst()
 				.isPresent();
+	}
+	
+	public List<Buchung> buchungen() {
+		return buchungen.stream().sorted( (b1, b2) -> b1.getDatum().compareTo(b2.getDatum())).toList();
 	}
 }

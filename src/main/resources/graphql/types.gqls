@@ -1,0 +1,39 @@
+type Asset {
+	name: String!,
+	typ: AssetTyp!,
+	isin: String!,
+	wpk: String
+}
+
+type Konto {
+	name: String!,
+	art: KontoArt!,
+	bilanzPosition: BilanzPosition!,
+}
+
+type Bestand {
+	depot: String!
+ 	asset: Asset!
+ 	menge: Float!
+ 	einstand: Float!
+ 	datum: Date
+ 	wert: Float!
+}
+
+extend type Konto {
+	waehrung: String
+	saldo: Float
+	datum: Date
+	bestaende: [Bestand]
+}
+
+type Vermoegen {
+	summe: Float!
+	konten: [Konto!]!
+	bestaende: [Bestand!]!
+}
+
+type Vermoegensstand {
+    summe: Float!
+    datum: Date!
+}

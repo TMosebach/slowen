@@ -25,4 +25,17 @@
                    from PREISE
                   where REFERENZ = #{referenz})
   </select>
+  
+  <select id="getPreis" resultType="de.tmosebach.slowen.preis.Preis">
+  select 
+  	REFERENZ,
+	DATUM,
+	PREIS
+  from PREISE
+  where REFERENZ = #{referenz}
+    and DATUM = (select max(DATUM) 
+                   from PREISE
+                  where REFERENZ = #{referenz}
+                    and DATUM &lt;= #{stichtag})
+  </select>
 </mapper>

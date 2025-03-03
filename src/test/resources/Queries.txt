@@ -34,3 +34,10 @@ query Vermoegensreport {
     }
   }
 }
+
+query Vermoegensverlauf {
+  vermoegenEntwicklungReport {
+    summe
+    datum
+  }
+}

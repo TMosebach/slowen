@@ -1,0 +1,88 @@
+input AssetInput {
+	name: String!,
+	typ: AssetTyp!,
+	isin: String!,
+	wpk: String!
+}
+
+input Buchung {
+	id: String,
+    datum: Date!,
+	empfaenger: String,
+	verwendung: String,
+	umsaetze: [Umsatz]!
+}
+
+input Einlieferung {
+	datum: Date!,
+	depot: String!,
+	asset: String!,
+	valuta: Date!,
+	menge: Float!,
+	betrag: Float,
+}
+
+input Ertrag {
+    datum: Date!,
+	depot: String!,
+	konto: String!,
+	asset: String!,
+	valuta: Date!,
+	menge: Float!,
+	betrag: Float!,
+	ertragsart: Ertragsart!,
+	kest: Float,
+	soli: Float
+}
+
+input Kauf {
+    datum: Date!,
+	depot: String!,
+	konto: String!,
+	asset: String!,
+	valuta: Date!,
+	menge: Float!,
+	betrag: Float!,
+	provision: Float,
+	stueckzins: Float
+}
+
+input KontoInput {
+	name: String!,
+	art: KontoArt!,
+	waehrung: String!,
+	bilanzPosition: BilanzPosition!,
+	saldo: Float,
+	datum: Date
+}
+
+input Tilgung {
+    datum: Date!,
+	depot: String!,
+	konto: String!,
+	asset: String!,
+	valuta: Date!,
+	menge: Float!,
+	betrag: Float,
+	kest: Float,
+	soli: Float
+}
+	
+input Umsatz {
+	konto: String!,
+	valuta: Date!,
+	betrag: Float!
+}
+
+input Verkauf {
+    datum: Date!,
+	depot: String!,
+	konto: String!,
+	asset: String!,
+	valuta: Date!,
+	menge: Float!,
+	betrag: Float!,
+	provision: Float,
+	kest: Float,
+	soli: Float
+}

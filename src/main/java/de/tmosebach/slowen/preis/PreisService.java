@@ -1,5 +1,6 @@
 package de.tmosebach.slowen.preis;
 
+import java.time.LocalDate;
 import java.util.Optional;
 
 import org.slf4j.Logger;
@@ -28,5 +29,9 @@ public class PreisService {
 	
 	public Optional<Preis> getLetztenPreis(String referenz) {
 		return preisRepository.getLetztenPreis(referenz);
+	}
+
+	public Optional<Preis> getPreis(String referenz, LocalDate stichtag) {
+		return preisRepository.getPreis(referenz, stichtag);
 	}
 }

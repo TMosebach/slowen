@@ -36,15 +36,23 @@ public class KontoService {
 	public Optional<Konto> findByName(String kontoName) {
 		return Optional.ofNullable(konten.get(kontoName));
 	}
+	
+	public void bucheUmsatz(Umsatz umsatz) {
+		if (umsatz.getArt()==KontoArt.Konto) {
+			bucheKontoUmsatz(umsatz);
+		} else  {
+			bucheDepotUmsatz(umsatz);
+		}
+	}
 
-	public void bucheKontoUmsatz(Umsatz umsatz) {
+	private void bucheKontoUmsatz(Umsatz umsatz) {
 		KontoUmsatz kontoUmsatz = (KontoUmsatz)umsatz;
 		KontoBestand kontoBestand = kontoBestaende.get(kontoUmsatz.getKonto());
 		kontoBestand.setSaldo(kontoBestand.getSaldo().add(kontoUmsatz.getBetrag()));
 		kontoBestand.setDatum(kontoUmsatz.getBuchung().getDatum());
 	}
 	
-	public void bucheDepotUmsatz(Umsatz umsatz) {
+	private void bucheDepotUmsatz(Umsatz umsatz) {
 		DepotUmsatz depotUmsatz = (DepotUmsatz)umsatz;
 		
 		DepotBestand depotBestand = depotBestaende.get(umsatz.getKonto());

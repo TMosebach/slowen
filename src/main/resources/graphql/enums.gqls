@@ -1,0 +1,28 @@
+enum AssetTyp {
+	Aktie
+	Anleihe
+	ETF
+	Fonds
+	Zertifikat,
+	Devise,
+	Rohstoff
+}
+
+enum BilanzPosition {
+ 	Aktiv
+	Aufwand
+	CPD
+	Ertrag
+	Kontokorrent
+	Passiv
+}
+
+enum Ertragsart {
+	Dividende
+	Zins
+}
+
+enum KontoArt {
+	Konto
+	Depot
+}
