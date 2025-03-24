@@ -86,12 +86,12 @@ public class DomainMapper {
 				kauf.getAsset()+" "+kauf.getMenge()
 				+ " zu "+ kauf.getBetrag());
 		
-		BigDecimal einstandswert = kauf.getBetrag();
+		BigDecimal belastung = kauf.getBetrag();
 		BigDecimal stueckzins = getBetragOder0(kauf.getStueckzins());
 		BigDecimal provision = getBetragOder0(kauf.getProvision());
 		
-		BigDecimal belastung = 
-				einstandswert.add(provision).add(stueckzins).negate();
+		BigDecimal einstandswert = 
+				belastung.add(provision).add(stueckzins);
 		
 		builder.addDepotUmsatz(
 			kauf.getDepot(),
@@ -100,7 +100,7 @@ public class DomainMapper {
 			kauf.getValuta(),
 			kauf.getMenge());
 		
-		builder.addKontoUmsatz(kauf.getKonto(), kauf.getValuta(), belastung);
+		builder.addKontoUmsatz(kauf.getKonto(), kauf.getValuta(), belastung.negate());
 		
 		if (notZero(provision)) {
 			builder.addKontoUmsatz(PROVISION, kauf.getValuta(), provision);
