@@ -47,7 +47,13 @@ public class KontoService {
 
 	private void bucheKontoUmsatz(Umsatz umsatz) {
 		KontoUmsatz kontoUmsatz = (KontoUmsatz)umsatz;
-		KontoBestand kontoBestand = kontoBestaende.get(kontoUmsatz.getKonto());
+		
+		String kontoName = kontoUmsatz.getKonto();
+		if (! kontoBestaende.containsKey(kontoName)) {
+			throw new IllegalArgumentException("Unbekanntes Konto: "+kontoName);
+		}
+		
+		KontoBestand kontoBestand = kontoBestaende.get(kontoName);
 		kontoBestand.setSaldo(kontoBestand.getSaldo().add(kontoUmsatz.getBetrag()));
 		kontoBestand.setDatum(kontoUmsatz.getBuchung().getDatum());
 	}
