@@ -53,7 +53,6 @@ Andernfalls speichert es die Buchung mit ihren Positionen und kehrt zur Buchung-
 | date | TEXT | ja | Buchungsdatum (ISO 8601) |
 | description | TEXT | nein | Freitext-Beschreibung |
 | sender_receiver | TEXT | nein | Beteiligte Person/Gegenstelle |
-| created_at | TEXT | auto | Erstellungszeitpunkt |
 
 ### BookingPosition
 
