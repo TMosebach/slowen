@@ -38,7 +38,7 @@ CREATE TABLE accounts (
 
 **Bestand:** Giro, Tagesgeld, Depot, Immobilie, Versicherung, Forderung, Verbindlichkeit
 
-**GuV:** Kreditkarte
+**GuV:** Aufwand, Ertrag, Kreditkarte
 
 ## Angular Komponenten
 
