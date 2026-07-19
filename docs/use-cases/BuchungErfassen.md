@@ -63,7 +63,7 @@ Andernfalls speichert es die Buchung mit ihren Positionen und kehrt zur Buchung-
 | booking_id | INTEGER | ja | Foreign Key auf Booking |
 | account_id | INTEGER | ja | Foreign Key auf Account |
 | valuta | TEXT | ja | Wertstellungsdatum (ISO 8601) |
-| amount | REAL | ja | Betrag (positiv) |
+| amount | REAL | ja | Betrag (positiv oder negativ) |
 
 ## UI-Hinweise
 
