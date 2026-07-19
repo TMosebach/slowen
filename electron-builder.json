@@ -1,0 +1,15 @@
+{
+  "appId": "de.slowen.app",
+  "productName": "Slowen",
+  "directories": {
+    "output": "dist-electron"
+  },
+  "files": [
+    "dist/**/*",
+    "electron/**/*"
+  ],
+  "mac": {
+    "category": "public.app-category.finance",
+    "target": "dmg"
+  }
+}
