@@ -9,6 +9,8 @@
 
   @if (loading) {
     <div class="text-center py-8">Laden...</div>
+  } @else if (error) {
+    <div class="text-center py-8 text-red-600">{{ error }}</div>
   } @else if (accounts.length === 0) {
     <div class="text-center py-8 text-gray-500">
       Noch keine Konten vorhanden.

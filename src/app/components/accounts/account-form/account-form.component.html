@@ -66,14 +66,19 @@
                 class="w-full border border-gray-300 rounded px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500"></textarea>
     </div>
 
+    @if (errorMessage) {
+      <div class="mb-4 p-3 bg-red-100 text-red-700 rounded">{{ errorMessage }}</div>
+    }
+
     <div class="flex justify-end gap-4">
       <a routerLink="/accounts" 
          class="px-4 py-2 border border-gray-300 rounded hover:bg-gray-50">
         Abbrechen
       </a>
       <button type="submit" 
-              class="px-4 py-2 bg-blue-500 text-white rounded hover:bg-blue-600">
-        {{ isEditing ? 'Speichern' : 'Anlegen' }}
+              [disabled]="saving"
+              class="px-4 py-2 bg-blue-500 text-white rounded hover:bg-blue-600 disabled:opacity-50">
+        {{ saving ? 'Speichern...' : (isEditing ? 'Speichern' : 'Anlegen') }}
       </button>
     </div>
   </form>

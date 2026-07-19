@@ -13,6 +13,7 @@ import { Account } from '../../../models/account.model';
 export class AccountListComponent implements OnInit {
   accounts: Account[] = [];
   loading = true;
+  error: string | null = null;
 
   constructor(private accountService: AccountService) {}
 
@@ -22,14 +23,26 @@ export class AccountListComponent implements OnInit {
 
   async loadAccounts() {
     this.loading = true;
-    this.accounts = await this.accountService.getAll();
-    this.loading = false;
+    this.error = null;
+    try {
+      this.accounts = await this.accountService.getAll();
+    } catch (err) {
+      console.error('Failed to load accounts:', err);
+      this.error = 'Konten konnten nicht geladen werden.';
+    } finally {
+      this.loading = false;
+    }
   }
 
   async deleteAccount(id: number) {
     if (confirm('Konto wirklich löschen?')) {
-      await this.accountService.delete(id);
-      await this.loadAccounts();
+      try {
+        await this.accountService.delete(id);
+        await this.loadAccounts();
+      } catch (err) {
+        console.error('Failed to delete account:', err);
+        alert('Konto konnte nicht gelöscht werden.');
+      }
     }
   }
 }

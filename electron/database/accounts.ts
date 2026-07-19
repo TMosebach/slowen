@@ -1,14 +1,5 @@
 import { getDatabase } from './connection';
-
-interface Account {
-  id?: number;
-  name: string;
-  type: 'Bestand' | 'GuV';
-  subtype: string;
-  iban?: string;
-  notes?: string;
-  created_at?: string;
-}
+import { Account } from '../../src/app/models/account.model';
 
 export const accounts = {
   getAll: async (): Promise<Account[]> => {

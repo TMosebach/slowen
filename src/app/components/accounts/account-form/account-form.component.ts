@@ -23,6 +23,8 @@ export class AccountFormComponent implements OnInit {
   subtypes: readonly string[] = ACCOUNT_SUBTYPES['Bestand'];
   isEditing = false;
   accountId: number | null = null;
+  saving = false;
+  errorMessage: string | null = null;
 
   constructor(
     private accountService: AccountService,
@@ -72,11 +74,22 @@ export class AccountFormComponent implements OnInit {
       return;
     }
 
-    if (this.isEditing && this.accountId) {
-      await this.accountService.update(this.accountId, this.account);
-    } else {
-      await this.accountService.create(this.account);
+    this.saving = true;
+    this.errorMessage = null;
+    try {
+      if (this.isEditing && this.accountId) {
+        await this.accountService.update(this.accountId, this.account);
+      } else {
+        await this.accountService.create(this.account);
+      }
+      this.router.navigate(['/accounts']);
+    } catch (err) {
+      console.error('Failed to save account:', err);
+      this.errorMessage = this.isEditing
+        ? 'Konto konnte nicht gespeichert werden.'
+        : 'Konto konnte nicht angelegt werden.';
+    } finally {
+      this.saving = false;
     }
-    this.router.navigate(['/accounts']);
   }
 }
