@@ -40,7 +40,7 @@ Der Anwender legt Konten an, um die Bestandsgrößen der Finanzverwaltung zu kat
 
 **Bestand:** Giro, Tagesgeld, Depot, Immobilie, Versicherung, Forderung, Verbindlichkeit
 
-**GuV:** Kreditkarte
+**GuV:** Kreditkarte, Aufwand, Ertrag
 
 ## UI-Hinweise
 
