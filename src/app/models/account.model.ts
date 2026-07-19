@@ -10,7 +10,7 @@ export interface Account {
 
 export const ACCOUNT_SUBTYPES = {
   'Bestand': ['Giro', 'Tagesgeld', 'Depot', 'Immobilie', 'Versicherung', 'Forderung', 'Verbindlichkeit'],
-  'GuV': ['Kreditkarte']
+  'GuV': ['Kreditkarte', 'Aufwand', 'Ertrag']
 } as const;
 
 export type AccountSubtype = typeof ACCOUNT_SUBTYPES[keyof typeof ACCOUNT_SUBTYPES][number];
