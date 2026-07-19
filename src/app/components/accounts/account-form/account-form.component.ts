@@ -1,4 +1,4 @@
-import { Component, OnInit } from '@angular/core';
+import { Component, OnInit, ChangeDetectorRef } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { Router, ActivatedRoute, RouterModule } from '@angular/router';
@@ -29,7 +29,8 @@ export class AccountFormComponent implements OnInit {
   constructor(
     private accountService: AccountService,
     private router: Router,
-    private route: ActivatedRoute
+    private route: ActivatedRoute,
+    private cdr: ChangeDetectorRef
   ) {}
 
   ngOnInit() {
@@ -48,6 +49,7 @@ export class AccountFormComponent implements OnInit {
         this.account = account;
         this.updateSubtypes();
       }
+      this.cdr.detectChanges();
     }
   }
 
@@ -88,6 +90,7 @@ export class AccountFormComponent implements OnInit {
       this.errorMessage = this.isEditing
         ? 'Konto konnte nicht gespeichert werden.'
         : 'Konto konnte nicht angelegt werden.';
+      this.cdr.detectChanges();
     } finally {
       this.saving = false;
     }

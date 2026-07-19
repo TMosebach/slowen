@@ -1,4 +1,4 @@
-import { Component, OnInit } from '@angular/core';
+import { Component, OnInit, ChangeDetectorRef } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { RouterModule } from '@angular/router';
 import { AccountService } from '../../../services/account.service';
@@ -15,10 +15,13 @@ export class AccountListComponent implements OnInit {
   loading = true;
   error: string | null = null;
 
-  constructor(private accountService: AccountService) {}
+  constructor(
+    private accountService: AccountService,
+    private cdr: ChangeDetectorRef
+  ) {}
 
-  async ngOnInit() {
-    await this.loadAccounts();
+  ngOnInit() {
+    this.loadAccounts();
   }
 
   async loadAccounts() {
@@ -31,6 +34,7 @@ export class AccountListComponent implements OnInit {
       this.error = 'Konten konnten nicht geladen werden.';
     } finally {
       this.loading = false;
+      this.cdr.detectChanges();
     }
   }
 
