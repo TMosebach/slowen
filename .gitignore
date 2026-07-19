@@ -38,6 +38,10 @@ testem.log
 /typings
 __screenshots__/
 
+# Electron
+dist-electron/
+*.log
+
 # System files
 .DS_Store
 Thumbs.db
