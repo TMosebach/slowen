@@ -16,7 +16,7 @@ function createWindow() {
   });
 
   // Development: Angular Dev Server
-  if (process.env.NODE_ENV === 'development') {
+  if (!app.isPackaged) {
     mainWindow.loadURL('http://localhost:4200');
   } else {
     // Production: Angular Build

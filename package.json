@@ -2,11 +2,12 @@
   "name": "slowen",
   "version": "0.0.0",
   "scripts": {
-    "start": "ng serve & electron .",
+    "start": "npm run build:electron && concurrently \"ng serve\" \"wait-on http://localhost:4200 && electron .\"",
     "build": "ng build",
+    "build:electron": "tsc -p electron/tsconfig.json",
     "build:prod": "ng build --configuration production",
-    "electron:dev": "electron .",
-    "dist": "electron-builder --mac",
+    "electron:dev": "npm run build:electron && electron .",
+    "dist": "npm run build:electron && npm run build:prod && electron-builder --mac",
     "test": "ng test",
     "lint": "ng lint"
   },
@@ -22,7 +23,7 @@
       }
     ]
   },
-  "main": "electron/main.js",
+  "main": "dist-electron/main.js",
   "private": true,
   "packageManager": "npm@11.17.0",
   "dependencies": {
@@ -46,10 +47,12 @@
     "@tailwindcss/postcss": "^4.3.3",
     "@types/better-sqlite3": "^7.6.13",
     "autoprefixer": "^10.5.4",
+    "concurrently": "^9.1.2",
     "jsdom": "^27.1.0",
     "postcss": "^8.5.20",
     "tailwindcss": "^4.3.3",
     "typescript": "~5.9.2",
-    "vitest": "^4.0.8"
+    "vitest": "^4.0.8",
+    "wait-on": "^8.0.3"
   }
 }
