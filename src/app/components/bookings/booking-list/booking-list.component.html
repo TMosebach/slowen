@@ -1,0 +1,53 @@
+<div class="p-6">
+  <div class="flex justify-between items-center mb-6">
+    <h1 class="text-2xl font-bold">Buchungen</h1>
+    <a routerLink="/bookings/new"
+       class="bg-blue-500 text-white px-4 py-2 rounded hover:bg-blue-600">
+      Neue Buchung
+    </a>
+  </div>
+
+  @if (loading) {
+    <div class="text-center py-8">Laden...</div>
+  } @else if (error) {
+    <div class="text-center py-8 text-red-600">{{ error }}</div>
+  } @else if (bookings.length === 0) {
+    <div class="text-center py-8 text-gray-500">
+      Noch keine Buchungen vorhanden.
+    </div>
+  } @else {
+    <div class="bg-white shadow rounded-lg overflow-hidden">
+      <table class="min-w-full">
+        <thead class="bg-gray-50">
+          <tr>
+            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Vorgang</th>
+            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Datum</th>
+            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Beschreibung</th>
+            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Sender/Empfänger</th>
+            <th class="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase">Aktionen</th>
+          </tr>
+        </thead>
+        <tbody class="divide-y divide-gray-200">
+          @for (booking of bookings; track booking.id) {
+            <tr>
+              <td class="px-6 py-4 whitespace-nowrap">{{ booking.vorgang }}</td>
+              <td class="px-6 py-4 whitespace-nowrap">{{ booking.date }}</td>
+              <td class="px-6 py-4 whitespace-nowrap">{{ booking.description || '-' }}</td>
+              <td class="px-6 py-4 whitespace-nowrap">{{ booking.sender_receiver || '-' }}</td>
+              <td class="px-6 py-4 whitespace-nowrap text-right">
+                <a [routerLink]="['/bookings', booking.id, 'edit']"
+                   class="text-blue-600 hover:text-blue-900 mr-3">
+                  Bearbeiten
+                </a>
+                <button (click)="deleteBooking(booking.id!)"
+                        class="text-red-600 hover:text-red-900">
+                  Löschen
+                </button>
+              </td>
+            </tr>
+          }
+        </tbody>
+      </table>
+    </div>
+  }
+</div>
