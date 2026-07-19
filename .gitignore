@@ -41,6 +41,9 @@ __screenshots__/
 # Electron
 dist-electron/
 *.log
+slowen.db
+slowen.db-wal
+slowen.db-shm
 
 # System files
 .DS_Store
