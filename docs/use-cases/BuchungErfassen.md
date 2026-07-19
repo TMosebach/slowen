@@ -15,6 +15,7 @@ Der Anwender erfasst eine Buchung, um einen Geldfluss zwischen Konten zu dokumen
 2. das System zeigt die Buchung-Liste an
 3. der Anwender klickt auf "neue Buchung"
 4. das System zeigt das Buchung-Formular an mit
+    * Vorgang: Pflichtfeld, Enum { Buchung }, Default: Buchung
     * Datum: Pflichtfeld, Default: Tagesdatum
     * Beschreibung: optional, Freitext zur Buchung
     * Sender/Empfänger: optional, beteiligte Person auf der Gegenseite
@@ -29,6 +30,7 @@ Andernfalls speichert es die Buchung mit ihren Positionen und kehrt zur Buchung-
 
 | Feld | Regel |
 |------|-------|
+| Vorgang | Pflichtfeld, Enum: Buchung |
 | Datum | Pflichtfeld |
 | Position: Konto | Pflichtfeld, muss als angelegtes Konto existieren |
 | Position: Valuta | Pflichtfeld |
@@ -47,6 +49,7 @@ Andernfalls speichert es die Buchung mit ihren Positionen und kehrt zur Buchung-
 | Feld | Typ | Pflicht | Beschreibung |
 |------|-----|---------|--------------|
 | id | INTEGER | auto | Primary Key |
+| vorgang | TEXT | ja | Enum: Buchung |
 | date | TEXT | ja | Buchungsdatum (ISO 8601) |
 | description | TEXT | nein | Freitext-Beschreibung |
 | sender_receiver | TEXT | nein | Beteiligte Person/Gegenstelle |
@@ -64,6 +67,7 @@ Andernfalls speichert es die Buchung mit ihren Positionen und kehrt zur Buchung-
 
 ## UI-Hinweise
 
+- Vorgang: Dropdown mit Enum-Werten, derzeit mit "Buchung" vorbelegt
 - Datum: Datumsfeld mit Kalender-Picker
 - Beschreibung: Textfeld
 - Sender/Empfänger: Textfeld
