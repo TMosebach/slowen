@@ -28,4 +28,26 @@ function initDatabase() {
       created_at TEXT DEFAULT CURRENT_TIMESTAMP
     )
   `);
+
+  db.exec(`
+    CREATE TABLE IF NOT EXISTS bookings (
+      id INTEGER PRIMARY KEY AUTOINCREMENT,
+      vorgang TEXT NOT NULL CHECK (vorgang IN ('Buchung')),
+      date TEXT NOT NULL,
+      description TEXT,
+      sender_receiver TEXT
+    )
+  `);
+
+  db.exec(`
+    CREATE TABLE IF NOT EXISTS booking_positions (
+      id INTEGER PRIMARY KEY AUTOINCREMENT,
+      booking_id INTEGER NOT NULL,
+      account_id INTEGER NOT NULL,
+      valuta TEXT NOT NULL,
+      amount REAL NOT NULL,
+      FOREIGN KEY (booking_id) REFERENCES bookings(id) ON DELETE CASCADE,
+      FOREIGN KEY (account_id) REFERENCES accounts(id)
+    )
+  `);
 }
