@@ -11,7 +11,7 @@ Der Anwender legt Konten an, um die Bestandsgrößen der Finanzverwaltung zu kat
 
 # Ablauf
 
-1. der Anwender wählt den Konto-Eintrag im Hauptmenü
+1. der Anwender wählt den Konto-Eintrag in der Navigation
 2. das System zeigt die Konto-Liste an
 3. der Anwender klickt auf "neues Konto"
 4. das System zeigt das Konto-Formular an mit
@@ -19,7 +19,7 @@ Der Anwender legt Konten an, um die Bestandsgrößen der Finanzverwaltung zu kat
     * Typ { Bestand, GuV }, Pflichtfeld
     * Subtyp, abhängig von Typ, Pflichtfeld
         * Typ: Bestand { Giro, Tagesgeld, Depot, Immobilie, Versicherung, Forderung, Verbindlichkeit },
-        * Typ: GuV { Kreditkarte }
+        * Typ: GuV { Aufwand, Ertrag, Kreditkarte }
     * IBAN, optional, nur bei Typ: Bestand, Subtyp { Giro, Tagesgeld, Depot }
     * Notizen
 5. der Anwender füllt die Felder aus.
