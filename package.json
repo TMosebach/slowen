@@ -24,7 +24,7 @@
       }
     ]
   },
-  "main": "dist-electron/main.js",
+  "main": "dist-electron/electron/main.js",
   "private": true,
   "packageManager": "npm@11.17.0",
   "dependencies": {
