@@ -1,0 +1,30 @@
+<div class="p-6">
+  <h2 class="text-2xl font-semibold mb-4">Dashboard</h2>
+
+  <div *ngIf="loading">Lade Dashboard...</div>
+  <div *ngIf="error" class="text-red-600">{{ error }}</div>
+
+  <table *ngIf="!loading && !error" class="min-w-full bg-white border">
+    <thead>
+      <tr class="bg-gray-50 text-left">
+        <th class="px-4 py-2">Konto</th>
+        <th class="px-4 py-2">Typ</th>
+        <th class="px-4 py-2 text-right">Saldo</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr *ngFor="let acc of accounts" class="border-t">
+        <td class="px-4 py-2">{{ acc.name }}</td>
+        <td class="px-4 py-2">{{ acc.subtype }}</td>
+        <td class="px-4 py-2 text-right">{{ getBalanceFor(acc) | number:'1.2-2' }} €</td>
+      </tr>
+    </tbody>
+    <tfoot>
+      <tr class="bg-gray-50 font-semibold">
+        <td class="px-4 py-2">Gesamt</td>
+        <td></td>
+        <td class="px-4 py-2 text-right">{{ total | number:'1.2-2' }} €</td>
+      </tr>
+    </tfoot>
+  </table>
+</div>
