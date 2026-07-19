@@ -1,0 +1,47 @@
+<div class="p-6">
+  <div class="flex justify-between items-center mb-6">
+    <h1 class="text-2xl font-bold">Konten</h1>
+    <a routerLink="/accounts/new" 
+       class="bg-blue-500 text-white px-4 py-2 rounded hover:bg-blue-600">
+      Neues Konto
+    </a>
+  </div>
+
+  @if (loading) {
+    <div class="text-center py-8">Laden...</div>
+  } @else if (accounts.length === 0) {
+    <div class="text-center py-8 text-gray-500">
+      Noch keine Konten vorhanden.
+    </div>
+  } @else {
+    <div class="bg-white shadow rounded-lg overflow-hidden">
+      <table class="min-w-full">
+        <thead class="bg-gray-50">
+          <tr>
+            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Name</th>
+            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Typ</th>
+            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Subtyp</th>
+            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">IBAN</th>
+            <th class="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase">Aktionen</th>
+          </tr>
+        </thead>
+        <tbody class="divide-y divide-gray-200">
+          @for (account of accounts; track account.id) {
+            <tr>
+              <td class="px-6 py-4 whitespace-nowrap">{{ account.name }}</td>
+              <td class="px-6 py-4 whitespace-nowrap">{{ account.type }}</td>
+              <td class="px-6 py-4 whitespace-nowrap">{{ account.subtype }}</td>
+              <td class="px-6 py-4 whitespace-nowrap">{{ account.iban || '-' }}</td>
+              <td class="px-6 py-4 whitespace-nowrap text-right">
+                <button (click)="deleteAccount(account.id!)" 
+                        class="text-red-600 hover:text-red-900">
+                  Löschen
+                </button>
+              </td>
+            </tr>
+          }
+        </tbody>
+      </table>
+    </div>
+  }
+</div>
