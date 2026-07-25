@@ -2,6 +2,8 @@ import { app, BrowserWindow } from 'electron';
 import * as path from 'path';
 import { registerAccountsIPC } from './ipc/accounts.ipc';
 import { registerBookingsIPC } from './ipc/bookings.ipc';
+import { registerSecuritiesIPC } from './ipc/securities.ipc';
+import { registerSecurityPricesIPC } from './ipc/security-prices.ipc';
 
 let mainWindow: BrowserWindow;
 
@@ -28,5 +30,7 @@ function createWindow() {
 app.whenReady().then(() => {
   registerAccountsIPC();
   registerBookingsIPC();
+  registerSecuritiesIPC();
+  registerSecurityPricesIPC();
   createWindow();
 });

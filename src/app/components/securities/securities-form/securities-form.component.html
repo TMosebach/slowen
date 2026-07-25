@@ -1,0 +1,70 @@
+<div class="p-6 max-w-2xl mx-auto">
+  <h1 class="text-2xl font-bold mb-6">
+    {{ isEditing ? 'Wertpapier bearbeiten' : 'Neues Wertpapier' }}
+  </h1>
+
+  @if (errorMessage) {
+    <div class="mb-4 p-4 bg-red-100 text-red-700 rounded">
+      {{ errorMessage }}
+    </div>
+  }
+
+  <form (ngSubmit)="onSubmit()" class="bg-white shadow rounded-lg p-6">
+    <div class="mb-4">
+      <label class="block text-sm font-medium text-gray-700">Name *</label>
+      <input [(ngModel)]="security.name" name="name" type="text" 
+             class="mt-1 block w-full border border-gray-300 rounded-md p-2"
+             placeholder="z.B. Apple Inc." />
+    </div>
+
+    <div class="mb-4">
+      <label class="block text-sm font-medium text-gray-700">Typ *</label>
+      <select [(ngModel)]="security.type" (change)="updateFaelligkeitVisibility()" 
+              name="type" class="mt-1 block w-full border border-gray-300 rounded-md p-2">
+        @for (type of securityTypes; track type) {
+          <option [value]="type">{{ type }}</option>
+        }
+      </select>
+    </div>
+
+    <div class="mb-4">
+      <label class="block text-sm font-medium text-gray-700">ISIN *</label>
+      <input [(ngModel)]="security.isin" (change)="security.isin = formatISIN(security.isin)" 
+             name="isin" type="text" maxlength="12"
+             class="mt-1 block w-full border border-gray-300 rounded-md p-2 uppercase"
+             placeholder="z.B. US0378331005" />
+      <p class="text-xs text-gray-500 mt-1">12 alphanumerische Zeichen</p>
+    </div>
+
+    <div class="mb-4">
+      <label class="block text-sm font-medium text-gray-700">WKN *</label>
+      <input [(ngModel)]="security.wkn" (change)="security.wkn = formatWKN(security.wkn)" 
+             name="wkn" type="text" maxlength="6"
+             class="mt-1 block w-full border border-gray-300 rounded-md p-2 uppercase"
+             placeholder="z.B. 865985" />
+      <p class="text-xs text-gray-500 mt-1">6 alphanumerische Zeichen</p>
+    </div>
+
+    @if (showFaelligkeit) {
+      <div class="mb-4">
+        <label class="block text-sm font-medium text-gray-700">
+          Fälligkeit @if (showFaelligkeit) { <span class="text-red-500">*</span> }
+        </label>
+        <input [(ngModel)]="security.faelligkeit" name="faelligkeit" type="date"
+               class="mt-1 block w-full border border-gray-300 rounded-md p-2" />
+        <p class="text-xs text-gray-500 mt-1">Nur für Anleihen und Zertifikate</p>
+      </div>
+    }
+
+    <div class="flex gap-3 justify-end">
+      <button type="button" (click)="onCancel()"
+              class="px-4 py-2 border border-gray-300 rounded-md text-gray-700 hover:bg-gray-50">
+        Abbrechen
+      </button>
+      <button type="submit" [disabled]="saving"
+              class="px-4 py-2 bg-blue-500 text-white rounded-md hover:bg-blue-600 disabled:opacity-50">
+        {{ saving ? 'Speichert...' : 'Speichern' }}
+      </button>
+    </div>
+  </form>
+</div>

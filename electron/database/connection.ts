@@ -50,4 +50,30 @@ function initDatabase() {
       FOREIGN KEY (account_id) REFERENCES accounts(id)
     )
   `);
+
+  db.exec(`
+    CREATE TABLE IF NOT EXISTS securities (
+      id INTEGER PRIMARY KEY AUTOINCREMENT,
+      name TEXT NOT NULL,
+      type TEXT NOT NULL CHECK(type IN ('Aktie', 'Anleihe', 'Fonds', 'ETF', 'Zertifikat')),
+      isin TEXT NOT NULL UNIQUE,
+      wkn TEXT NOT NULL UNIQUE,
+      faelligkeit TEXT,
+      created_at TEXT DEFAULT CURRENT_TIMESTAMP,
+      updated_at TEXT DEFAULT CURRENT_TIMESTAMP
+    )
+  `);
+
+  db.exec(`
+    CREATE TABLE IF NOT EXISTS security_prices (
+      id INTEGER PRIMARY KEY AUTOINCREMENT,
+      security_id INTEGER NOT NULL,
+      date TEXT NOT NULL,
+      price REAL NOT NULL,
+      created_at TEXT DEFAULT CURRENT_TIMESTAMP,
+      updated_at TEXT DEFAULT CURRENT_TIMESTAMP,
+      FOREIGN KEY (security_id) REFERENCES securities(id),
+      UNIQUE(security_id, date)
+    )
+  `);
 }

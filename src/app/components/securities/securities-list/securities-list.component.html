@@ -1,0 +1,59 @@
+<div class="p-6">
+  <div class="flex justify-between items-center mb-6">
+    <h1 class="text-2xl font-bold">Wertpapiere</h1>
+    <div class="space-x-3">
+      <button (click)="createSecurity()"
+              class="bg-blue-500 text-white px-4 py-2 rounded hover:bg-blue-600">
+        Neu
+      </button>
+      <button (click)="goToPrices()"
+              class="bg-green-500 text-white px-4 py-2 rounded hover:bg-green-600">
+        Kurse
+      </button>
+    </div>
+  </div>
+
+  @if (loading) {
+    <div class="text-center py-8">Laden...</div>
+  } @else if (error) {
+    <div class="text-center py-8 text-red-600">{{ error }}</div>
+  } @else if (securities.length === 0) {
+    <div class="text-center py-8 text-gray-500">
+      Noch keine Wertpapiere vorhanden.
+    </div>
+  } @else {
+    <div class="bg-white shadow rounded-lg overflow-hidden">
+      <table class="min-w-full">
+        <thead class="bg-gray-50">
+          <tr>
+            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Name</th>
+            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Typ</th>
+            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">ISIN</th>
+            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">WKN</th>
+            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Fälligkeit</th>
+            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Jüngster Kurs</th>
+            <th class="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase">Aktionen</th>
+          </tr>
+        </thead>
+        <tbody class="divide-y divide-gray-200">
+          @for (security of securities; track security.id) {
+            <tr>
+              <td class="px-6 py-4 whitespace-nowrap">{{ security.name }}</td>
+              <td class="px-6 py-4 whitespace-nowrap">{{ security.type }}</td>
+              <td class="px-6 py-4 whitespace-nowrap">{{ security.isin }}</td>
+              <td class="px-6 py-4 whitespace-nowrap">{{ security.wkn }}</td>
+              <td class="px-6 py-4 whitespace-nowrap">{{ security.faelligkeit || '-' }}</td>
+              <td class="px-6 py-4 whitespace-nowrap">{{ getLatestPrice(security.id!) }}</td>
+              <td class="px-6 py-4 whitespace-nowrap text-right">
+                <button (click)="editSecurity(security.id)"
+                        class="text-blue-600 hover:text-blue-900">
+                  Bearbeiten
+                </button>
+              </td>
+            </tr>
+          }
+        </tbody>
+      </table>
+    </div>
+  }
+</div>

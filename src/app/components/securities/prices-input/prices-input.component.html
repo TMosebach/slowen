@@ -1,0 +1,61 @@
+<div class="p-6 max-w-4xl mx-auto">
+  <h1 class="text-2xl font-bold mb-6">Kurse erfassen</h1>
+
+  @if (errorMessage) {
+    <div class="mb-4 p-4 bg-red-100 text-red-700 rounded">
+      {{ errorMessage }}
+    </div>
+  }
+
+  @if (loading) {
+    <div class="text-center py-8">Laden...</div>
+  } @else if (error) {
+    <div class="text-center py-8 text-red-600">{{ error }}</div>
+  } @else {
+    <div class="bg-white shadow rounded-lg p-6">
+      <div class="mb-6">
+        <label class="block text-sm font-medium text-gray-700">Datum</label>
+        <input type="date" [value]="selectedDate" (change)="onDateChange($event)"
+               class="mt-1 block border border-gray-300 rounded-md p-2" />
+      </div>
+
+      @if (securities.length === 0) {
+        <div class="text-center py-8 text-gray-500">
+          Noch keine Wertpapiere vorhanden.
+        </div>
+      } @else {
+        <div class="bg-gray-50 rounded-lg p-4 mb-6">
+          <div class="space-y-4">
+            @for (security of securities; track security.id) {
+              <div class="flex items-center justify-between bg-white p-4 rounded border border-gray-200">
+                <div class="flex-1">
+                  <p class="font-medium">{{ security.name }}</p>
+                  <p class="text-sm text-gray-600">{{ security.type }} - {{ security.isin }}</p>
+                </div>
+                <div class="w-48">
+                  <input [value]="getPriceInput(security.id!)"
+                         (input)="setPriceInput(security.id!, $event.target.value)"
+                         type="text" 
+                         inputmode="decimal"
+                         placeholder="z.B. 123,45"
+                         class="block w-full border border-gray-300 rounded-md p-2 text-right" />
+                </div>
+              </div>
+            }
+          </div>
+        </div>
+
+        <div class="flex gap-3 justify-end">
+          <button (click)="cancel()"
+                  class="px-4 py-2 border border-gray-300 rounded-md text-gray-700 hover:bg-gray-50">
+            Abbrechen
+          </button>
+          <button (click)="save()" [disabled]="saving"
+                  class="px-4 py-2 bg-blue-500 text-white rounded-md hover:bg-blue-600 disabled:opacity-50">
+            {{ saving ? 'Speichert...' : 'Speichern' }}
+          </button>
+        </div>
+      }
+    </div>
+  }
+</div>
