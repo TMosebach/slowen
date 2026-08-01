@@ -1,6 +1,6 @@
 import { Component, OnInit, ChangeDetectorRef } from '@angular/core';
 import { CommonModule } from '@angular/common';
-import { RouterModule } from '@angular/router';
+import { Router, RouterModule } from '@angular/router';
 import { BookingService } from '../../../services/booking.service';
 import { Booking } from '../../../models/booking.model';
 
@@ -17,7 +17,8 @@ export class BookingListComponent implements OnInit {
 
   constructor(
     private bookingService: BookingService,
-    private cdr: ChangeDetectorRef
+    private cdr: ChangeDetectorRef,
+    private router: Router
   ) {}
 
   ngOnInit() {
@@ -48,5 +49,9 @@ export class BookingListComponent implements OnInit {
         alert('Buchung konnte nicht gelöscht werden.');
       }
     }
+  }
+
+  createPurchase() {
+    this.router.navigate(['/bookings/new/purchase']);
   }
 }

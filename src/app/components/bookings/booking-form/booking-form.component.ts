@@ -46,6 +46,12 @@ export class BookingFormComponent implements OnInit {
   ngOnInit() {
     this.loadAccounts();
     this.loadSecurities();
+
+    if (this.route.snapshot.routeConfig?.path === 'bookings/new/purchase') {
+      this.booking.vorgang = 'Kauf';
+      this.booking.purchaseDetails = this.createEmptyPurchaseDetails();
+    }
+
     const id = this.route.snapshot.paramMap.get('id');
     if (id) {
       this.isEditing = true;

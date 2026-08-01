@@ -1,10 +1,16 @@
 <div class="p-6">
   <div class="flex justify-between items-center mb-6">
     <h1 class="text-2xl font-bold">Buchungen</h1>
-    <a routerLink="/bookings/new"
-       class="bg-blue-500 text-white px-4 py-2 rounded hover:bg-blue-600">
-      Neue Buchung
-    </a>
+    <div class="space-x-3">
+      <a routerLink="/bookings/new"
+         class="bg-blue-500 text-white px-4 py-2 rounded hover:bg-blue-600">
+        Neue Buchung
+      </a>
+      <button (click)="createPurchase()"
+              class="bg-green-500 text-white px-4 py-2 rounded hover:bg-green-600">
+        Neuer Kauf
+      </button>
+    </div>
   </div>
 
   @if (loading) {

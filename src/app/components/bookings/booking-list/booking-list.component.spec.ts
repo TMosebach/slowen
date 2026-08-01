@@ -1,5 +1,5 @@
 import { ComponentFixture, TestBed } from '@angular/core/testing';
-import { provideRouter } from '@angular/router';
+import { provideRouter, Router } from '@angular/router';
 import { BookingListComponent } from './booking-list.component';
 import { BookingService } from '../../../services/booking.service';
 
@@ -53,5 +53,14 @@ describe('BookingListComponent', () => {
     await component.deleteBooking(1);
     expect(mockService.delete).toHaveBeenCalledWith(1);
     expect(mockService.getAll).toHaveBeenCalled();
+  });
+
+  it('navigates to the dedicated purchase entry point', () => {
+    const router = TestBed.inject(Router);
+    const navigate = vi.spyOn(router, 'navigate').mockResolvedValue(true);
+
+    component.createPurchase();
+
+    expect(navigate).toHaveBeenCalledWith(['/bookings/new/purchase']);
   });
 });

@@ -1,6 +1,6 @@
 import { Component } from '@angular/core';
 import { ComponentFixture, TestBed } from '@angular/core/testing';
-import { provideRouter } from '@angular/router';
+import { ActivatedRoute, provideRouter } from '@angular/router';
 import { BookingFormComponent } from './booking-form.component';
 import { BookingService } from '../../../services/booking.service';
 import { AccountService } from '../../../services/account.service';
@@ -134,5 +134,23 @@ describe('BookingFormComponent', () => {
     await component.loadSecurities();
 
     expect(component.securities.map((security) => security.id)).toEqual([7]);
+  });
+
+  it('initializes the dedicated purchase route in purchase mode', () => {
+    const route = TestBed.inject(ActivatedRoute);
+    (route.snapshot.routeConfig as { path?: string } | null) = { path: 'bookings/new/purchase' };
+
+    fixture.detectChanges();
+
+    expect(component.booking.vorgang).toBe('Kauf');
+    expect(component.booking.purchaseDetails).toEqual({
+      security_id: 0,
+      depot_account_id: 0,
+      settlement_account_id: 0,
+      quantity: 0,
+      price_per_unit: 0,
+      fees: 0,
+      accrued_interest: 0,
+    });
   });
 });
