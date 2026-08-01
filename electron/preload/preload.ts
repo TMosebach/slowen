@@ -16,6 +16,10 @@ contextBridge.exposeInMainWorld('electronAPI', {
     update: (id: number, booking: any) => ipcRenderer.invoke('bookings:update', id, booking),
     delete: (id: number) => ipcRenderer.invoke('bookings:delete', id)
   },
+  depotPositions: {
+    getByBooking: (bookingId: number) => ipcRenderer.invoke('depot-positions:getByBooking', bookingId),
+    getByDepot: (depotAccountId: number) => ipcRenderer.invoke('depot-positions:getByDepot', depotAccountId)
+  },
   securities: {
     create: (security: any) => ipcRenderer.invoke('securities:create', security),
     getAll: () => ipcRenderer.invoke('securities:getAll'),
