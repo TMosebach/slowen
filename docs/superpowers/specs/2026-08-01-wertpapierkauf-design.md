@@ -58,10 +58,10 @@ Beim Datenbankstart werden zwei Konten vom Typ `GuV` automatisch angelegt, sofer
 
 | Name | Typ | Subtyp |
 |------|-----|--------|
-| Wertpapierprovision | GuV | Provision |
-| Stückzinsen | GuV | Stückzinsen |
+| Wertpapierprovision | GuV | Aufwand |
+| Stückzinsen | GuV | Aufwand |
 
-Diese Konten werden vom Kauf-Formular automatisch verwendet. Der Nutzer wählt sie nicht manuell aus.
+Diese Konten werden vom Kauf-Formular automatisch verwendet. Der Nutzer wählt sie nicht manuell aus. Die Unterscheidung erfolgt nur über den Kontonamen.
 
 ---
 
