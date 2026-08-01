@@ -4,7 +4,8 @@ files changed:
 - .superpowers/sdd/task-10-report.md
 
 verification:
-- `npm test -- --watch=false --include electron/database/connection.spec.ts --include electron/database/depot-positions.spec.ts --include electron/database/bookings.spec.ts --include electron/ipc/depot-positions.ipc.spec.ts --include src/app/models/booking.model.spec.ts --include src/app/models/depot-position.model.spec.ts --include src/app/services/depot-positions.service.spec.ts --include src/app/components/bookings/booking-form/booking-form.component.spec.ts --include src/app/components/bookings/booking-list/booking-list.component.spec.ts --include src/app/components/accounts/depot-detail/depot-detail.component.spec.ts --include src/app/components/accounts/account-list/account-list.component.spec.ts` -> PASS (`7` test files, `29` tests)
+- `npx vitest run electron/database/connection.spec.ts electron/database/depot-positions.spec.ts electron/database/bookings.spec.ts electron/ipc/depot-positions.ipc.spec.ts` -> PASS (`4` test files, `11` tests)
+- `npm test -- --watch=false --include src/app/models/booking.model.spec.ts --include src/app/models/depot-position.model.spec.ts --include src/app/services/depot-positions.service.spec.ts --include src/app/components/bookings/booking-form/booking-form.component.spec.ts --include src/app/components/bookings/booking-list/booking-list.component.spec.ts --include src/app/components/accounts/depot-detail/depot-detail.component.spec.ts --include src/app/components/accounts/account-list/account-list.component.spec.ts` -> PASS (`7` test files, `29` tests)
 - `npm test -- --watch=false` -> PASS (`12` test files, `54` tests)
 - `npm run build && npm run build:electron` -> PASS (`ng build` completed with browser output in `dist/slowen`; Electron TypeScript build completed)
 
