@@ -4,7 +4,7 @@ import { FormsModule } from '@angular/forms';
 import { Router, ActivatedRoute, RouterModule } from '@angular/router';
 import { BookingService } from '../../../services/booking.service';
 import { AccountService } from '../../../services/account.service';
-import { Booking, BookingPosition, VORGANG_OPTIONS } from '../../../models/booking.model';
+import { Booking, BookingPosition, PurchaseBookingDetails, VORGANG_OPTIONS } from '../../../models/booking.model';
 import { Account } from '../../../models/account.model';
 
 @Component({
@@ -60,9 +60,24 @@ export class BookingFormComponent implements OnInit {
       const booking = await this.bookingService.getById(this.bookingId);
       if (booking) {
         this.booking = booking;
+        if (this.isPurchase() && !this.booking.purchaseDetails) {
+          this.booking.purchaseDetails = this.createEmptyPurchaseDetails();
+        }
       }
       this.cdr.detectChanges();
     }
+  }
+
+  createEmptyPurchaseDetails(): PurchaseBookingDetails {
+    return {
+      security_id: 0,
+      depot_account_id: 0,
+      settlement_account_id: 0,
+      quantity: 0,
+      price_per_unit: 0,
+      fees: 0,
+      accrued_interest: 0
+    };
   }
 
   createEmptyPosition(): BookingPosition {
@@ -89,21 +104,67 @@ export class BookingFormComponent implements OnInit {
     }
   }
 
+  onVorgangChange() {
+    if (this.isPurchase() && !this.booking.purchaseDetails) {
+      this.booking.purchaseDetails = this.createEmptyPurchaseDetails();
+    }
+  }
+
+  isPurchase(): boolean {
+    return this.booking.vorgang === 'Kauf';
+  }
+
+  getPurchaseValue(): number {
+    const details = this.booking.purchaseDetails;
+    if (!details) {
+      return 0;
+    }
+
+    return details.quantity * details.price_per_unit;
+  }
+
+  getPurchaseTotal(): number {
+    const details = this.booking.purchaseDetails;
+    if (!details) {
+      return 0;
+    }
+
+    return this.getPurchaseValue() + (details.fees ?? 0) + (details.accrued_interest ?? 0);
+  }
+
   async onSubmit() {
     if (!this.booking.date) {
       alert('Datum ist ein Pflichtfeld.');
       return;
     }
 
-    if (this.booking.positions.length === 0) {
-      alert('Mindestens eine Position ist erforderlich.');
-      return;
-    }
-
-    for (const pos of this.booking.positions) {
-      if (!pos.account_id || !pos.valuta || pos.amount === null) {
-        alert('Alle Positionen müssen ausgefüllt sein.');
+    if (this.isPurchase()) {
+      const details = this.booking.purchaseDetails;
+      if (!details || !details.security_id || !details.depot_account_id || !details.settlement_account_id) {
+        alert('Alle Pflichtfelder des Kaufs müssen ausgefüllt sein.');
         return;
+      }
+
+      if (details.depot_account_id === details.settlement_account_id) {
+        alert('Depot-Konto und Verrechnungskonto müssen unterschiedlich sein.');
+        return;
+      }
+
+      if (details.quantity <= 0 || details.price_per_unit <= 0 || (details.fees ?? 0) < 0 || (details.accrued_interest ?? 0) < 0) {
+        alert('Stückzahl und Kurs müssen größer 0 sein. Gebühren und Stückzinsen dürfen nicht negativ sein.');
+        return;
+      }
+    } else {
+      if (this.booking.positions.length === 0) {
+        alert('Mindestens eine Position ist erforderlich.');
+        return;
+      }
+
+      for (const pos of this.booking.positions) {
+        if (!pos.account_id || !pos.valuta || pos.amount === null) {
+          alert('Alle Positionen müssen ausgefüllt sein.');
+          return;
+        }
       }
     }
 

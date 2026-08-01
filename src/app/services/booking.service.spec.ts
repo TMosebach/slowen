@@ -69,6 +69,28 @@ describe('BookingService', () => {
     expect(result.id).toBe(3);
   });
 
+  it('should pass purchase details through create()', async () => {
+    const booking: Booking = {
+      vorgang: 'Kauf',
+      date: '2026-08-01',
+      description: 'ETF Kauf',
+      positions: [],
+      purchaseDetails: {
+        security_id: 1,
+        depot_account_id: 2,
+        settlement_account_id: 3,
+        quantity: 5,
+        price_per_unit: 100,
+        fees: 2,
+        accrued_interest: 0,
+      },
+    };
+
+    await service.create(booking);
+
+    expect(mockApi.create).toHaveBeenCalledWith(booking);
+  });
+
   it('should call api.delete with id', async () => {
     await service.delete(7);
     expect(mockApi.delete).toHaveBeenCalledWith(7);
