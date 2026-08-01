@@ -17,7 +17,11 @@ export function getDatabase(): Database.Database {
 }
 
 function initDatabase() {
-  db.exec(`
+  initDatabaseSchema(db);
+}
+
+export function initDatabaseSchema(database: Database.Database): void {
+  database.exec(`
     CREATE TABLE IF NOT EXISTS accounts (
       id INTEGER PRIMARY KEY AUTOINCREMENT,
       name TEXT NOT NULL,
@@ -29,17 +33,17 @@ function initDatabase() {
     )
   `);
 
-  db.exec(`
+  database.exec(`
     CREATE TABLE IF NOT EXISTS bookings (
       id INTEGER PRIMARY KEY AUTOINCREMENT,
-      vorgang TEXT NOT NULL CHECK (vorgang IN ('Buchung')),
+      vorgang TEXT NOT NULL CHECK (vorgang IN ('Buchung', 'Kauf')),
       date TEXT NOT NULL,
       description TEXT,
       sender_receiver TEXT
     )
   `);
 
-  db.exec(`
+  database.exec(`
     CREATE TABLE IF NOT EXISTS booking_positions (
       id INTEGER PRIMARY KEY AUTOINCREMENT,
       booking_id INTEGER NOT NULL,
@@ -51,7 +55,22 @@ function initDatabase() {
     )
   `);
 
-  db.exec(`
+  database.exec(`
+    CREATE TABLE IF NOT EXISTS depot_positions (
+      id INTEGER PRIMARY KEY AUTOINCREMENT,
+      booking_id INTEGER NOT NULL UNIQUE,
+      depot_account_id INTEGER NOT NULL,
+      security_id INTEGER NOT NULL,
+      quantity REAL NOT NULL,
+      price_per_unit REAL NOT NULL,
+      purchase_date TEXT NOT NULL,
+      FOREIGN KEY (booking_id) REFERENCES bookings(id) ON DELETE CASCADE,
+      FOREIGN KEY (depot_account_id) REFERENCES accounts(id),
+      FOREIGN KEY (security_id) REFERENCES securities(id)
+    )
+  `);
+
+  database.exec(`
     CREATE TABLE IF NOT EXISTS securities (
       id INTEGER PRIMARY KEY AUTOINCREMENT,
       name TEXT NOT NULL,
@@ -64,7 +83,7 @@ function initDatabase() {
     )
   `);
 
-  db.exec(`
+  database.exec(`
     CREATE TABLE IF NOT EXISTS security_prices (
       id INTEGER PRIMARY KEY AUTOINCREMENT,
       security_id INTEGER NOT NULL,
@@ -76,4 +95,16 @@ function initDatabase() {
       UNIQUE(security_id, date)
     )
   `);
+
+  database.prepare(
+    `INSERT INTO accounts (name, type, subtype)
+     SELECT ?, ?, ?
+     WHERE NOT EXISTS (SELECT 1 FROM accounts WHERE name = ?)`
+  ).run('Wertpapierprovision', 'GuV', 'Aufwand', 'Wertpapierprovision');
+
+  database.prepare(
+    `INSERT INTO accounts (name, type, subtype)
+     SELECT ?, ?, ?
+     WHERE NOT EXISTS (SELECT 1 FROM accounts WHERE name = ?)`
+  ).run('Stückzinsen', 'GuV', 'Aufwand', 'Stückzinsen');
 }
