@@ -32,26 +32,32 @@
             <tr>
               <td class="px-6 py-4 whitespace-nowrap">{{ account.name }}</td>
               <td class="px-6 py-4 whitespace-nowrap">{{ account.type }}</td>
-              <td class="px-6 py-4 whitespace-nowrap">{{ account.subtype }}</td>
-              <td class="px-6 py-4 whitespace-nowrap">{{ account.iban || '-' }}</td>
-              <td class="px-6 py-4 whitespace-nowrap text-right">
-               <a [routerLink]="['/accounts', account.id, 'edit']"
-                   class="text-blue-600 hover:text-blue-900 mr-3">
-                  Bearbeiten
-                </a>
-                @if (account.subtype === 'Depot') {
-                  <a [routerLink]="['/accounts', account.id, 'depot']"
-                     class="text-green-600 hover:text-green-900 mr-3">
-                    Bestand
+               <td class="px-6 py-4 whitespace-nowrap">{{ account.subtype }}</td>
+               <td class="px-6 py-4 whitespace-nowrap">{{ account.iban || '-' }}</td>
+               <td class="px-6 py-4 whitespace-nowrap text-right">
+                @if (isProtectedSystemAccount(account)) {
+                  <span class="text-xs font-medium uppercase tracking-wide text-gray-500">Systemkonto</span>
+                } @else {
+                  <a [routerLink]="['/accounts', account.id, 'edit']"
+                     class="text-blue-600 hover:text-blue-900 mr-3">
+                    Bearbeiten
                   </a>
                 }
-                <button (click)="deleteAccount(account.id!)" 
-                        class="text-red-600 hover:text-red-900">
-                  Löschen
-                </button>
-              </td>
-            </tr>
-          }
+                 @if (account.subtype === 'Depot') {
+                   <a [routerLink]="['/accounts', account.id, 'depot']"
+                      class="text-green-600 hover:text-green-900 mr-3">
+                     Bestand
+                   </a>
+                 }
+                 @if (!isProtectedSystemAccount(account)) {
+                   <button (click)="deleteAccount(account.id!)" 
+                           class="text-red-600 hover:text-red-900">
+                     Löschen
+                   </button>
+                 }
+               </td>
+             </tr>
+           }
         </tbody>
       </table>
     </div>

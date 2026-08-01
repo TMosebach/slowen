@@ -2,7 +2,7 @@ import { Component, OnInit, ChangeDetectorRef } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { RouterModule } from '@angular/router';
 import { AccountService } from '../../../services/account.service';
-import { Account } from '../../../models/account.model';
+import { Account, isSystemAccount } from '../../../models/account.model';
 
 @Component({
   selector: 'app-account-list',
@@ -36,6 +36,10 @@ export class AccountListComponent implements OnInit {
       this.loading = false;
       this.cdr.detectChanges();
     }
+  }
+
+  isProtectedSystemAccount(account: Account): boolean {
+    return isSystemAccount(account);
   }
 
   async deleteAccount(id: number) {

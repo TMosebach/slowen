@@ -58,6 +58,8 @@ function initDatabase() {
 }
 
 export function initDatabaseSchema(database: Database.Database): void {
+  database.pragma('foreign_keys = ON');
+
   database.exec(`
     CREATE TABLE IF NOT EXISTS accounts (
       id INTEGER PRIMARY KEY AUTOINCREMENT,

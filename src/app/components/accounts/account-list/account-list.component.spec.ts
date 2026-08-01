@@ -73,4 +73,24 @@ describe('AccountListComponent', () => {
     expect(links).toContainEqual({ text: 'Bestand', href: '/accounts/2/depot' });
     expect(links).not.toContainEqual({ text: 'Bestand', href: '/accounts/1/depot' });
   });
+
+  it('hides edit and delete actions for protected system accounts', async () => {
+    mockService.getAll.mockResolvedValue([
+      { id: 1, name: 'Wertpapierprovision', type: 'GuV', subtype: 'Aufwand' },
+      { id: 2, name: 'Normales Konto', type: 'Bestand', subtype: 'Giro' },
+    ]);
+
+    await component.loadAccounts();
+    fixture.detectChanges();
+
+    const rows = Array.from(fixture.nativeElement.querySelectorAll('tbody tr')) as HTMLTableRowElement[];
+    const protectedRow = rows.find((row) => row.textContent?.includes('Wertpapierprovision'));
+    const normalRow = rows.find((row) => row.textContent?.includes('Normales Konto'));
+
+    expect(protectedRow?.textContent).toContain('Systemkonto');
+    expect(protectedRow?.textContent).not.toContain('Bearbeiten');
+    expect(protectedRow?.textContent).not.toContain('Löschen');
+    expect(normalRow?.textContent).toContain('Bearbeiten');
+    expect(normalRow?.textContent).toContain('Löschen');
+  });
 });

@@ -1,6 +1,27 @@
 import { getDatabase } from './connection';
 import { Account } from '../../src/app/models/account.model';
 
+function isProtectedSystemAccount(account: Pick<Account, 'name' | 'type' | 'subtype'>): boolean {
+  return (
+    (account.name === 'Wertpapierprovision' || account.name === 'Stückzinsen')
+    && account.type === 'GuV'
+    && account.subtype === 'Aufwand'
+  );
+}
+
+function getProtectedSystemAccount(id: number): Pick<Account, 'name' | 'type' | 'subtype'> | null {
+  const db = getDatabase();
+  const account = db.prepare('SELECT name, type, subtype FROM accounts WHERE id = ?').get(id) as
+    | Pick<Account, 'name' | 'type' | 'subtype'>
+    | undefined;
+
+  if (!account || !isProtectedSystemAccount(account)) {
+    return null;
+  }
+
+  return account;
+}
+
 export const accounts = {
   getAll: async (): Promise<Account[]> => {
     const db = getDatabase();
@@ -22,6 +43,11 @@ export const accounts = {
   },
 
   update: async (id: number, account: Account): Promise<Account> => {
+    const protectedAccount = getProtectedSystemAccount(id);
+    if (protectedAccount) {
+      throw new Error(`Systemkonto darf nicht bearbeitet werden: ${protectedAccount.name}`);
+    }
+
     const db = getDatabase();
     const stmt = db.prepare(
       'UPDATE accounts SET name = ?, type = ?, subtype = ?, iban = ?, notes = ? WHERE id = ?'
@@ -31,6 +57,11 @@ export const accounts = {
   },
 
   delete: async (id: number): Promise<void> => {
+    const protectedAccount = getProtectedSystemAccount(id);
+    if (protectedAccount) {
+      throw new Error(`Systemkonto darf nicht gelöscht werden: ${protectedAccount.name}`);
+    }
+
     const db = getDatabase();
     db.prepare('DELETE FROM accounts WHERE id = ?').run(id);
   }

@@ -153,4 +153,22 @@ describe('BookingFormComponent', () => {
       accrued_interest: 0,
     });
   });
+
+  it('allows fractional quantity input in purchase mode', () => {
+    component.booking.vorgang = 'Kauf';
+    component.booking.purchaseDetails = {
+      security_id: 1,
+      depot_account_id: 2,
+      settlement_account_id: 3,
+      quantity: 0,
+      price_per_unit: 0,
+      fees: 0,
+      accrued_interest: 0,
+    };
+
+    fixture.detectChanges();
+
+    const quantityInput = fixture.nativeElement.querySelector('input[name="quantity"]') as HTMLInputElement;
+    expect(quantityInput.getAttribute('step')).toBe('any');
+  });
 });

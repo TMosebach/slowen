@@ -4,6 +4,15 @@ import { describe, expect, it } from 'vitest';
 import { initDatabaseSchema } from './connection';
 
 describe('database schema for securities purchases', () => {
+  it('enables foreign key enforcement during normal schema initialization', () => {
+    const db = new Database(':memory:');
+
+    initDatabaseSchema(db);
+
+    const foreignKeys = db.pragma('foreign_keys', { simple: true });
+    expect(foreignKeys).toBe(1);
+  });
+
   it('upgrades existing bookings table to allow Kauf without losing rows', () => {
     const db = new Database(':memory:');
     db.exec(`

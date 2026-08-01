@@ -1,15 +1,24 @@
 import { getDatabase } from './connection';
 import { Booking, BookingPosition, PurchaseBookingDetails } from '../../src/app/models/booking.model';
 
+function isRequiredSystemAccount(account: { name: string; type: 'Bestand' | 'GuV'; subtype: string }): boolean {
+  return account.type === 'GuV' && account.subtype === 'Aufwand';
+}
+
 function requireSystemAccount(name: string): number {
   const db = getDatabase();
-  const account = db.prepare('SELECT id FROM accounts WHERE name = ?').get(name) as { id: number } | undefined;
+  const accounts = db.prepare('SELECT id, name, type, subtype FROM accounts WHERE name = ?').all(name) as Array<{
+    id: number;
+    name: string;
+    type: 'Bestand' | 'GuV';
+    subtype: string;
+  }>;
 
-  if (!account) {
-    throw new Error(`Systemkonto fehlt: ${name}`);
+  if (accounts.length !== 1 || !isRequiredSystemAccount(accounts[0])) {
+    throw new Error(`Systemkonto-Invariante verletzt: ${name}`);
   }
 
-  return account.id;
+  return accounts[0].id;
 }
 
 function buildPurchasePositions(booking: Booking): BookingPosition[] {

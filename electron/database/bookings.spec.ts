@@ -73,6 +73,31 @@ describe('purchase bookings', () => {
     expect(reloaded?.purchaseDetails?.security_id).toBe(7);
   });
 
+  it('deletes derived purchase rows when a purchase booking is deleted', async () => {
+    await seedPurchaseReferences();
+    const created = await bookings.create({
+      vorgang: 'Kauf',
+      date: '2026-08-01',
+      description: 'ETF Kauf',
+      positions: [],
+      purchaseDetails: {
+        security_id: 7,
+        depot_account_id: 3,
+        settlement_account_id: 2,
+        quantity: 10,
+        price_per_unit: 150,
+        fees: 5,
+        accrued_interest: 0,
+      },
+    } satisfies Booking);
+
+    await bookings.delete(created.id!);
+
+    expect(db.prepare('SELECT COUNT(*) AS count FROM bookings').get()).toEqual({ count: 0 });
+    expect(db.prepare('SELECT COUNT(*) AS count FROM booking_positions').get()).toEqual({ count: 0 });
+    expect(db.prepare('SELECT COUNT(*) AS count FROM depot_positions').get()).toEqual({ count: 0 });
+  });
+
   it('adds a Stueckzinsen position when accrued interest is present', async () => {
     await seedPurchaseReferences();
     const created = await bookings.create({
@@ -131,5 +156,60 @@ describe('purchase bookings', () => {
     const reloaded = await bookings.getById(created.id!);
     expect(reloaded?.positions.map((pos) => pos.amount)).toEqual(expect.arrayContaining([-605, 600, 3, 2]));
     expect(reloaded?.purchaseDetails?.quantity).toBe(6);
+  });
+
+  it('fails loudly when Wertpapierprovision exists more than once', async () => {
+    await seedPurchaseReferences();
+    db.prepare(`INSERT INTO accounts (name, type, subtype) VALUES (?, ?, ?)`).run(
+      'Wertpapierprovision',
+      'GuV',
+      'Aufwand'
+    );
+
+    await expect(
+      bookings.create({
+        vorgang: 'Kauf',
+        date: '2026-08-01',
+        description: 'ETF Kauf',
+        positions: [],
+        purchaseDetails: {
+          security_id: 7,
+          depot_account_id: 3,
+          settlement_account_id: 2,
+          quantity: 10,
+          price_per_unit: 150,
+          fees: 5,
+          accrued_interest: 0,
+        },
+      } satisfies Booking)
+    ).rejects.toThrow('Systemkonto-Invariante verletzt: Wertpapierprovision');
+  });
+
+  it('fails loudly when Stueckzinsen is missing the required GuV Aufwand shape', async () => {
+    await seedPurchaseReferences();
+    db.prepare(`DELETE FROM accounts WHERE name = 'Stückzinsen'`).run();
+    db.prepare(`INSERT INTO accounts (name, type, subtype) VALUES (?, ?, ?)`).run(
+      'Stückzinsen',
+      'Bestand',
+      'Giro'
+    );
+
+    await expect(
+      bookings.create({
+        vorgang: 'Kauf',
+        date: '2026-08-01',
+        description: 'Anleihe Kauf',
+        positions: [],
+        purchaseDetails: {
+          security_id: 8,
+          depot_account_id: 3,
+          settlement_account_id: 2,
+          quantity: 20,
+          price_per_unit: 98,
+          fees: 0,
+          accrued_interest: 12,
+        },
+      } satisfies Booking)
+    ).rejects.toThrow('Systemkonto-Invariante verletzt: Stückzinsen');
   });
 });
