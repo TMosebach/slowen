@@ -1,4 +1,7 @@
 import { TestBed } from '@angular/core/testing';
+
+import type { Booking } from '../models/booking.model';
+
 import { BookingService } from './booking.service';
 
 describe('BookingService', () => {
@@ -45,7 +48,7 @@ describe('BookingService', () => {
   });
 
   it('should call api.create with booking data', async () => {
-    const booking = {
+    const booking: Booking = {
       vorgang: 'Buchung',
       date: '2026-01-01',
       positions: [{ account_id: 1, valuta: '2026-01-01', amount: 50 }],
@@ -56,7 +59,7 @@ describe('BookingService', () => {
   });
 
   it('should call api.update with id and booking data', async () => {
-    const booking = {
+    const booking: Booking = {
       vorgang: 'Buchung',
       date: '2026-02-01',
       positions: [{ account_id: 2, valuta: '2026-02-01', amount: 200 }],
