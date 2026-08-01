@@ -110,4 +110,35 @@ describe('DepotDetailComponent', () => {
 
     expect(component.summaryRows[0].expanded).toBe(true);
   });
+
+  it('does not divide by zero for a depot position with zero quantity', async () => {
+    mockDepotPositionsService.getByDepot.mockResolvedValue([
+      { booking_id: 1, depot_account_id: 2, security_id: 7, quantity: 0, price_per_unit: 100, purchase_date: '2026-08-01' }
+    ]);
+    mockSecuritiesService.getAll.mockResolvedValue([
+      { id: 7, name: 'ETF World', type: 'ETF', isin: 'IE00TEST0001', wkn: 'TEST01' }
+    ]);
+
+    await component.loadDepot();
+
+    expect(component.summaryRows[0].average_price_per_unit).toBe(0);
+  });
+
+  it('redirects to the account list when the account is not a depot', async () => {
+    mockAccountService.getById.mockResolvedValue({
+      id: 1,
+      name: 'Girokonto',
+      type: 'Bestand',
+      subtype: 'Giro',
+      iban: '',
+      notes: ''
+    });
+
+    const routerSpy = vi.spyOn(component['router'], 'navigate');
+
+    await component.loadDepot();
+
+    expect(routerSpy).toHaveBeenCalledWith(['/accounts']);
+    expect(component.summaryRows).toEqual([]);
+  });
 });

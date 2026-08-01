@@ -138,7 +138,7 @@ describe('BookingFormComponent', () => {
 
   it('initializes the dedicated purchase route in purchase mode', () => {
     const route = TestBed.inject(ActivatedRoute);
-    (route.snapshot.routeConfig as { path?: string } | null) = { path: 'bookings/new/purchase' };
+    route.snapshot.data['vorgang'] = 'Kauf';
 
     fixture.detectChanges();
 
@@ -170,5 +170,28 @@ describe('BookingFormComponent', () => {
 
     const quantityInput = fixture.nativeElement.querySelector('input[name="quantity"]') as HTMLInputElement;
     expect(quantityInput.getAttribute('step')).toBe('any');
+  });
+
+  it('allows fractional price, fees and accrued interest in purchase mode', () => {
+    component.booking.vorgang = 'Kauf';
+    component.booking.purchaseDetails = {
+      security_id: 1,
+      depot_account_id: 2,
+      settlement_account_id: 3,
+      quantity: 0,
+      price_per_unit: 0,
+      fees: 0,
+      accrued_interest: 0,
+    };
+
+    fixture.detectChanges();
+
+    const priceInput = fixture.nativeElement.querySelector('input[name="price_per_unit"]') as HTMLInputElement;
+    const feesInput = fixture.nativeElement.querySelector('input[name="fees"]') as HTMLInputElement;
+    const interestInput = fixture.nativeElement.querySelector('input[name="accrued_interest"]') as HTMLInputElement;
+
+    expect(priceInput.getAttribute('step')).toBe('any');
+    expect(feesInput.getAttribute('step')).toBe('any');
+    expect(interestInput.getAttribute('step')).toBe('any');
   });
 });

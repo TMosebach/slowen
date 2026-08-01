@@ -47,7 +47,7 @@ export class BookingFormComponent implements OnInit {
     this.loadAccounts();
     this.loadSecurities();
 
-    if (this.route.snapshot.routeConfig?.path === 'bookings/new/purchase') {
+    if (this.route.snapshot.data['vorgang'] === 'Kauf') {
       this.booking.vorgang = 'Kauf';
       this.booking.purchaseDetails = this.createEmptyPurchaseDetails();
     }

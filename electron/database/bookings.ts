@@ -1,9 +1,6 @@
 import { getDatabase } from './connection';
 import { Booking, BookingPosition, PurchaseBookingDetails } from '../../src/app/models/booking.model';
-
-function isRequiredSystemAccount(account: { name: string; type: 'Bestand' | 'GuV'; subtype: string }): boolean {
-  return account.type === 'GuV' && account.subtype === 'Aufwand';
-}
+import { isSystemAccount } from '../../src/app/models/account.model';
 
 function requireSystemAccount(name: string): number {
   const db = getDatabase();
@@ -14,7 +11,7 @@ function requireSystemAccount(name: string): number {
     subtype: string;
   }>;
 
-  if (accounts.length !== 1 || !isRequiredSystemAccount(accounts[0])) {
+  if (accounts.length !== 1 || !isSystemAccount(accounts[0])) {
     throw new Error(`Systemkonto-Invariante verletzt: ${name}`);
   }
 

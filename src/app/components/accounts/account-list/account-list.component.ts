@@ -39,7 +39,15 @@ export class AccountListComponent implements OnInit {
   }
 
   isProtectedSystemAccount(account: Account): boolean {
-    return isSystemAccount(account);
+    if (!isSystemAccount(account)) {
+      return false;
+    }
+
+    const siblingIds = this.accounts
+      .filter((candidate) => isSystemAccount(candidate) && candidate.name === account.name)
+      .map((candidate) => candidate.id ?? Number.MAX_SAFE_INTEGER);
+
+    return account.id === Math.min(...siblingIds);
   }
 
   async deleteAccount(id: number) {

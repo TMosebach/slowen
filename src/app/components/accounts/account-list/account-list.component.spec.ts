@@ -93,4 +93,20 @@ describe('AccountListComponent', () => {
     expect(normalRow?.textContent).toContain('Bearbeiten');
     expect(normalRow?.textContent).toContain('Löschen');
   });
+
+  it('keeps a duplicate system account deletable so it can be remediated', async () => {
+    mockService.getAll.mockResolvedValue([
+      { id: 3, name: 'Wertpapierprovision', type: 'GuV', subtype: 'Aufwand' },
+      { id: 5, name: 'Wertpapierprovision', type: 'GuV', subtype: 'Aufwand' },
+    ]);
+
+    await component.loadAccounts();
+    fixture.detectChanges();
+
+    const rows = Array.from(fixture.nativeElement.querySelectorAll('tbody tr')) as HTMLTableRowElement[];
+    const canonicalRow = rows.find((row) => row.textContent?.includes('Wertpapierprovision'));
+
+    expect(component.isProtectedSystemAccount({ id: 3, name: 'Wertpapierprovision', type: 'GuV', subtype: 'Aufwand' })).toBe(true);
+    expect(component.isProtectedSystemAccount({ id: 5, name: 'Wertpapierprovision', type: 'GuV', subtype: 'Aufwand' })).toBe(false);
+  });
 });

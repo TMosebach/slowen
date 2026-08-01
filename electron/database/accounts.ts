@@ -1,25 +1,17 @@
 import { getDatabase } from './connection';
-import { Account } from '../../src/app/models/account.model';
+import { Account, isSystemAccount } from '../../src/app/models/account.model';
 
-function isProtectedSystemAccount(account: Pick<Account, 'name' | 'type' | 'subtype'>): boolean {
-  return (
-    (account.name === 'Wertpapierprovision' || account.name === 'Stückzinsen')
-    && account.type === 'GuV'
-    && account.subtype === 'Aufwand'
-  );
-}
-
-function getProtectedSystemAccount(id: number): Pick<Account, 'name' | 'type' | 'subtype'> | null {
-  const db = getDatabase();
-  const account = db.prepare('SELECT name, type, subtype FROM accounts WHERE id = ?').get(id) as
-    | Pick<Account, 'name' | 'type' | 'subtype'>
-    | undefined;
-
-  if (!account || !isProtectedSystemAccount(account)) {
+function getCanonicalSystemAccountId(account: Pick<Account, 'name' | 'type' | 'subtype'>): number | null {
+  if (!isSystemAccount(account)) {
     return null;
   }
 
-  return account;
+  const db = getDatabase();
+  const row = db
+    .prepare('SELECT id FROM accounts WHERE name = ? AND type = ? AND subtype = ? ORDER BY id ASC LIMIT 1')
+    .get(account.name, account.type, account.subtype) as { id: number } | undefined;
+
+  return row?.id ?? null;
 }
 
 export const accounts = {
@@ -34,6 +26,10 @@ export const accounts = {
   },
 
   create: async (account: Account): Promise<Account> => {
+    if (isSystemAccount(account)) {
+      throw new Error(`Systemkonto darf nicht angelegt werden: ${account.name}`);
+    }
+
     const db = getDatabase();
     const stmt = db.prepare(
       'INSERT INTO accounts (name, type, subtype, iban, notes) VALUES (?, ?, ?, ?, ?)'
@@ -43,12 +39,19 @@ export const accounts = {
   },
 
   update: async (id: number, account: Account): Promise<Account> => {
-    const protectedAccount = getProtectedSystemAccount(id);
-    if (protectedAccount) {
-      throw new Error(`Systemkonto darf nicht bearbeitet werden: ${protectedAccount.name}`);
+    const db = getDatabase();
+    const current = db
+      .prepare('SELECT name, type, subtype FROM accounts WHERE id = ?')
+      .get(id) as Pick<Account, 'name' | 'type' | 'subtype'> | undefined;
+
+    if (current && getCanonicalSystemAccountId(current) === id) {
+      throw new Error(`Systemkonto darf nicht bearbeitet werden: ${current.name}`);
     }
 
-    const db = getDatabase();
+    if (isSystemAccount(account)) {
+      throw new Error(`Systemkonto darf nicht angelegt werden: ${account.name}`);
+    }
+
     const stmt = db.prepare(
       'UPDATE accounts SET name = ?, type = ?, subtype = ?, iban = ?, notes = ? WHERE id = ?'
     );
@@ -57,12 +60,15 @@ export const accounts = {
   },
 
   delete: async (id: number): Promise<void> => {
-    const protectedAccount = getProtectedSystemAccount(id);
-    if (protectedAccount) {
-      throw new Error(`Systemkonto darf nicht gelöscht werden: ${protectedAccount.name}`);
+    const db = getDatabase();
+    const current = db
+      .prepare('SELECT name, type, subtype FROM accounts WHERE id = ?')
+      .get(id) as Pick<Account, 'name' | 'type' | 'subtype'> | undefined;
+
+    if (current && getCanonicalSystemAccountId(current) === id) {
+      throw new Error(`Systemkonto darf nicht gelöscht werden: ${current.name}`);
     }
 
-    const db = getDatabase();
     db.prepare('DELETE FROM accounts WHERE id = ?').run(id);
   }
 };

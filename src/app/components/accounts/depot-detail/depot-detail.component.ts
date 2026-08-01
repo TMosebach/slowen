@@ -1,6 +1,6 @@
 import { CommonModule } from '@angular/common';
 import { Component, OnInit } from '@angular/core';
-import { ActivatedRoute, RouterModule } from '@angular/router';
+import { ActivatedRoute, Router, RouterModule } from '@angular/router';
 
 import { Account } from '../../../models/account.model';
 import { Booking } from '../../../models/booking.model';
@@ -30,6 +30,7 @@ export class DepotDetailComponent implements OnInit {
 
   constructor(
     private route: ActivatedRoute,
+    private router: Router,
     private accountService: AccountService,
     private depotPositionsService: DepotPositionsService,
     private bookingService: BookingService,
@@ -55,6 +56,14 @@ export class DepotDetailComponent implements OnInit {
       this.bookingService.getAll(),
       this.securitiesService.getAll()
     ]);
+
+    if (!account || account.subtype !== 'Depot') {
+      this.account = null;
+      this.summaryRows = [];
+      this.purchaseHistory = [];
+      this.router.navigate(['/accounts']);
+      return;
+    }
 
     this.account = account;
 
@@ -109,7 +118,7 @@ export class DepotDetailComponent implements OnInit {
       security_type: security.type,
       isin: security.isin,
       total_quantity: totalQuantity,
-      average_price_per_unit: totalPurchaseValue / totalQuantity,
+      average_price_per_unit: totalQuantity > 0 ? totalPurchaseValue / totalQuantity : 0,
       total_purchase_value: totalPurchaseValue,
       first_purchase_date: purchases.map((item) => item.purchase_date).sort()[0],
       purchases,

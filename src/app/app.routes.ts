@@ -14,7 +14,7 @@ export const routes: Routes = [
   { path: 'dashboard', component: DashboardComponent },
   { path: 'bookings', component: BookingListComponent },
   { path: 'bookings/new', component: BookingFormComponent },
-  { path: 'bookings/new/purchase', component: BookingFormComponent },
+  { path: 'bookings/new/purchase', component: BookingFormComponent, data: { vorgang: 'Kauf' } },
   { path: 'bookings/:id/edit', component: BookingFormComponent },
   { path: 'accounts', component: AccountListComponent },
   { path: 'accounts/new', component: AccountFormComponent },
