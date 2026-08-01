@@ -4,6 +4,7 @@ import { provideRouter } from '@angular/router';
 import { BookingFormComponent } from './booking-form.component';
 import { BookingService } from '../../../services/booking.service';
 import { AccountService } from '../../../services/account.service';
+import { SecuritiesService } from '../../../services/securities.service';
 
 @Component({ template: '' })
 class DummyBookingsComponent {}
@@ -13,6 +14,7 @@ describe('BookingFormComponent', () => {
   let fixture: ComponentFixture<BookingFormComponent>;
   let mockBookingService: any;
   let mockAccountService: any;
+  let mockSecuritiesService: any;
 
   beforeEach(async () => {
     mockBookingService = {
@@ -25,12 +27,17 @@ describe('BookingFormComponent', () => {
       getAll: vi.fn().mockResolvedValue([]),
     };
 
+    mockSecuritiesService = {
+      getAll: vi.fn().mockResolvedValue([]),
+    };
+
     await TestBed.configureTestingModule({
       imports: [BookingFormComponent],
       providers: [
         provideRouter([{ path: 'bookings', component: DummyBookingsComponent }]),
         { provide: BookingService, useValue: mockBookingService },
         { provide: AccountService, useValue: mockAccountService },
+        { provide: SecuritiesService, useValue: mockSecuritiesService },
       ],
     }).compileComponents();
 
@@ -105,5 +112,27 @@ describe('BookingFormComponent', () => {
     await component.onSubmit();
 
     expect(mockBookingService.create).toHaveBeenCalledWith(component.booking);
+  });
+
+  it('filters depot and settlement accounts for purchase mode', async () => {
+    mockAccountService.getAll.mockResolvedValue([
+      { id: 1, name: 'Depot A', type: 'Bestand', subtype: 'Depot' },
+      { id: 2, name: 'Giro', type: 'Bestand', subtype: 'Giro' }
+    ]);
+
+    await component.loadAccounts();
+
+    expect(component.depotAccounts.map((account) => account.id)).toEqual([1]);
+    expect(component.settlementAccounts.map((account) => account.id)).toEqual([2]);
+  });
+
+  it('loads securities for the purchase dropdown', async () => {
+    mockSecuritiesService.getAll.mockResolvedValue([
+      { id: 7, name: 'ETF World', type: 'ETF', isin: 'IE00TEST0001', wkn: 'ETF001' }
+    ]);
+
+    await component.loadSecurities();
+
+    expect(component.securities.map((security) => security.id)).toEqual([7]);
   });
 });

@@ -4,8 +4,10 @@ import { FormsModule } from '@angular/forms';
 import { Router, ActivatedRoute, RouterModule } from '@angular/router';
 import { BookingService } from '../../../services/booking.service';
 import { AccountService } from '../../../services/account.service';
+import { SecuritiesService } from '../../../services/securities.service';
 import { Booking, BookingPosition, PurchaseBookingDetails, VORGANG_OPTIONS } from '../../../models/booking.model';
 import { Account } from '../../../models/account.model';
+import { Security } from '../../../models/security.model';
 
 @Component({
   selector: 'app-booking-form',
@@ -23,6 +25,9 @@ export class BookingFormComponent implements OnInit {
   };
 
   accounts: Account[] = [];
+  depotAccounts: Account[] = [];
+  settlementAccounts: Account[] = [];
+  securities: Security[] = [];
   vorgangOptions = VORGANG_OPTIONS;
   isEditing = false;
   bookingId: number | null = null;
@@ -32,6 +37,7 @@ export class BookingFormComponent implements OnInit {
   constructor(
     private bookingService: BookingService,
     private accountService: AccountService,
+    private securitiesService: SecuritiesService,
     private router: Router,
     private route: ActivatedRoute,
     private cdr: ChangeDetectorRef
@@ -39,6 +45,7 @@ export class BookingFormComponent implements OnInit {
 
   ngOnInit() {
     this.loadAccounts();
+    this.loadSecurities();
     const id = this.route.snapshot.paramMap.get('id');
     if (id) {
       this.isEditing = true;
@@ -50,8 +57,18 @@ export class BookingFormComponent implements OnInit {
   async loadAccounts() {
     try {
       this.accounts = await this.accountService.getAll();
+      this.depotAccounts = this.accounts.filter((account) => account.subtype === 'Depot');
+      this.settlementAccounts = this.accounts.filter((account) => account.type === 'Bestand' && account.subtype !== 'Depot');
     } catch (err) {
       console.error('Failed to load accounts:', err);
+    }
+  }
+
+  async loadSecurities() {
+    try {
+      this.securities = await this.securitiesService.getAll();
+    } catch (err) {
+      console.error('Failed to load securities:', err);
     }
   }
 

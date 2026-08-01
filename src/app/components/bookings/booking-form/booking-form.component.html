@@ -49,31 +49,42 @@
       <div class="grid grid-cols-2 gap-4 mb-6">
         <div>
           <label class="block text-sm font-medium text-gray-700 mb-1">Wertpapier *</label>
-          <select [(ngModel)]="booking.purchaseDetails!.security_id"
-                  name="security_id"
-                  required
-                  class="w-full border border-gray-300 rounded px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500">
-            <option [value]="0">Bitte wählen...</option>
-          </select>
-        </div>
+           <select [(ngModel)]="booking.purchaseDetails!.security_id"
+                   name="security_id"
+                   required
+                   class="w-full border border-gray-300 rounded px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500">
+             <option [value]="0">Bitte wählen...</option>
+             @for (security of securities; track security.id) {
+               <option [value]="security.id">{{ security.name }}</option>
+             }
+           </select>
+         </div>
 
         <div>
           <label class="block text-sm font-medium text-gray-700 mb-1">Depot-Konto *</label>
-          <select [(ngModel)]="booking.purchaseDetails!.depot_account_id"
-                  name="depot_account_id"
-                  required
-                  class="w-full border border-gray-300 rounded px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500">
-          </select>
-        </div>
+           <select [(ngModel)]="booking.purchaseDetails!.depot_account_id"
+                   name="depot_account_id"
+                   required
+                   class="w-full border border-gray-300 rounded px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500">
+             <option [value]="0">Bitte wählen...</option>
+             @for (account of depotAccounts; track account.id) {
+               <option [value]="account.id">{{ account.name }}</option>
+             }
+           </select>
+         </div>
 
         <div>
           <label class="block text-sm font-medium text-gray-700 mb-1">Verrechnungskonto *</label>
-          <select [(ngModel)]="booking.purchaseDetails!.settlement_account_id"
-                  name="settlement_account_id"
-                  required
-                  class="w-full border border-gray-300 rounded px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500">
-          </select>
-        </div>
+           <select [(ngModel)]="booking.purchaseDetails!.settlement_account_id"
+                   name="settlement_account_id"
+                   required
+                   class="w-full border border-gray-300 rounded px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500">
+             <option [value]="0">Bitte wählen...</option>
+             @for (account of settlementAccounts; track account.id) {
+               <option [value]="account.id">{{ account.name }}</option>
+             }
+           </select>
+         </div>
 
         <div>
           <label class="block text-sm font-medium text-gray-700 mb-1">Stückzahl *</label>
