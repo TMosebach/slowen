@@ -1,0 +1,78 @@
+<div class="p-6 max-w-6xl mx-auto" *ngIf="account">
+  <h1 class="text-2xl font-bold mb-2">{{ account.name }}</h1>
+  <div class="text-sm text-gray-600 mb-6">
+    <div>Subtyp: {{ account.subtype }}</div>
+    <div>IBAN: {{ account.iban || '-' }}</div>
+    <div>Notizen: {{ account.notes || '-' }}</div>
+  </div>
+
+  <h2 class="text-xl font-semibold mb-3">Bestand</h2>
+  <table class="min-w-full bg-white shadow rounded-lg overflow-hidden mb-8">
+    <thead class="bg-gray-50">
+      <tr>
+        <th class="px-4 py-2 text-left">Wertpapier</th>
+        <th class="px-4 py-2 text-left">Typ</th>
+        <th class="px-4 py-2 text-right">Stückzahl</th>
+        <th class="px-4 py-2 text-right">Ø Kaufkurs</th>
+        <th class="px-4 py-2 text-right">Kaufwert</th>
+        <th class="px-4 py-2 text-left">Erstkauf</th>
+      </tr>
+    </thead>
+    <tbody>
+      @for (row of summaryRows; track row.security_id) {
+        <tr>
+          <td class="px-4 py-2">
+            <button type="button" (click)="toggleSecurityDetails(row.security_id)" class="text-left text-blue-600 hover:text-blue-900">
+              {{ row.security_name }} ({{ row.isin }})
+            </button>
+          </td>
+          <td class="px-4 py-2">{{ row.security_type }}</td>
+          <td class="px-4 py-2 text-right">{{ row.total_quantity | number:'1.2-2' }}</td>
+          <td class="px-4 py-2 text-right">{{ row.average_price_per_unit | number:'1.2-2' }}</td>
+          <td class="px-4 py-2 text-right">{{ row.total_purchase_value | number:'1.2-2' }}</td>
+          <td class="px-4 py-2">{{ row.first_purchase_date }}</td>
+        </tr>
+        @if (row.expanded) {
+          @for (purchase of row.purchases; track purchase.booking_id) {
+            <tr class="bg-gray-50 text-sm text-gray-700">
+              <td class="px-4 py-2 pl-8">Kauf {{ purchase.purchase_date }}</td>
+              <td class="px-4 py-2">Einzelkauf</td>
+              <td class="px-4 py-2 text-right">{{ purchase.quantity | number:'1.2-2' }}</td>
+              <td class="px-4 py-2 text-right">{{ purchase.price_per_unit | number:'1.2-2' }}</td>
+              <td class="px-4 py-2 text-right">{{ purchase.quantity * purchase.price_per_unit | number:'1.2-2' }}</td>
+              <td class="px-4 py-2">{{ purchase.purchase_date }}</td>
+            </tr>
+          }
+        }
+      }
+    </tbody>
+  </table>
+
+  <h2 class="text-xl font-semibold mb-3">Kaufhistorie</h2>
+  <table class="min-w-full bg-white shadow rounded-lg overflow-hidden">
+    <thead class="bg-gray-50">
+      <tr>
+        <th class="px-4 py-2 text-left">Datum</th>
+        <th class="px-4 py-2 text-left">Wertpapier</th>
+        <th class="px-4 py-2 text-right">Stückzahl</th>
+        <th class="px-4 py-2 text-right">Kurs</th>
+        <th class="px-4 py-2 text-right">Gesamtbetrag</th>
+        <th class="px-4 py-2 text-right">Buchung</th>
+      </tr>
+    </thead>
+    <tbody>
+      @for (item of purchaseHistory; track item.booking_id) {
+        <tr>
+          <td class="px-4 py-2">{{ item.booking_date }}</td>
+          <td class="px-4 py-2">{{ item.security_name }}</td>
+          <td class="px-4 py-2 text-right">{{ item.quantity | number:'1.2-2' }}</td>
+          <td class="px-4 py-2 text-right">{{ item.price_per_unit | number:'1.2-2' }}</td>
+          <td class="px-4 py-2 text-right">{{ item.total_amount | number:'1.2-2' }}</td>
+          <td class="px-4 py-2 text-right">
+            <a [routerLink]="['/bookings', item.booking_id, 'edit']" class="text-blue-600 hover:text-blue-900">Öffnen</a>
+          </td>
+        </tr>
+      }
+    </tbody>
+  </table>
+</div>

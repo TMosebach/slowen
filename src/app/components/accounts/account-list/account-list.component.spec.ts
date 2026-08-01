@@ -54,4 +54,23 @@ describe('AccountListComponent', () => {
     expect(mockService.delete).toHaveBeenCalledWith(1);
     expect(mockService.getAll).toHaveBeenCalled();
   });
+
+  it('shows a depot detail link for depot accounts only', async () => {
+    mockService.getAll.mockResolvedValue([
+      { id: 1, name: 'Girokonto', type: 'Bestand', subtype: 'Giro' },
+      { id: 2, name: 'Depotkonto', type: 'Bestand', subtype: 'Depot' },
+    ]);
+
+    await component.loadAccounts();
+    fixture.detectChanges();
+
+    const anchorNodes = fixture.nativeElement.querySelectorAll('a') as NodeListOf<HTMLAnchorElement>;
+    const links = Array.from(anchorNodes).map((link) => ({
+      text: link.textContent?.trim(),
+      href: link.getAttribute('href')
+    }));
+
+    expect(links).toContainEqual({ text: 'Bestand', href: '/accounts/2/depot' });
+    expect(links).not.toContainEqual({ text: 'Bestand', href: '/accounts/1/depot' });
+  });
 });
