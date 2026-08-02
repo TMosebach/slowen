@@ -54,6 +54,15 @@ describe('DepotDetailComponent', () => {
     component = fixture.componentInstance;
   });
 
+  it('renders the depot page after async data loads', async () => {
+    fixture.detectChanges();
+
+    await component.loadDepot();
+
+    const heading = fixture.nativeElement.querySelector('h1');
+    expect(heading?.textContent).toContain('Depotkonto');
+  });
+
   it('aggregates depot positions by security', async () => {
     mockDepotPositionsService.getByDepot.mockResolvedValue([
       { booking_id: 1, depot_account_id: 2, security_id: 7, quantity: 1, price_per_unit: 100, purchase_date: '2026-08-01' },

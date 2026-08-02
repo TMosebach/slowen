@@ -2,14 +2,16 @@
   "name": "slowen",
   "version": "0.0.0",
   "scripts": {
-    "start": "npm run build:electron && concurrently \"ng serve\" \"wait-on http://localhost:4200 && electron .\"",
+    "start": "npm run rebuild && npm run build:electron && concurrently \"ng serve\" \"wait-on http://localhost:4200 && electron .\"",
     "build": "ng build",
     "build:electron": "tsc -p electron/tsconfig.json",
     "rebuild": "electron-rebuild -f -w better-sqlite3",
+    "postinstall": "npm run rebuild",
     "build:prod": "ng build --configuration production",
     "electron:dev": "npm run rebuild && npm run build:electron && electron .",
     "dist": "npm run rebuild && npm run build:electron && npm run build:prod && electron-builder --mac",
     "test": "ng test",
+    "test:electron": "ELECTRON_RUN_AS_NODE=1 electron node_modules/vitest/vitest.mjs run electron/database/accounts.spec.ts electron/database/bookings.spec.ts electron/database/connection.spec.ts electron/database/depot-positions.spec.ts electron/ipc/depot-positions.ipc.spec.ts src/app/models/booking.model.spec.ts src/app/models/depot-position.model.spec.ts",
     "lint": "ng lint"
   },
   "prettier": {

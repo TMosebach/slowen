@@ -1,5 +1,5 @@
 import { CommonModule } from '@angular/common';
-import { Component, OnInit } from '@angular/core';
+import { Component, OnInit, ChangeDetectorRef } from '@angular/core';
 import { ActivatedRoute, Router, RouterModule } from '@angular/router';
 
 import { Account } from '../../../models/account.model';
@@ -34,7 +34,8 @@ export class DepotDetailComponent implements OnInit {
     private accountService: AccountService,
     private depotPositionsService: DepotPositionsService,
     private bookingService: BookingService,
-    private securitiesService: SecuritiesService
+    private securitiesService: SecuritiesService,
+    private cdr: ChangeDetectorRef
   ) {}
 
   async ngOnInit() {
@@ -43,48 +44,52 @@ export class DepotDetailComponent implements OnInit {
 
   async loadDepot() {
     const accountId = Number(this.route.snapshot.paramMap.get('id'));
-    if (!accountId) {
-      this.account = null;
-      this.summaryRows = [];
-      this.purchaseHistory = [];
-      return;
+    try {
+      if (!accountId) {
+        this.account = null;
+        this.summaryRows = [];
+        this.purchaseHistory = [];
+        return;
+      }
+
+      const [account, positions, bookings, securities] = await Promise.all([
+        this.accountService.getById(accountId),
+        this.depotPositionsService.getByDepot(accountId),
+        this.bookingService.getAll(),
+        this.securitiesService.getAll()
+      ]);
+
+      if (!account || account.subtype !== 'Depot') {
+        this.account = null;
+        this.summaryRows = [];
+        this.purchaseHistory = [];
+        this.router.navigate(['/accounts']);
+        return;
+      }
+
+      this.account = account;
+
+      const securityMap = new Map<number, Security>(
+        securities
+          .filter((security): security is Security & { id: number } => security.id !== undefined)
+          .map((security) => [security.id, security])
+      );
+
+      const grouped = new Map<number, DepotPosition[]>();
+      for (const position of positions) {
+        const current = grouped.get(position.security_id) ?? [];
+        current.push(position);
+        grouped.set(position.security_id, current);
+      }
+
+      this.summaryRows = Array.from(grouped.entries())
+        .map(([securityId, purchases]) => this.buildSummaryRow(securityId, purchases, securityMap))
+        .filter((row): row is DepotSummaryRow => row !== null);
+
+      this.purchaseHistory = this.buildPurchaseHistory(bookings, accountId, securityMap);
+    } finally {
+      this.cdr.detectChanges();
     }
-
-    const [account, positions, bookings, securities] = await Promise.all([
-      this.accountService.getById(accountId),
-      this.depotPositionsService.getByDepot(accountId),
-      this.bookingService.getAll(),
-      this.securitiesService.getAll()
-    ]);
-
-    if (!account || account.subtype !== 'Depot') {
-      this.account = null;
-      this.summaryRows = [];
-      this.purchaseHistory = [];
-      this.router.navigate(['/accounts']);
-      return;
-    }
-
-    this.account = account;
-
-    const securityMap = new Map<number, Security>(
-      securities
-        .filter((security): security is Security & { id: number } => security.id !== undefined)
-        .map((security) => [security.id, security])
-    );
-
-    const grouped = new Map<number, DepotPosition[]>();
-    for (const position of positions) {
-      const current = grouped.get(position.security_id) ?? [];
-      current.push(position);
-      grouped.set(position.security_id, current);
-    }
-
-    this.summaryRows = Array.from(grouped.entries())
-      .map(([securityId, purchases]) => this.buildSummaryRow(securityId, purchases, securityMap))
-      .filter((row): row is DepotSummaryRow => row !== null);
-
-    this.purchaseHistory = this.buildPurchaseHistory(bookings, accountId, securityMap);
   }
 
   toggleSecurityDetails(securityId: number): void {
