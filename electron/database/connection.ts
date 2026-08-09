@@ -147,7 +147,12 @@ function migrateBookingsSchema(database: Database.Database): void {
     .prepare(`SELECT sql FROM sqlite_master WHERE type = 'table' AND name = 'bookings'`)
     .get() as { sql: string } | undefined;
 
-  if (!existingBookings?.sql?.includes(`CHECK (vorgang IN ('Buchung'))`)) {
+  const bookingsSql = existingBookings?.sql ?? '';
+  const requiresMigration = /CHECK\s*\(\s*vorgang\s+IN\s*\(\s*'Buchung'\s*(?:,\s*'Kauf'\s*)?\)\s*\)/i.test(
+    bookingsSql
+  );
+
+  if (!requiresMigration) {
     return;
   }
 

@@ -48,6 +48,46 @@ describe('database schema for securities purchases', () => {
     }).not.toThrow();
   });
 
+  it('upgrades existing bookings table from Buchung and Kauf to include Verkauf', () => {
+    const db = new Database(':memory:');
+    db.exec(`
+      CREATE TABLE bookings (
+        id INTEGER PRIMARY KEY AUTOINCREMENT,
+        vorgang TEXT NOT NULL CHECK (vorgang IN ('Buchung', 'Kauf')),
+        date TEXT NOT NULL,
+        description TEXT,
+        sender_receiver TEXT
+      )
+    `);
+    db.prepare(`
+      INSERT INTO bookings (vorgang, date, description, sender_receiver)
+      VALUES (?, ?, ?, ?), (?, ?, ?, ?)
+    `).run(
+      'Buchung',
+      '2026-07-31',
+      'Bestehende Buchung',
+      'Bestand',
+      'Kauf',
+      '2026-08-01',
+      'Bestehender Kauf',
+      'Broker'
+    );
+
+    initDatabaseSchema(db);
+
+    expect(db.prepare(`SELECT vorgang FROM bookings ORDER BY id`).all()).toEqual([
+      { vorgang: 'Buchung' },
+      { vorgang: 'Kauf' },
+    ]);
+
+    expect(() => {
+      db.prepare(`
+        INSERT INTO bookings (vorgang, date, description, sender_receiver)
+        VALUES (?, ?, ?, ?)
+      `).run('Verkauf', '2026-08-02', 'Testverkauf', 'Broker');
+    }).not.toThrow();
+  });
+
   it('preserves legacy booking_positions and depot_positions rows during bookings migration', () => {
     const db = new Database(':memory:');
     db.exec(`
@@ -200,6 +240,25 @@ describe('database schema for securities purchases', () => {
     expect(accounts).toEqual([
       { name: 'Stückzinsen', type: 'GuV', subtype: 'Aufwand' },
       { name: 'Wertpapierprovision', type: 'GuV', subtype: 'Aufwand' },
+    ]);
+  });
+
+  it('creates sale system accounts in schema initialization', () => {
+    const db = new Database(':memory:');
+    initDatabaseSchema(db);
+
+    const rows = db.prepare(`
+      SELECT name, type, subtype
+      FROM accounts
+      WHERE name IN ('Kursgewinn', 'Kursverlust', 'Kapitalertragsteuer', 'Solidaritätszuschlag')
+      ORDER BY name
+    `).all();
+
+    expect(rows).toEqual([
+      { name: 'Kapitalertragsteuer', type: 'GuV', subtype: 'Aufwand' },
+      { name: 'Kursgewinn', type: 'GuV', subtype: 'Ertrag' },
+      { name: 'Kursverlust', type: 'GuV', subtype: 'Aufwand' },
+      { name: 'Solidaritätszuschlag', type: 'GuV', subtype: 'Aufwand' },
     ]);
   });
 });
