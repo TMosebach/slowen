@@ -17,18 +17,34 @@ vi.mock('./connection', async () => {
 });
 
 async function seedPurchaseReferences() {
-  db.prepare(`DELETE FROM accounts WHERE name IN ('Wertpapierprovision', 'Stückzinsen')`).run();
+  db.prepare('DELETE FROM depot_positions').run();
+  db.prepare('DELETE FROM booking_positions').run();
+  db.prepare('DELETE FROM bookings').run();
+  db.prepare('DELETE FROM securities').run();
+  db.prepare('DELETE FROM accounts').run();
   db.prepare(`
     INSERT INTO accounts (id, name, type, subtype) VALUES
       (1, 'Verrechnungskonto', 'Bestand', 'Giro'),
       (2, 'Brokerkonto', 'Bestand', 'Giro'),
       (3, 'Depot A', 'Bestand', 'Depot')
   `).run();
-  db.prepare(`INSERT INTO accounts (name, type, subtype) VALUES (?, ?, ?), (?, ?, ?)`).run(
+  db.prepare(`INSERT INTO accounts (name, type, subtype) VALUES (?, ?, ?), (?, ?, ?), (?, ?, ?), (?, ?, ?), (?, ?, ?), (?, ?, ?)`).run(
     'Wertpapierprovision',
     'GuV',
     'Aufwand',
     'Stückzinsen',
+    'GuV',
+    'Aufwand',
+    'Kursgewinn',
+    'GuV',
+    'Ertrag',
+    'Kursverlust',
+    'GuV',
+    'Aufwand',
+    'Kapitalertragsteuer',
+    'GuV',
+    'Aufwand',
+    'Solidaritätszuschlag',
     'GuV',
     'Aufwand'
   );
@@ -211,5 +227,85 @@ describe('purchase bookings', () => {
         },
       } satisfies Booking)
     ).rejects.toThrow('Systemkonto-Invariante verletzt: Stückzinsen');
+  });
+
+  it('creates sale booking with Kursgewinn and deductions', async () => {
+    await seedPurchaseReferences();
+
+    await bookings.create({
+      vorgang: 'Kauf',
+      date: '2026-08-01',
+      positions: [],
+      purchaseDetails: {
+        security_id: 7,
+        depot_account_id: 3,
+        settlement_account_id: 2,
+        quantity: 5,
+        price_per_unit: 100,
+        fees: 0,
+        accrued_interest: 0,
+      },
+    } satisfies Booking);
+
+    const created = await bookings.create({
+      vorgang: 'Verkauf',
+      date: '2026-08-10',
+      positions: [],
+      saleDetails: {
+        security_id: 7,
+        depot_account_id: 3,
+        settlement_account_id: 2,
+        quantity: 2,
+        price_per_unit: 130,
+        fees: 2,
+        capital_gains_tax: 5,
+        solidarity_surcharge: 0.5,
+      },
+    } satisfies Booking);
+
+    const reloaded = await bookings.getById(created.id!);
+    const sum = reloaded?.positions.reduce((acc, position) => acc + position.amount, 0) ?? 0;
+
+    expect(reloaded?.vorgang).toBe('Verkauf');
+    expect(reloaded?.saleDetails?.quantity).toBe(2);
+    expect(reloaded?.positions.some((position) => position.amount === 52.5)).toBe(true);
+    expect(sum).toBeCloseTo(0, 8);
+  });
+
+  it('rejects sale when quantity exceeds available holdings', async () => {
+    await seedPurchaseReferences();
+
+    await bookings.create({
+      vorgang: 'Kauf',
+      date: '2026-08-01',
+      positions: [],
+      purchaseDetails: {
+        security_id: 7,
+        depot_account_id: 3,
+        settlement_account_id: 2,
+        quantity: 5,
+        price_per_unit: 100,
+        fees: 0,
+        accrued_interest: 0,
+      },
+    } satisfies Booking);
+
+    await expect(
+      bookings.create({
+        vorgang: 'Verkauf',
+        date: '2026-08-10',
+        positions: [],
+        saleDetails: {
+          security_id: 7,
+          depot_account_id: 3,
+          settlement_account_id: 2,
+          quantity: 999,
+          price_per_unit: 130,
+          fees: 0,
+          capital_gains_tax: 0,
+          solidarity_surcharge: 0,
+        },
+      } satisfies Booking)
+    ).rejects.toThrow('Nicht genügend Bestand');
   });
 });

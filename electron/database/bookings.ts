@@ -1,5 +1,6 @@
 import { getDatabase } from './connection';
-import { Booking, BookingPosition, PurchaseBookingDetails } from '../../src/app/models/booking.model';
+import { computeSaleCostBasis, FifoEvent } from './sale-fifo';
+import { Booking, BookingPosition, PurchaseBookingDetails, SaleBookingDetails } from '../../src/app/models/booking.model';
 import { isSystemAccount } from '../../src/app/models/account.model';
 
 function requireSystemAccount(name: string): number {
@@ -64,6 +65,123 @@ function buildPurchasePositions(booking: Booking): BookingPosition[] {
   return positions;
 }
 
+function loadFifoCostBasisForSale(booking: Booking, quantity: number): number {
+  if (!booking.saleDetails) {
+    throw new Error('Verkaufsdetails fehlen.');
+  }
+
+  const db = getDatabase();
+  const rows = db
+    .prepare(
+      `
+      SELECT b.id AS booking_id, b.date, b.vorgang, d.quantity, d.price_per_unit
+      FROM bookings b
+      INNER JOIN depot_positions d ON d.booking_id = b.id
+      WHERE d.depot_account_id = ?
+        AND d.security_id = ?
+        AND b.vorgang IN ('Kauf', 'Verkauf')
+        AND (? IS NULL OR b.id != ?)
+    `
+    )
+    .all(
+      booking.saleDetails.depot_account_id,
+      booking.saleDetails.security_id,
+      booking.id ?? null,
+      booking.id ?? null
+    ) as Array<{
+    booking_id: number;
+    date: string;
+    vorgang: 'Kauf' | 'Verkauf';
+    quantity: number;
+    price_per_unit: number;
+  }>;
+
+  const events: FifoEvent[] = rows.map((row) => ({
+    booking_id: row.booking_id,
+    date: row.date,
+    type: row.vorgang === 'Kauf' ? 'buy' : 'sell',
+    quantity: row.quantity,
+    price_per_unit: row.price_per_unit,
+  }));
+
+  return computeSaleCostBasis(events, quantity).costBasis;
+}
+
+function buildSalePositions(booking: Booking): BookingPosition[] {
+  if (!booking.saleDetails) {
+    throw new Error('Verkaufsdetails fehlen.');
+  }
+
+  const details = booking.saleDetails;
+  const fees = details.fees ?? 0;
+  const tax = details.capital_gains_tax ?? 0;
+  const soli = details.solidarity_surcharge ?? 0;
+  const costBasis = loadFifoCostBasisForSale(booking, details.quantity);
+  const proceeds = details.quantity * details.price_per_unit;
+  const net = proceeds - fees - tax - soli;
+  const pnl = net - costBasis;
+
+  const positions: BookingPosition[] = [
+    {
+      account_id: details.depot_account_id,
+      valuta: booking.date,
+      amount: -costBasis,
+    },
+    {
+      account_id: details.settlement_account_id,
+      valuta: booking.date,
+      amount: net,
+    },
+  ];
+
+  if (fees > 0) {
+    positions.push({
+      account_id: requireSystemAccount('Wertpapierprovision'),
+      valuta: booking.date,
+      amount: fees,
+    });
+  }
+
+  if (tax > 0) {
+    positions.push({
+      account_id: requireSystemAccount('Kapitalertragsteuer'),
+      valuta: booking.date,
+      amount: tax,
+    });
+  }
+
+  if (soli > 0) {
+    positions.push({
+      account_id: requireSystemAccount('Solidaritätszuschlag'),
+      valuta: booking.date,
+      amount: soli,
+    });
+  }
+
+  if (pnl > 0) {
+    positions.push({
+      account_id: requireSystemAccount('Kursgewinn'),
+      valuta: booking.date,
+      amount: pnl,
+    });
+  }
+
+  if (pnl < 0) {
+    positions.push({
+      account_id: requireSystemAccount('Kursverlust'),
+      valuta: booking.date,
+      amount: Math.abs(pnl),
+    });
+  }
+
+  const total = positions.reduce((sum, position) => sum + position.amount, 0);
+  if (Math.abs(total) > 1e-9) {
+    positions[1].amount -= total;
+  }
+
+  return positions;
+}
+
 function loadPurchaseDetails(booking: Booking): PurchaseBookingDetails | undefined {
   if (booking.vorgang !== 'Kauf' || !booking.id) {
     return undefined;
@@ -98,10 +216,66 @@ function loadPurchaseDetails(booking: Booking): PurchaseBookingDetails | undefin
   };
 }
 
+function loadSaleDetails(booking: Booking): SaleBookingDetails | undefined {
+  if (booking.vorgang !== 'Verkauf' || !booking.id) {
+    return undefined;
+  }
+
+  const db = getDatabase();
+  const depotPosition = db.prepare('SELECT * FROM depot_positions WHERE booking_id = ?').get(booking.id) as
+    | {
+        security_id: number;
+        depot_account_id: number;
+        quantity: number;
+        price_per_unit: number;
+      }
+    | undefined;
+
+  if (!depotPosition) {
+    return undefined;
+  }
+
+  const feesAccountId = requireSystemAccount('Wertpapierprovision');
+  const capitalGainsTaxAccountId = requireSystemAccount('Kapitalertragsteuer');
+  const solidaritySurchargeAccountId = requireSystemAccount('Solidaritätszuschlag');
+
+  const settlementPosition = booking.positions.find((position) => {
+    if (position.amount <= 0) {
+      return false;
+    }
+
+    const account = db
+      .prepare('SELECT id, name, type, subtype FROM accounts WHERE id = ?')
+      .get(position.account_id) as
+      | {
+          id: number;
+          name: string;
+          type: 'Bestand' | 'GuV';
+          subtype: string;
+        }
+      | undefined;
+
+    return Boolean(account) && !isSystemAccount(account);
+  });
+
+  return {
+    security_id: depotPosition.security_id,
+    depot_account_id: depotPosition.depot_account_id,
+    settlement_account_id: settlementPosition?.account_id ?? 0,
+    quantity: depotPosition.quantity,
+    price_per_unit: depotPosition.price_per_unit,
+    fees: booking.positions.find((position) => position.account_id === feesAccountId)?.amount ?? 0,
+    capital_gains_tax: booking.positions.find((position) => position.account_id === capitalGainsTaxAccountId)?.amount ?? 0,
+    solidarity_surcharge:
+      booking.positions.find((position) => position.account_id === solidaritySurchargeAccountId)?.amount ?? 0,
+  };
+}
+
 function loadBookingRelations(booking: Booking): Booking {
   const db = getDatabase();
   booking.positions = db.prepare('SELECT * FROM booking_positions WHERE booking_id = ?').all(booking.id!) as BookingPosition[];
   booking.purchaseDetails = loadPurchaseDetails(booking);
+  booking.saleDetails = loadSaleDetails(booking);
   return booking;
 }
 
@@ -146,7 +320,12 @@ export const bookings = {
         booking.sender_receiver || null
       );
       const bookingId = result.lastInsertRowid as number;
-      const effectivePositions = booking.vorgang === 'Kauf' ? buildPurchasePositions(booking) : booking.positions;
+      const effectivePositions =
+        booking.vorgang === 'Kauf'
+          ? buildPurchasePositions(booking)
+          : booking.vorgang === 'Verkauf'
+            ? buildSalePositions(booking)
+            : booking.positions;
 
       for (const pos of effectivePositions) {
         insertPosition.run(bookingId, pos.account_id, pos.valuta, pos.amount);
@@ -159,6 +338,17 @@ export const bookings = {
           booking.purchaseDetails.security_id,
           booking.purchaseDetails.quantity,
           booking.purchaseDetails.price_per_unit,
+          booking.date
+        );
+      }
+
+      if (booking.vorgang === 'Verkauf' && booking.saleDetails) {
+        insertDepotPosition.run(
+          bookingId,
+          booking.saleDetails.depot_account_id,
+          booking.saleDetails.security_id,
+          booking.saleDetails.quantity,
+          booking.saleDetails.price_per_unit,
           booking.date
         );
       }
@@ -195,7 +385,12 @@ export const bookings = {
       );
       deletePositions.run(id);
       deleteDepotPosition.run(id);
-      const effectivePositions = booking.vorgang === 'Kauf' ? buildPurchasePositions(booking) : booking.positions;
+      const effectivePositions =
+        booking.vorgang === 'Kauf'
+          ? buildPurchasePositions(booking)
+          : booking.vorgang === 'Verkauf'
+            ? buildSalePositions({ ...booking, id })
+            : booking.positions;
 
       for (const pos of effectivePositions) {
         insertPosition.run(id, pos.account_id, pos.valuta, pos.amount);
@@ -208,6 +403,17 @@ export const bookings = {
           booking.purchaseDetails.security_id,
           booking.purchaseDetails.quantity,
           booking.purchaseDetails.price_per_unit,
+          booking.date
+        );
+      }
+
+      if (booking.vorgang === 'Verkauf' && booking.saleDetails) {
+        insertDepotPosition.run(
+          id,
+          booking.saleDetails.depot_account_id,
+          booking.saleDetails.security_id,
+          booking.saleDetails.quantity,
+          booking.saleDetails.price_per_unit,
           booking.date
         );
       }
