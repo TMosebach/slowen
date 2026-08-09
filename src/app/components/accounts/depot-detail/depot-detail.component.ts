@@ -75,8 +75,13 @@ export class DepotDetailComponent implements OnInit {
           .map((security) => [security.id, security])
       );
 
+      const saleBookingIds = this.buildSaleBookingIdSet(bookings, accountId);
       const grouped = new Map<number, DepotPosition[]>();
       for (const position of positions) {
+        if (saleBookingIds.has(position.booking_id)) {
+          continue;
+        }
+
         const current = grouped.get(position.security_id) ?? [];
         current.push(position);
         grouped.set(position.security_id, current);
@@ -151,6 +156,20 @@ export class DepotDetailComponent implements OnInit {
     }
 
     return map;
+  }
+
+  private buildSaleBookingIdSet(bookings: Booking[], depotAccountId: number): Set<number> {
+    const ids = new Set<number>();
+
+    for (const booking of bookings) {
+      if (booking.vorgang !== 'Verkauf' || booking.saleDetails?.depot_account_id !== depotAccountId || booking.id === undefined) {
+        continue;
+      }
+
+      ids.add(booking.id);
+    }
+
+    return ids;
   }
 
   private buildPurchaseHistory(
