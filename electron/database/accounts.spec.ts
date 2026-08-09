@@ -45,6 +45,26 @@ describe('accounts database protection', () => {
     );
   });
 
+  it('rejects deletion of Kursgewinn system account', async () => {
+    const systemAccount = db
+      .prepare(`SELECT id FROM accounts WHERE name = 'Kursgewinn'`)
+      .get() as { id: number };
+
+    await expect(accounts.delete(systemAccount.id)).rejects.toThrow(
+      'Systemkonto darf nicht gelöscht werden: Kursgewinn'
+    );
+  });
+
+  it('rejects deletion of Kursverlust system account', async () => {
+    const systemAccount = db
+      .prepare(`SELECT id FROM accounts WHERE name = 'Kursverlust'`)
+      .get() as { id: number };
+
+    await expect(accounts.delete(systemAccount.id)).rejects.toThrow(
+      'Systemkonto darf nicht gelöscht werden: Kursverlust'
+    );
+  });
+
   it('rejects creating a new system account', async () => {
     await expect(
       accounts.create({
@@ -53,6 +73,26 @@ describe('accounts database protection', () => {
         subtype: 'Aufwand',
       })
     ).rejects.toThrow('Systemkonto darf nicht angelegt werden: Wertpapierprovision');
+  });
+
+  it('rejects creating a duplicate Kapitalertragsteuer system account', async () => {
+    await expect(
+      accounts.create({
+        name: 'Kapitalertragsteuer',
+        type: 'GuV',
+        subtype: 'Aufwand',
+      })
+    ).rejects.toThrow('Systemkonto darf nicht angelegt werden: Kapitalertragsteuer');
+  });
+
+  it('rejects creating a duplicate Solidaritätszuschlag system account', async () => {
+    await expect(
+      accounts.create({
+        name: 'Solidaritätszuschlag',
+        type: 'GuV',
+        subtype: 'Aufwand',
+      })
+    ).rejects.toThrow('Systemkonto darf nicht angelegt werden: Solidaritätszuschlag');
   });
 
   it('rejects renaming a normal account into a system account', async () => {
