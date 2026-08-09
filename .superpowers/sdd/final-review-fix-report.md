@@ -59,3 +59,22 @@
 
 ## Notes
 - `ng test` still emits existing Sass `@import` deprecation warnings from `src/styles.scss`; unrelated to this fix pass.
+
+### 5) IMPORTANT: server-side sale account-role validation missing
+- **Fix:** Extended sale validation in `electron/database/bookings.ts` so Verkauf enforces account semantics server-side:
+  - `saleDetails.depot_account_id` must resolve to an existing `accounts` row with `type = Bestand` and `subtype = Depot`
+  - `saleDetails.settlement_account_id` must resolve to an existing `accounts` row with `type = Bestand` and `subtype != Depot`
+- **Fix:** Kept rejection messages explicit and German:
+  - `Das Depot-Konto muss ein bestehendes Konto vom Typ Bestand mit Untertyp Depot sein.`
+  - `Das Verrechnungskonto muss ein bestehendes Konto vom Typ Bestand mit einem Untertyp ungleich Depot sein.`
+- **Tests:** Added coverage in `electron/database/bookings.spec.ts`:
+  - `rejects sale when depot account is not a Depot account`
+  - `rejects sale when settlement account is not a Bestand non-Depot account`
+
+## Additional verification (final-review account-role fix)
+
+1. `ELECTRON_RUN_AS_NODE=1 npx electron node_modules/vitest/vitest.mjs run electron/database/bookings.spec.ts`
+   - PASS (1 file, 17 tests)
+
+2. `npm run test:electron`
+   - PASS (7 files, 45 tests)

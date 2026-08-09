@@ -331,6 +331,84 @@ describe('purchase bookings', () => {
     ).rejects.toThrow('Nettozufluss muss größer 0 sein.');
   });
 
+  it('rejects sale when depot account is not a Depot account', async () => {
+    await seedPurchaseReferences();
+
+    await bookings.create({
+      vorgang: 'Kauf',
+      date: '2026-08-01',
+      positions: [],
+      purchaseDetails: {
+        security_id: 7,
+        depot_account_id: 2,
+        settlement_account_id: 1,
+        quantity: 5,
+        price_per_unit: 100,
+        fees: 0,
+        accrued_interest: 0,
+      },
+    } satisfies Booking);
+
+    await expect(
+      bookings.create({
+        vorgang: 'Verkauf',
+        date: '2026-08-10',
+        positions: [],
+        saleDetails: {
+          security_id: 7,
+          depot_account_id: 2,
+          settlement_account_id: 1,
+          quantity: 1,
+          price_per_unit: 120,
+          fees: 0,
+          capital_gains_tax: 0,
+          solidarity_surcharge: 0,
+        },
+      } satisfies Booking)
+    ).rejects.toThrow('Das Depot-Konto muss ein bestehendes Konto vom Typ Bestand mit Untertyp Depot sein.');
+  });
+
+  it('rejects sale when settlement account is not a Bestand non-Depot account', async () => {
+    await seedPurchaseReferences();
+
+    await bookings.create({
+      vorgang: 'Kauf',
+      date: '2026-08-01',
+      positions: [],
+      purchaseDetails: {
+        security_id: 7,
+        depot_account_id: 3,
+        settlement_account_id: 2,
+        quantity: 5,
+        price_per_unit: 100,
+        fees: 0,
+        accrued_interest: 0,
+      },
+    } satisfies Booking);
+
+    const guvAccountId = db.prepare(`SELECT id FROM accounts WHERE name = 'Wertpapierprovision'`).get() as { id: number };
+
+    await expect(
+      bookings.create({
+        vorgang: 'Verkauf',
+        date: '2026-08-10',
+        positions: [],
+        saleDetails: {
+          security_id: 7,
+          depot_account_id: 3,
+          settlement_account_id: guvAccountId.id,
+          quantity: 1,
+          price_per_unit: 120,
+          fees: 0,
+          capital_gains_tax: 0,
+          solidarity_surcharge: 0,
+        },
+      } satisfies Booking)
+    ).rejects.toThrow(
+      'Das Verrechnungskonto muss ein bestehendes Konto vom Typ Bestand mit einem Untertyp ungleich Depot sein.'
+    );
+  });
+
   it('books Kursverlust when sale net is below fifo cost basis', async () => {
     await seedPurchaseReferences();
 

@@ -243,6 +243,28 @@ function validateSaleDetails(details: SaleBookingDetails): void {
     throw new Error('Stückzahl und Kurs müssen größer 0 sein.');
   }
 
+  const db = getDatabase();
+  const accounts = db
+    .prepare('SELECT id, type, subtype FROM accounts WHERE id IN (?, ?)')
+    .all(details.depot_account_id, details.settlement_account_id) as Array<{
+    id: number;
+    type: string;
+    subtype: string;
+  }>;
+  const accountById = new Map(accounts.map((account) => [account.id, account]));
+  const depotAccount = accountById.get(details.depot_account_id);
+  const settlementAccount = accountById.get(details.settlement_account_id);
+
+  if (!depotAccount || depotAccount.type !== 'Bestand' || depotAccount.subtype !== 'Depot') {
+    throw new Error('Das Depot-Konto muss ein bestehendes Konto vom Typ Bestand mit Untertyp Depot sein.');
+  }
+
+  if (!settlementAccount || settlementAccount.type !== 'Bestand' || settlementAccount.subtype === 'Depot') {
+    throw new Error(
+      'Das Verrechnungskonto muss ein bestehendes Konto vom Typ Bestand mit einem Untertyp ungleich Depot sein.'
+    );
+  }
+
   const fees = details.fees ?? 0;
   const tax = details.capital_gains_tax ?? 0;
   const soli = details.solidarity_surcharge ?? 0;
