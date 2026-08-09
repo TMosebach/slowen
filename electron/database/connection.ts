@@ -7,7 +7,7 @@ let db: Database.Database;
 const BOOKINGS_TABLE_SQL = `
   CREATE TABLE IF NOT EXISTS bookings (
     id INTEGER PRIMARY KEY AUTOINCREMENT,
-    vorgang TEXT NOT NULL CHECK (vorgang IN ('Buchung', 'Kauf')),
+    vorgang TEXT NOT NULL CHECK (vorgang IN ('Buchung', 'Kauf', 'Verkauf')),
     date TEXT NOT NULL,
     description TEXT,
     sender_receiver TEXT
@@ -116,6 +116,30 @@ export function initDatabaseSchema(database: Database.Database): void {
      SELECT ?, ?, ?
      WHERE NOT EXISTS (SELECT 1 FROM accounts WHERE name = ?)`
   ).run('Stückzinsen', 'GuV', 'Aufwand', 'Stückzinsen');
+
+  database.prepare(
+    `INSERT INTO accounts (name, type, subtype)
+     SELECT ?, ?, ?
+     WHERE NOT EXISTS (SELECT 1 FROM accounts WHERE name = ?)`
+  ).run('Kursgewinn', 'GuV', 'Ertrag', 'Kursgewinn');
+
+  database.prepare(
+    `INSERT INTO accounts (name, type, subtype)
+     SELECT ?, ?, ?
+     WHERE NOT EXISTS (SELECT 1 FROM accounts WHERE name = ?)`
+  ).run('Kursverlust', 'GuV', 'Aufwand', 'Kursverlust');
+
+  database.prepare(
+    `INSERT INTO accounts (name, type, subtype)
+     SELECT ?, ?, ?
+     WHERE NOT EXISTS (SELECT 1 FROM accounts WHERE name = ?)`
+  ).run('Kapitalertragsteuer', 'GuV', 'Aufwand', 'Kapitalertragsteuer');
+
+  database.prepare(
+    `INSERT INTO accounts (name, type, subtype)
+     SELECT ?, ?, ?
+     WHERE NOT EXISTS (SELECT 1 FROM accounts WHERE name = ?)`
+  ).run('Solidaritätszuschlag', 'GuV', 'Aufwand', 'Solidaritätszuschlag');
 }
 
 function migrateBookingsSchema(database: Database.Database): void {
