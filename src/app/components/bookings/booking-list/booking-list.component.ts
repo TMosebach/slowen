@@ -54,4 +54,8 @@ export class BookingListComponent implements OnInit {
   createPurchase() {
     this.router.navigate(['/bookings/new/purchase']);
   }
+
+  createSale() {
+    this.router.navigate(['/bookings/new/sale']);
+  }
 }

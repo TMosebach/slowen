@@ -63,4 +63,13 @@ describe('BookingListComponent', () => {
 
     expect(navigate).toHaveBeenCalledWith(['/bookings/new/purchase']);
   });
+
+  it('navigates to dedicated sale entry point', () => {
+    const router = TestBed.inject(Router);
+    const navigate = vi.spyOn(router, 'navigate').mockResolvedValue(true);
+
+    component.createSale();
+
+    expect(navigate).toHaveBeenCalledWith(['/bookings/new/sale']);
+  });
 });

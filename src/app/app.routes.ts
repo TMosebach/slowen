@@ -15,6 +15,7 @@ export const routes: Routes = [
   { path: 'bookings', component: BookingListComponent },
   { path: 'bookings/new', component: BookingFormComponent },
   { path: 'bookings/new/purchase', component: BookingFormComponent, data: { vorgang: 'Kauf' } },
+  { path: 'bookings/new/sale', component: BookingFormComponent, data: { vorgang: 'Verkauf' } },
   { path: 'bookings/:id/edit', component: BookingFormComponent },
   { path: 'accounts', component: AccountListComponent },
   { path: 'accounts/new', component: AccountFormComponent },

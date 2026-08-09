@@ -5,7 +5,7 @@ import { Router, ActivatedRoute, RouterModule } from '@angular/router';
 import { BookingService } from '../../../services/booking.service';
 import { AccountService } from '../../../services/account.service';
 import { SecuritiesService } from '../../../services/securities.service';
-import { Booking, BookingPosition, PurchaseBookingDetails, VORGANG_OPTIONS } from '../../../models/booking.model';
+import { Booking, BookingPosition, PurchaseBookingDetails, SaleBookingDetails, VORGANG_OPTIONS } from '../../../models/booking.model';
 import { Account } from '../../../models/account.model';
 import { Security } from '../../../models/security.model';
 
@@ -50,6 +50,9 @@ export class BookingFormComponent implements OnInit {
     if (this.route.snapshot.data['vorgang'] === 'Kauf') {
       this.booking.vorgang = 'Kauf';
       this.booking.purchaseDetails = this.createEmptyPurchaseDetails();
+    } else if (this.route.snapshot.data['vorgang'] === 'Verkauf') {
+      this.booking.vorgang = 'Verkauf';
+      this.booking.saleDetails = this.createEmptySaleDetails();
     }
 
     const id = this.route.snapshot.paramMap.get('id');
@@ -86,6 +89,9 @@ export class BookingFormComponent implements OnInit {
         if (this.isPurchase() && !this.booking.purchaseDetails) {
           this.booking.purchaseDetails = this.createEmptyPurchaseDetails();
         }
+        if (this.isSale() && !this.booking.saleDetails) {
+          this.booking.saleDetails = this.createEmptySaleDetails();
+        }
       }
       this.cdr.detectChanges();
     }
@@ -100,6 +106,19 @@ export class BookingFormComponent implements OnInit {
       price_per_unit: 0,
       fees: 0,
       accrued_interest: 0
+    };
+  }
+
+  createEmptySaleDetails(): SaleBookingDetails {
+    return {
+      security_id: 0,
+      depot_account_id: 0,
+      settlement_account_id: 0,
+      quantity: 0,
+      price_per_unit: 0,
+      fees: 0,
+      capital_gains_tax: 0,
+      solidarity_surcharge: 0,
     };
   }
 
@@ -131,10 +150,18 @@ export class BookingFormComponent implements OnInit {
     if (this.isPurchase() && !this.booking.purchaseDetails) {
       this.booking.purchaseDetails = this.createEmptyPurchaseDetails();
     }
+
+    if (this.isSale() && !this.booking.saleDetails) {
+      this.booking.saleDetails = this.createEmptySaleDetails();
+    }
   }
 
   isPurchase(): boolean {
     return this.booking.vorgang === 'Kauf';
+  }
+
+  isSale(): boolean {
+    return this.booking.vorgang === 'Verkauf';
   }
 
   getPurchaseValue(): number {
@@ -153,6 +180,28 @@ export class BookingFormComponent implements OnInit {
     }
 
     return this.getPurchaseValue() + (details.fees ?? 0) + (details.accrued_interest ?? 0);
+  }
+
+  getSaleGross(): number {
+    const details = this.booking.saleDetails;
+    if (!details) {
+      return 0;
+    }
+
+    return details.quantity * details.price_per_unit;
+  }
+
+  getSaleDeductions(): number {
+    const details = this.booking.saleDetails;
+    if (!details) {
+      return 0;
+    }
+
+    return (details.fees ?? 0) + (details.capital_gains_tax ?? 0) + (details.solidarity_surcharge ?? 0);
+  }
+
+  getSaleNet(): number {
+    return this.getSaleGross() - this.getSaleDeductions();
   }
 
   async onSubmit() {
@@ -175,6 +224,28 @@ export class BookingFormComponent implements OnInit {
 
       if (details.quantity <= 0 || details.price_per_unit <= 0 || (details.fees ?? 0) < 0 || (details.accrued_interest ?? 0) < 0) {
         alert('Stückzahl und Kurs müssen größer 0 sein. Gebühren und Stückzinsen dürfen nicht negativ sein.');
+        return;
+      }
+    } else if (this.isSale()) {
+      const details = this.booking.saleDetails;
+      if (!details || !details.security_id || !details.depot_account_id || !details.settlement_account_id) {
+        alert('Alle Pflichtfelder des Verkaufs müssen ausgefüllt sein.');
+        return;
+      }
+
+      if (details.depot_account_id === details.settlement_account_id) {
+        alert('Depot-Konto und Verrechnungskonto müssen unterschiedlich sein.');
+        return;
+      }
+
+      if (
+        details.quantity <= 0
+        || details.price_per_unit <= 0
+        || (details.fees ?? 0) < 0
+        || (details.capital_gains_tax ?? 0) < 0
+        || (details.solidarity_surcharge ?? 0) < 0
+      ) {
+        alert('Stückzahl und Kurs müssen größer 0 sein. Gebühren und Steuern dürfen nicht negativ sein.');
         return;
       }
     } else {

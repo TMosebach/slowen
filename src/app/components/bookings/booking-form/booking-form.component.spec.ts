@@ -154,6 +154,38 @@ describe('BookingFormComponent', () => {
     });
   });
 
+  it('initializes sale route in Verkauf mode', () => {
+    const route = TestBed.inject(ActivatedRoute);
+    route.snapshot.data['vorgang'] = 'Verkauf';
+
+    fixture.detectChanges();
+
+    expect(component.booking.vorgang).toBe('Verkauf');
+    expect(component.booking.saleDetails?.fees).toBe(0);
+  });
+
+  it('validates sale input and submits saleDetails payload', async () => {
+    component.booking = {
+      vorgang: 'Verkauf',
+      date: '2026-08-10',
+      positions: [],
+      saleDetails: {
+        security_id: 7,
+        depot_account_id: 3,
+        settlement_account_id: 2,
+        quantity: 1,
+        price_per_unit: 150,
+        fees: 1,
+        capital_gains_tax: 2,
+        solidarity_surcharge: 0.1,
+      },
+    };
+
+    await component.onSubmit();
+
+    expect(mockBookingService.create).toHaveBeenCalledWith(component.booking);
+  });
+
   it('allows fractional quantity input in purchase mode', () => {
     component.booking.vorgang = 'Kauf';
     component.booking.purchaseDetails = {

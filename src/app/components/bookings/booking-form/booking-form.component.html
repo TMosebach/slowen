@@ -131,6 +131,102 @@
           <div>Gesamtbetrag: {{ getPurchaseTotal() | number:'1.2-2' }}</div>
         </div>
       </div>
+    } @else if (isSale()) {
+      <div class="grid grid-cols-2 gap-4 mb-6">
+        <div>
+          <label class="block text-sm font-medium text-gray-700 mb-1">Wertpapier *</label>
+           <select [(ngModel)]="booking.saleDetails!.security_id"
+                   name="sale_security_id"
+                   required
+                   class="w-full border border-gray-300 rounded px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500">
+             <option [value]="0">Bitte wählen...</option>
+             @for (security of securities; track security.id) {
+               <option [value]="security.id">{{ security.name }}</option>
+             }
+           </select>
+         </div>
+
+        <div>
+          <label class="block text-sm font-medium text-gray-700 mb-1">Depot-Konto *</label>
+           <select [(ngModel)]="booking.saleDetails!.depot_account_id"
+                   name="sale_depot_account_id"
+                   required
+                   class="w-full border border-gray-300 rounded px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500">
+             <option [value]="0">Bitte wählen...</option>
+             @for (account of depotAccounts; track account.id) {
+               <option [value]="account.id">{{ account.name }}</option>
+             }
+           </select>
+         </div>
+
+        <div>
+          <label class="block text-sm font-medium text-gray-700 mb-1">Verrechnungskonto *</label>
+           <select [(ngModel)]="booking.saleDetails!.settlement_account_id"
+                   name="sale_settlement_account_id"
+                   required
+                   class="w-full border border-gray-300 rounded px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500">
+             <option [value]="0">Bitte wählen...</option>
+             @for (account of settlementAccounts; track account.id) {
+               <option [value]="account.id">{{ account.name }}</option>
+             }
+           </select>
+         </div>
+
+        <div>
+          <label class="block text-sm font-medium text-gray-700 mb-1">Stückzahl *</label>
+          <input type="number"
+                 [(ngModel)]="booking.saleDetails!.quantity"
+                 name="sale_quantity"
+                 step="any"
+                 required
+                 class="w-full border border-gray-300 rounded px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500">
+        </div>
+      </div>
+
+      <div class="grid grid-cols-2 gap-4 mb-6">
+        <div>
+          <label class="block text-sm font-medium text-gray-700 mb-1">Kurs pro Stück *</label>
+          <input type="number"
+                 [(ngModel)]="booking.saleDetails!.price_per_unit"
+                 name="sale_price_per_unit"
+                 step="any"
+                 required
+                 class="w-full border border-gray-300 rounded px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500">
+        </div>
+
+        <div>
+          <label class="block text-sm font-medium text-gray-700 mb-1">Gebühren</label>
+          <input type="number"
+                 [(ngModel)]="booking.saleDetails!.fees"
+                 name="sale_fees"
+                 step="any"
+                 class="w-full border border-gray-300 rounded px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500">
+        </div>
+
+        <div>
+          <label class="block text-sm font-medium text-gray-700 mb-1">Kapitalertragsteuer</label>
+          <input type="number"
+                 [(ngModel)]="booking.saleDetails!.capital_gains_tax"
+                 name="sale_capital_gains_tax"
+                 step="any"
+                 class="w-full border border-gray-300 rounded px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500">
+        </div>
+
+        <div>
+          <label class="block text-sm font-medium text-gray-700 mb-1">Solidaritätszuschlag</label>
+          <input type="number"
+                 [(ngModel)]="booking.saleDetails!.solidarity_surcharge"
+                 name="sale_solidarity_surcharge"
+                 step="any"
+                 class="w-full border border-gray-300 rounded px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500">
+        </div>
+
+        <div class="rounded bg-gray-50 p-3 text-sm text-gray-700">
+          <div>Verkaufserlös: {{ getSaleGross() | number:'1.2-2' }}</div>
+          <div>Abzüge: {{ getSaleDeductions() | number:'1.2-2' }}</div>
+          <div>Nettozufluss: {{ getSaleNet() | number:'1.2-2' }}</div>
+        </div>
+      </div>
     } @else {
     <div class="mb-6">
       <div class="flex justify-between items-center mb-3">
