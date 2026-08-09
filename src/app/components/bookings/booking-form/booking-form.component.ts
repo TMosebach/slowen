@@ -9,6 +9,11 @@ import { Booking, BookingPosition, PurchaseBookingDetails, SaleBookingDetails, V
 import { Account } from '../../../models/account.model';
 import { Security } from '../../../models/security.model';
 
+type LocalFifoLot = {
+  remaining: number;
+  price: number;
+};
+
 @Component({
   selector: 'app-booking-form',
   standalone: true,
@@ -33,6 +38,7 @@ export class BookingFormComponent implements OnInit {
   bookingId: number | null = null;
   saving = false;
   errorMessage: string | null = null;
+  private allBookings: Booking[] = [];
 
   constructor(
     private bookingService: BookingService,
@@ -46,6 +52,7 @@ export class BookingFormComponent implements OnInit {
   ngOnInit() {
     this.loadAccounts();
     this.loadSecurities();
+    this.loadAllBookings();
 
     if (this.route.snapshot.data['vorgang'] === 'Kauf') {
       this.booking.vorgang = 'Kauf';
@@ -94,6 +101,15 @@ export class BookingFormComponent implements OnInit {
         }
       }
       this.cdr.detectChanges();
+    }
+  }
+
+  async loadAllBookings() {
+    try {
+      this.allBookings = await this.bookingService.getAll();
+    } catch (err) {
+      console.error('Failed to load bookings:', err);
+      this.allBookings = [];
     }
   }
 
@@ -204,6 +220,117 @@ export class BookingFormComponent implements OnInit {
     return this.getSaleGross() - this.getSaleDeductions();
   }
 
+  getSaleEstimatedCostBasis(): number {
+    const details = this.booking.saleDetails;
+    if (!details || details.quantity <= 0 || details.price_per_unit <= 0 || !details.depot_account_id || !details.security_id) {
+      return 0;
+    }
+
+    try {
+      const lots = this.buildSaleFifoState(details.depot_account_id, details.security_id);
+      let remaining = details.quantity;
+      let costBasis = 0;
+
+      for (const lot of lots) {
+        if (remaining <= 0) {
+          break;
+        }
+
+        const consume = Math.min(lot.remaining, remaining);
+        remaining -= consume;
+        costBasis += consume * lot.price;
+      }
+
+      if (remaining > 0) {
+        return 0;
+      }
+
+      return costBasis;
+    } catch {
+      return 0;
+    }
+  }
+
+  getSalePnl(): number {
+    return this.getSaleNet() - this.getSaleEstimatedCostBasis();
+  }
+
+  hasEnoughHoldingsForSale(): boolean {
+    const details = this.booking.saleDetails;
+    if (!details || details.quantity <= 0 || !details.depot_account_id || !details.security_id) {
+      return true;
+    }
+
+    const lots = this.buildSaleFifoState(details.depot_account_id, details.security_id);
+    const available = lots.reduce((sum, lot) => sum + lot.remaining, 0);
+    return details.quantity <= available + 1e-9;
+  }
+
+  private buildSaleFifoState(depotAccountId: number, securityId: number): LocalFifoLot[] {
+    const candidateId = this.isEditing ? this.bookingId : null;
+    const events = this.allBookings
+      .filter((booking) => {
+        if (!booking.id) {
+          return false;
+        }
+
+        if (candidateId !== null && booking.id === candidateId) {
+          return false;
+        }
+
+        if (booking.date > this.booking.date) {
+          return false;
+        }
+
+        if (booking.date === this.booking.date && candidateId !== null && booking.id >= candidateId) {
+          return false;
+        }
+
+        if (booking.vorgang === 'Kauf') {
+          return (
+            booking.purchaseDetails?.depot_account_id === depotAccountId
+            && booking.purchaseDetails.security_id === securityId
+          );
+        }
+
+        if (booking.vorgang === 'Verkauf') {
+          return (
+            booking.saleDetails?.depot_account_id === depotAccountId
+            && booking.saleDetails.security_id === securityId
+          );
+        }
+
+        return false;
+      })
+      .sort((left, right) => left.date.localeCompare(right.date) || (left.id ?? 0) - (right.id ?? 0));
+
+    const lots: LocalFifoLot[] = [];
+    for (const booking of events) {
+      if (booking.vorgang === 'Kauf' && booking.purchaseDetails) {
+        lots.push({
+          remaining: booking.purchaseDetails.quantity,
+          price: booking.purchaseDetails.price_per_unit,
+        });
+        continue;
+      }
+
+      if (booking.vorgang === 'Verkauf' && booking.saleDetails) {
+        let remaining = booking.saleDetails.quantity;
+        for (const lot of lots) {
+          if (remaining <= 0) {
+            break;
+          }
+
+          const consume = Math.min(lot.remaining, remaining);
+          lot.remaining -= consume;
+          remaining -= consume;
+        }
+      }
+    }
+
+    return lots;
+  }
+
   async onSubmit() {
     if (!this.booking.date) {
       alert('Datum ist ein Pflichtfeld.');
@@ -246,6 +373,16 @@ export class BookingFormComponent implements OnInit {
         || (details.solidarity_surcharge ?? 0) < 0
       ) {
         alert('Stückzahl und Kurs müssen größer 0 sein. Gebühren und Steuern dürfen nicht negativ sein.');
+        return;
+      }
+
+      if (this.getSaleNet() <= 0) {
+        alert('Nettozufluss muss größer 0 sein.');
+        return;
+      }
+
+      if (!this.hasEnoughHoldingsForSale()) {
+        alert('Nicht genügend Bestand für den Verkauf.');
         return;
       }
     } else {

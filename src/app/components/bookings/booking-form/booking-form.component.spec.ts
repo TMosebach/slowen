@@ -18,6 +18,7 @@ describe('BookingFormComponent', () => {
 
   beforeEach(async () => {
     mockBookingService = {
+      getAll: vi.fn().mockResolvedValue([]),
       getById: vi.fn().mockResolvedValue(null),
       create: vi.fn().mockResolvedValue({ id: 1 }),
       update: vi.fn().mockResolvedValue({ id: 1 }),
@@ -165,6 +166,24 @@ describe('BookingFormComponent', () => {
   });
 
   it('validates sale input and submits saleDetails payload', async () => {
+    component['allBookings'] = [
+      {
+        id: 1,
+        vorgang: 'Kauf',
+        date: '2026-08-01',
+        positions: [],
+        purchaseDetails: {
+          security_id: 7,
+          depot_account_id: 3,
+          settlement_account_id: 2,
+          quantity: 5,
+          price_per_unit: 100,
+          fees: 0,
+          accrued_interest: 0,
+        },
+      },
+    ];
+
     component.booking = {
       vorgang: 'Verkauf',
       date: '2026-08-10',
@@ -202,6 +221,101 @@ describe('BookingFormComponent', () => {
     expect(component.getSaleGross()).toBe(260);
     expect(component.getSaleDeductions()).toBe(7.5);
     expect(component.getSaleNet()).toBe(252.5);
+  });
+
+  it('calculates live sale pnl from FIFO cost basis', () => {
+    component.booking.vorgang = 'Verkauf';
+    component.booking.date = '2026-08-10';
+    component['allBookings'] = [
+      {
+        id: 1,
+        vorgang: 'Kauf',
+        date: '2026-08-01',
+        positions: [],
+        purchaseDetails: {
+          security_id: 7,
+          depot_account_id: 3,
+          settlement_account_id: 2,
+          quantity: 5,
+          price_per_unit: 100,
+          fees: 0,
+          accrued_interest: 0,
+        },
+      },
+    ];
+    component.booking.saleDetails = {
+      security_id: 7,
+      depot_account_id: 3,
+      settlement_account_id: 2,
+      quantity: 2,
+      price_per_unit: 130,
+      fees: 2,
+      capital_gains_tax: 5,
+      solidarity_surcharge: 0.5,
+    };
+
+    expect(component.getSaleEstimatedCostBasis()).toBe(200);
+    expect(component.getSalePnl()).toBe(52.5);
+  });
+
+  it('detects insufficient holdings in sale form', () => {
+    component.booking.vorgang = 'Verkauf';
+    component.booking.date = '2026-08-10';
+    component['allBookings'] = [
+      {
+        id: 1,
+        vorgang: 'Kauf',
+        date: '2026-08-01',
+        positions: [],
+        purchaseDetails: {
+          security_id: 7,
+          depot_account_id: 3,
+          settlement_account_id: 2,
+          quantity: 1,
+          price_per_unit: 100,
+          fees: 0,
+          accrued_interest: 0,
+        },
+      },
+    ];
+    component.booking.saleDetails = {
+      security_id: 7,
+      depot_account_id: 3,
+      settlement_account_id: 2,
+      quantity: 2,
+      price_per_unit: 130,
+      fees: 0,
+      capital_gains_tax: 0,
+      solidarity_surcharge: 0,
+    };
+
+    expect(component.hasEnoughHoldingsForSale()).toBe(false);
+  });
+
+  it('rejects sale submit when net inflow is non-positive', async () => {
+    const alertSpy = vi.spyOn(window, 'alert').mockImplementation(() => {});
+
+    component.booking = {
+      vorgang: 'Verkauf',
+      date: '2026-08-10',
+      positions: [],
+      saleDetails: {
+        security_id: 7,
+        depot_account_id: 3,
+        settlement_account_id: 2,
+        quantity: 1,
+        price_per_unit: 10,
+        fees: 11,
+        capital_gains_tax: 0,
+        solidarity_surcharge: 0,
+      },
+    };
+
+    await component.onSubmit();
+
+    expect(alertSpy).toHaveBeenCalledWith('Nettozufluss muss größer 0 sein.');
+    expect(mockBookingService.create).not.toHaveBeenCalled();
+    alertSpy.mockRestore();
   });
 
   it('allows fractional quantity input in purchase mode', () => {

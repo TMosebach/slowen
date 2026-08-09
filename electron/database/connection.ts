@@ -41,6 +41,24 @@ const DEPOT_POSITIONS_TABLE_SQL = `
   )
 `;
 
+const SALE_DETAILS_TABLE_SQL = `
+  CREATE TABLE IF NOT EXISTS sale_details (
+    booking_id INTEGER PRIMARY KEY,
+    security_id INTEGER NOT NULL,
+    depot_account_id INTEGER NOT NULL,
+    settlement_account_id INTEGER NOT NULL,
+    quantity REAL NOT NULL,
+    price_per_unit REAL NOT NULL,
+    fees REAL NOT NULL DEFAULT 0,
+    capital_gains_tax REAL NOT NULL DEFAULT 0,
+    solidarity_surcharge REAL NOT NULL DEFAULT 0,
+    FOREIGN KEY (booking_id) REFERENCES bookings(id) ON DELETE CASCADE,
+    FOREIGN KEY (security_id) REFERENCES securities(id),
+    FOREIGN KEY (depot_account_id) REFERENCES accounts(id),
+    FOREIGN KEY (settlement_account_id) REFERENCES accounts(id)
+  )
+`;
+
 export function getDatabase(): Database.Database {
   if (!db) {
     const dbPath = app.isPackaged
@@ -105,6 +123,10 @@ export function initDatabaseSchema(database: Database.Database): void {
     )
   `);
 
+  database.exec(SALE_DETAILS_TABLE_SQL);
+
+  migrateLegacySaleDetails(database);
+
   database.prepare(
     `INSERT INTO accounts (name, type, subtype)
      SELECT ?, ?, ?
@@ -140,6 +162,59 @@ export function initDatabaseSchema(database: Database.Database): void {
      SELECT ?, ?, ?
      WHERE NOT EXISTS (SELECT 1 FROM accounts WHERE name = ?)`
   ).run('Solidaritätszuschlag', 'GuV', 'Aufwand', 'Solidaritätszuschlag');
+}
+
+function migrateLegacySaleDetails(database: Database.Database): void {
+  const hasSaleDetails = Boolean(
+    database.prepare(`SELECT 1 FROM sqlite_master WHERE type = 'table' AND name = 'sale_details'`).get()
+  );
+  if (!hasSaleDetails) {
+    return;
+  }
+
+  database.exec(`
+    INSERT INTO sale_details (
+      booking_id,
+      security_id,
+      depot_account_id,
+      settlement_account_id,
+      quantity,
+      price_per_unit,
+      fees,
+      capital_gains_tax,
+      solidarity_surcharge
+    )
+    SELECT
+      b.id,
+      d.security_id,
+      d.depot_account_id,
+      COALESCE(
+        (
+          SELECT bp.account_id
+          FROM booking_positions bp
+          WHERE bp.booking_id = b.id
+            AND bp.account_id != d.depot_account_id
+            AND bp.account_id NOT IN (
+              SELECT id
+              FROM accounts
+              WHERE name IN ('Wertpapierprovision', 'Stückzinsen', 'Kursgewinn', 'Kursverlust', 'Kapitalertragsteuer', 'Solidaritätszuschlag')
+            )
+          ORDER BY ABS(bp.amount) DESC, bp.id ASC
+          LIMIT 1
+        ),
+        d.depot_account_id
+      ) AS settlement_account_id,
+      d.quantity,
+      d.price_per_unit,
+      COALESCE((SELECT SUM(bp.amount) FROM booking_positions bp JOIN accounts a ON a.id = bp.account_id WHERE bp.booking_id = b.id AND a.name = 'Wertpapierprovision'), 0),
+      COALESCE((SELECT SUM(bp.amount) FROM booking_positions bp JOIN accounts a ON a.id = bp.account_id WHERE bp.booking_id = b.id AND a.name = 'Kapitalertragsteuer'), 0),
+      COALESCE((SELECT SUM(bp.amount) FROM booking_positions bp JOIN accounts a ON a.id = bp.account_id WHERE bp.booking_id = b.id AND a.name = 'Solidaritätszuschlag'), 0)
+    FROM bookings b
+    JOIN depot_positions d ON d.booking_id = b.id
+    LEFT JOIN sale_details s ON s.booking_id = b.id
+    WHERE b.vorgang = 'Verkauf'
+      AND s.booking_id IS NULL
+  `);
 }
 
 function migrateBookingsSchema(database: Database.Database): void {

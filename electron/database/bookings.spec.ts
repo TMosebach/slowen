@@ -265,11 +265,70 @@ describe('purchase bookings', () => {
 
     const reloaded = await bookings.getById(created.id!);
     const sum = reloaded?.positions.reduce((acc, position) => acc + position.amount, 0) ?? 0;
+    const saleDetailRow = db
+      .prepare('SELECT booking_id, security_id, depot_account_id, settlement_account_id, quantity FROM sale_details WHERE booking_id = ?')
+      .get(created.id) as
+      | {
+          booking_id: number;
+          security_id: number;
+          depot_account_id: number;
+          settlement_account_id: number;
+          quantity: number;
+        }
+      | undefined;
+    const saleDepotRowCount = db
+      .prepare('SELECT COUNT(*) AS count FROM depot_positions WHERE booking_id = ?')
+      .get(created.id) as { count: number };
 
     expect(reloaded?.vorgang).toBe('Verkauf');
     expect(reloaded?.saleDetails?.quantity).toBe(2);
     expect(reloaded?.positions.some((position) => position.amount === 52.5)).toBe(true);
+    expect(saleDetailRow).toEqual({
+      booking_id: created.id,
+      security_id: 7,
+      depot_account_id: 3,
+      settlement_account_id: 2,
+      quantity: 2,
+    });
+    expect(saleDepotRowCount.count).toBe(0);
     expect(sum).toBeCloseTo(0, 8);
+  });
+
+  it('rejects sale when deductions exceed gross proceeds', async () => {
+    await seedPurchaseReferences();
+
+    await bookings.create({
+      vorgang: 'Kauf',
+      date: '2026-08-01',
+      positions: [],
+      purchaseDetails: {
+        security_id: 7,
+        depot_account_id: 3,
+        settlement_account_id: 2,
+        quantity: 5,
+        price_per_unit: 100,
+        fees: 0,
+        accrued_interest: 0,
+      },
+    } satisfies Booking);
+
+    await expect(
+      bookings.create({
+        vorgang: 'Verkauf',
+        date: '2026-08-10',
+        positions: [],
+        saleDetails: {
+          security_id: 7,
+          depot_account_id: 3,
+          settlement_account_id: 2,
+          quantity: 1,
+          price_per_unit: 10,
+          fees: 15,
+          capital_gains_tax: 0,
+          solidarity_surcharge: 0,
+        },
+      } satisfies Booking)
+    ).rejects.toThrow('Nettozufluss muss größer 0 sein.');
   });
 
   it('books Kursverlust when sale net is below fifo cost basis', async () => {

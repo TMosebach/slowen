@@ -225,6 +225,11 @@
           <div>Verkaufserlös: {{ getSaleGross() | number:'1.2-2' }}</div>
           <div>Abzüge: {{ getSaleDeductions() | number:'1.2-2' }}</div>
           <div>Nettozufluss: {{ getSaleNet() | number:'1.2-2' }}</div>
+          <div>FIFO-Einstand (live): {{ getSaleEstimatedCostBasis() | number:'1.2-2' }}</div>
+          <div>Kursgewinn/-verlust (live): {{ getSalePnl() | number:'1.2-2' }}</div>
+          @if (!hasEnoughHoldingsForSale()) {
+            <div class="mt-2 text-red-700">Nicht genügend Bestand für den Verkauf.</div>
+          }
         </div>
       </div>
     } @else {

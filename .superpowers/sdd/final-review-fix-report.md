@@ -2,30 +2,60 @@
 
 ## Findings addressed
 
-### 1. `PRAGMA foreign_keys` never enabled (Critical)
-- **Fix:** `initDatabaseSchema()` in `electron/database/connection.ts` now runs `database.pragma('foreign_keys = ON')` before schema DDL.
-- **Test:** `electron/database/connection.spec.ts` asserts `pragma('foreign_keys')` is `1` after init on a fresh `:memory:` DB.
+### 1) CRITICAL: negative-net sales could be created and later break sale detail loading
+- **Fix:** Added strict sale validation in `electron/database/bookings.ts` and `src/app/components/bookings/booking-form/booking-form.component.ts`:
+  - required fields present
+  - `quantity > 0`, `price_per_unit > 0`
+  - deduction fields non-negative
+  - depot and settlement accounts differ
+  - `nettozufluss > 0` (prevents invalid negative-net sale creation)
+  - frontend blocks oversell early via live FIFO holdings check
+- **Fix:** Removed fragile sale detail reconstruction from `booking_positions` sign heuristics (which failed on negative-net); sale details are now loaded from dedicated persisted sale input data.
+- **Tests:**
+  - `electron/database/bookings.spec.ts`: `rejects sale when deductions exceed gross proceeds`
+  - `src/app/components/bookings/booking-form/booking-form.component.spec.ts`: `rejects sale submit when net inflow is non-positive`
 
-### 2. System accounts user-editable/deletable (High)
-- **Fix:** `accounts.update`/`accounts.delete` in `electron/database/accounts.ts` reject operations on protected system accounts (`Wertpapierprovision`, `Stückzinsen`, type `GuV`, subtype `Aufwand`) with a German error message.
-- **UI:** `account-list` component now shows "Systemkonto" instead of "Bearbeiten"/"Löschen" for protected accounts, via shared `isSystemAccount()` helper in `src/app/models/account.model.ts`.
-- **Tests:** `electron/database/accounts.spec.ts` (update/delete rejected, normal accounts unaffected); `account-list.component.spec.ts` (actions hidden for protected accounts).
+### 2) IMPORTANT: depot summary average and purchase value wrong after sales
+- **Fix:** Reworked depot aggregation in `src/app/components/accounts/depot-detail/depot-detail.component.ts` to apply FIFO lot consumption to purchase lots before computing:
+  - `total_quantity`
+  - `average_price_per_unit`
+  - `total_purchase_value`
+- **Result:** summary reflects remaining lot mix, not gross purchase totals.
+- **Tests:**
+  - `src/app/components/accounts/depot-detail/depot-detail.component.spec.ts`: existing quantity reduction assertion extended for value/average correctness
+  - added `uses FIFO lots for average price and purchase value after sales`
 
-### 3. System account lookup not enforced by shape (High)
-- **Fix:** `requireSystemAccount()` in `electron/database/bookings.ts` now requires exactly one row with the given name AND `type = 'GuV'`, `subtype = 'Aufwand'`; `0` or `>1` matches fail loudly with `Systemkonto-Invariante verletzt: <name>` (no silent arbitrary pick).
-- **Tests:** `electron/database/bookings.spec.ts` — duplicate `Wertpapierprovision` fails; `Stückzinsen` with wrong type/subtype fails.
+### 3) IMPORTANT: sales were persisted into `depot_positions` though ledger must stay purchase-only
+- **Fix:** Introduced `sale_details` table in `electron/database/connection.ts` for sale input persistence (`security_id`, `depot_account_id`, `settlement_account_id`, `quantity`, `price_per_unit`, deductions).
+- **Fix:** Updated `electron/database/bookings.ts` create/update/delete flows:
+  - `depot_positions` inserts now happen only for `Kauf`
+  - `Verkauf` details persist in `sale_details`
+  - sale loading now uses `sale_details`
+  - FIFO history for sale pricing combines purchase lots (`depot_positions`) + prior sales (`sale_details`)
+- **Fix:** Added backward-compatible migration path (`migrateLegacySaleDetails`) to populate missing `sale_details` from legacy sale rows in `depot_positions` and existing booking positions.
+- **Tests:**
+  - `electron/database/bookings.spec.ts`: verifies sale writes no `depot_positions` row and does write `sale_details`
+  - `electron/database/connection.spec.ts`: verifies `sale_details` schema exists
 
-### 4. Fractional quantity input blocked (Low)
-- **Fix:** `booking-form.component.html` quantity input gets `step="any"` so fractional Fondsanteile are valid in the browser.
-- **Test:** `booking-form.component.spec.ts` asserts `step` attribute is `any`.
+### 4) MINOR: live PnL display missing in sale form
+- **Fix:** Added live sale metrics in `src/app/components/bookings/booking-form/booking-form.component.html`:
+  - `FIFO-Einstand (live)`
+  - `Kursgewinn/-verlust (live)`
+  - red inline warning for insufficient holdings
+- **Fix:** Implemented frontend FIFO preview in `src/app/components/bookings/booking-form/booking-form.component.ts` (`getSaleEstimatedCostBasis`, `getSalePnl`, `hasEnoughHoldingsForSale`).
+- **Tests:**
+  - `src/app/components/bookings/booking-form/booking-form.component.spec.ts`: live PnL/cost-basis and insufficient-holdings coverage
 
-### 5. Cascade behavior covered
-- **Test:** `electron/database/bookings.spec.ts` — deleting a `Kauf` booking removes its `booking_positions` and `depot_positions` rows.
+## Verification (command output summary)
 
-## Repository hygiene
-- Removed stale committed compiled artifacts in `src/app/models/` (`*.js`, `*.js.map`, `*.d.ts`, `*.d.ts.map` for `account.model`, `booking.model`) that shadowed TS sources under vitest resolution (vite resolves `.js` before `.ts`). `booking.model.js` still contained the pre-feature `VORGANG_OPTIONS = ['Buchung']`, causing the model spec to fail under vitest while passing under `ng test`.
+1. `npm test -- --watch=false --include electron/database/bookings.spec.ts --include electron/database/connection.spec.ts --include src/app/components/accounts/depot-detail/depot-detail.component.spec.ts --include src/app/components/bookings/booking-form/booking-form.component.spec.ts`
+   - PASS (2 files, 28 tests)
 
-## Verification
-- Electron vitest: 7 files, 21 tests passed.
-- Angular suite (`ng test --watch=false`): 12 files, 56 tests passed.
-- `npm run build:electron` and `npm run build`: clean.
+2. `npm run test:electron`
+   - PASS (7 files, 43 tests)
+
+3. `npm test -- --watch=false`
+   - PASS (12 files, 73 tests)
+
+## Notes
+- `ng test` still emits existing Sass `@import` deprecation warnings from `src/styles.scss`; unrelated to this fix pass.

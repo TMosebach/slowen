@@ -74,24 +74,49 @@ function loadFifoCostBasisForSale(booking: Booking, quantity: number): number {
   const rows = db
     .prepare(
       `
-      SELECT b.id AS booking_id, b.date, b.vorgang, d.quantity, d.price_per_unit
-      FROM bookings b
-      INNER JOIN depot_positions d ON d.booking_id = b.id
-      WHERE d.depot_account_id = ?
-        AND d.security_id = ?
-        AND b.vorgang IN ('Kauf', 'Verkauf')
-        AND (
-          b.date < ?
-          OR (
-            ? IS NOT NULL
-            AND b.date = ?
-            AND b.id < ?
-          )
+      SELECT *
+      FROM (
+        SELECT
+          b.id AS booking_id,
+          b.date,
+          'Kauf' AS vorgang,
+          d.quantity,
+          d.price_per_unit
+        FROM bookings b
+        INNER JOIN depot_positions d ON d.booking_id = b.id
+        WHERE b.vorgang = 'Kauf'
+          AND d.depot_account_id = ?
+          AND d.security_id = ?
+
+        UNION ALL
+
+        SELECT
+          b.id AS booking_id,
+          b.date,
+          'Verkauf' AS vorgang,
+          s.quantity,
+          s.price_per_unit
+        FROM bookings b
+        INNER JOIN sale_details s ON s.booking_id = b.id
+        WHERE b.vorgang = 'Verkauf'
+          AND s.depot_account_id = ?
+          AND s.security_id = ?
+      ) history
+      WHERE (
+        history.date < ?
+        OR (
+          ? IS NOT NULL
+          AND history.date = ?
+          AND history.booking_id < ?
         )
-        AND (? IS NULL OR b.id != ?)
+      )
+        AND (? IS NULL OR history.booking_id != ?)
+      ORDER BY history.date, history.booking_id
     `
     )
     .all(
+      booking.saleDetails.depot_account_id,
+      booking.saleDetails.security_id,
       booking.saleDetails.depot_account_id,
       booking.saleDetails.security_id,
       booking.date,
@@ -121,58 +146,22 @@ function loadFifoCostBasisForSale(booking: Booking, quantity: number): number {
 
 function loadSaleDetailsByBookingId(bookingId: number): SaleBookingDetails {
   const db = getDatabase();
-  const depotPosition = db.prepare('SELECT * FROM depot_positions WHERE booking_id = ?').get(bookingId) as
+  const saleDetails = db.prepare('SELECT * FROM sale_details WHERE booking_id = ?').get(bookingId) as
     | {
         security_id: number;
         depot_account_id: number;
+        settlement_account_id: number;
         quantity: number;
         price_per_unit: number;
+        fees: number;
+        capital_gains_tax: number;
+        solidarity_surcharge: number;
       }
     | undefined;
 
-  if (!depotPosition) {
-    throw new Error(`Depotposition fehlt fuer Verkauf ${bookingId}`);
+  if (!saleDetails) {
+    throw new Error(`Verkaufsdetails fehlen fuer Verkauf ${bookingId}`);
   }
-
-  const bookingPositions = db.prepare('SELECT * FROM booking_positions WHERE booking_id = ?').all(bookingId) as BookingPosition[];
-  const feesAccountId = requireSystemAccount('Wertpapierprovision');
-  const capitalGainsTaxAccountId = requireSystemAccount('Kapitalertragsteuer');
-  const solidaritySurchargeAccountId = requireSystemAccount('Solidaritätszuschlag');
-
-  const settlementPosition = bookingPositions.find((position) => {
-    if (position.amount <= 0) {
-      return false;
-    }
-
-    const account = db
-      .prepare('SELECT id, name, type, subtype FROM accounts WHERE id = ?')
-      .get(position.account_id) as
-      | {
-          id: number;
-          name: string;
-          type: 'Bestand' | 'GuV';
-          subtype: string;
-        }
-      | undefined;
-
-    return Boolean(account) && !isSystemAccount(account);
-  });
-
-  if (!settlementPosition) {
-    throw new Error(`Abrechnungskonto fehlt fuer Verkauf ${bookingId}`);
-  }
-
-  const saleDetails: SaleBookingDetails = {
-    security_id: depotPosition.security_id,
-    depot_account_id: depotPosition.depot_account_id,
-    settlement_account_id: settlementPosition.account_id,
-    quantity: depotPosition.quantity,
-    price_per_unit: depotPosition.price_per_unit,
-    fees: bookingPositions.find((position) => position.account_id === feesAccountId)?.amount ?? 0,
-    capital_gains_tax: bookingPositions.find((position) => position.account_id === capitalGainsTaxAccountId)?.amount ?? 0,
-    solidarity_surcharge:
-      bookingPositions.find((position) => position.account_id === solidaritySurchargeAccountId)?.amount ?? 0,
-  };
 
   return {
     ...saleDetails,
@@ -192,10 +181,10 @@ function recomputeDerivedSalesForPairs(pairs: Array<{ depot_account_id: number; 
   const saleQuery = db.prepare(`
     SELECT b.id, b.date
     FROM bookings b
-    INNER JOIN depot_positions d ON d.booking_id = b.id
+    INNER JOIN sale_details s ON s.booking_id = b.id
     WHERE b.vorgang = 'Verkauf'
-      AND d.depot_account_id = ?
-      AND d.security_id = ?
+      AND s.depot_account_id = ?
+      AND s.security_id = ?
     ORDER BY b.date, b.id
   `);
   const deletePositions = db.prepare('DELETE FROM booking_positions WHERE booking_id = ?');
@@ -226,15 +215,46 @@ function recomputeDerivedSalesForPairs(pairs: Array<{ depot_account_id: number; 
 
 function loadDepotPairByBookingId(id: number): { depot_account_id: number; security_id: number } | null {
   const db = getDatabase();
-  const row = db
+  const purchaseRow = db
     .prepare('SELECT depot_account_id, security_id FROM depot_positions WHERE booking_id = ?')
     .get(id) as { depot_account_id: number; security_id: number } | undefined;
 
-  if (!row) {
-    return null;
+  if (purchaseRow) {
+    return purchaseRow;
   }
 
-  return row;
+  const saleRow = db
+    .prepare('SELECT depot_account_id, security_id FROM sale_details WHERE booking_id = ?')
+    .get(id) as { depot_account_id: number; security_id: number } | undefined;
+
+  return saleRow ?? null;
+}
+
+function validateSaleDetails(details: SaleBookingDetails): void {
+  if (!details.security_id || !details.depot_account_id || !details.settlement_account_id) {
+    throw new Error('Alle Pflichtfelder des Verkaufs müssen ausgefüllt sein.');
+  }
+
+  if (details.depot_account_id === details.settlement_account_id) {
+    throw new Error('Depot-Konto und Verrechnungskonto müssen unterschiedlich sein.');
+  }
+
+  if (details.quantity <= 0 || details.price_per_unit <= 0) {
+    throw new Error('Stückzahl und Kurs müssen größer 0 sein.');
+  }
+
+  const fees = details.fees ?? 0;
+  const tax = details.capital_gains_tax ?? 0;
+  const soli = details.solidarity_surcharge ?? 0;
+
+  if (fees < 0 || tax < 0 || soli < 0) {
+    throw new Error('Gebühren und Steuern dürfen nicht negativ sein.');
+  }
+
+  const net = details.quantity * details.price_per_unit - fees - tax - soli;
+  if (net <= 0) {
+    throw new Error('Nettozufluss muss größer 0 sein.');
+  }
 }
 
 function buildSalePositions(booking: Booking): BookingPosition[] {
@@ -394,6 +414,11 @@ export const bookings = {
         (booking_id, depot_account_id, security_id, quantity, price_per_unit, purchase_date)
       VALUES (?, ?, ?, ?, ?, ?)
     `);
+    const insertSaleDetails = db.prepare(`
+      INSERT INTO sale_details
+        (booking_id, security_id, depot_account_id, settlement_account_id, quantity, price_per_unit, fees, capital_gains_tax, solidarity_surcharge)
+      VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)
+    `);
 
     const transaction = db.transaction(() => {
       const result = insertBooking.run(
@@ -403,6 +428,9 @@ export const bookings = {
         booking.sender_receiver || null
       );
       const bookingId = result.lastInsertRowid as number;
+      if (booking.vorgang === 'Verkauf' && booking.saleDetails) {
+        validateSaleDetails(booking.saleDetails);
+      }
       const effectivePositions =
         booking.vorgang === 'Kauf'
           ? buildPurchasePositions(booking)
@@ -426,13 +454,16 @@ export const bookings = {
       }
 
       if (booking.vorgang === 'Verkauf' && booking.saleDetails) {
-        insertDepotPosition.run(
+        insertSaleDetails.run(
           bookingId,
-          booking.saleDetails.depot_account_id,
           booking.saleDetails.security_id,
+          booking.saleDetails.depot_account_id,
+          booking.saleDetails.settlement_account_id,
           booking.saleDetails.quantity,
           booking.saleDetails.price_per_unit,
-          booking.date
+          booking.saleDetails.fees ?? 0,
+          booking.saleDetails.capital_gains_tax ?? 0,
+          booking.saleDetails.solidarity_surcharge ?? 0
         );
       }
 
@@ -467,6 +498,7 @@ export const bookings = {
     );
     const deletePositions = db.prepare('DELETE FROM booking_positions WHERE booking_id = ?');
     const deleteDepotPosition = db.prepare('DELETE FROM depot_positions WHERE booking_id = ?');
+    const deleteSaleDetails = db.prepare('DELETE FROM sale_details WHERE booking_id = ?');
     const insertPosition = db.prepare(
       'INSERT INTO booking_positions (booking_id, account_id, valuta, amount) VALUES (?, ?, ?, ?)'
     );
@@ -474,6 +506,11 @@ export const bookings = {
       INSERT INTO depot_positions
         (booking_id, depot_account_id, security_id, quantity, price_per_unit, purchase_date)
       VALUES (?, ?, ?, ?, ?, ?)
+    `);
+    const insertSaleDetails = db.prepare(`
+      INSERT INTO sale_details
+        (booking_id, security_id, depot_account_id, settlement_account_id, quantity, price_per_unit, fees, capital_gains_tax, solidarity_surcharge)
+      VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)
     `);
 
     const transaction = db.transaction(() => {
@@ -488,6 +525,10 @@ export const bookings = {
       );
       deletePositions.run(id);
       deleteDepotPosition.run(id);
+      deleteSaleDetails.run(id);
+      if (booking.vorgang === 'Verkauf' && booking.saleDetails) {
+        validateSaleDetails(booking.saleDetails);
+      }
       const effectivePositions =
         booking.vorgang === 'Kauf'
           ? buildPurchasePositions(booking)
@@ -511,13 +552,16 @@ export const bookings = {
       }
 
       if (booking.vorgang === 'Verkauf' && booking.saleDetails) {
-        insertDepotPosition.run(
+        insertSaleDetails.run(
           id,
-          booking.saleDetails.depot_account_id,
           booking.saleDetails.security_id,
+          booking.saleDetails.depot_account_id,
+          booking.saleDetails.settlement_account_id,
           booking.saleDetails.quantity,
           booking.saleDetails.price_per_unit,
-          booking.date
+          booking.saleDetails.fees ?? 0,
+          booking.saleDetails.capital_gains_tax ?? 0,
+          booking.saleDetails.solidarity_surcharge ?? 0
         );
       }
 

@@ -261,4 +261,22 @@ describe('database schema for securities purchases', () => {
       { name: 'Solidaritätszuschlag', type: 'GuV', subtype: 'Aufwand' },
     ]);
   });
+
+  it('creates sale_details table with expected columns', () => {
+    const db = new Database(':memory:');
+    initDatabaseSchema(db);
+
+    const columns = db.prepare(`PRAGMA table_info(sale_details)`).all() as Array<{ name: string }>;
+    expect(columns.map((column) => column.name)).toEqual([
+      'booking_id',
+      'security_id',
+      'depot_account_id',
+      'settlement_account_id',
+      'quantity',
+      'price_per_unit',
+      'fees',
+      'capital_gains_tax',
+      'solidarity_surcharge',
+    ]);
+  });
 });

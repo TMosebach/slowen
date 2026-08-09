@@ -16,6 +16,12 @@ type DepotSummaryRow = DepotPositionSummary & {
   expanded: boolean;
 };
 
+type SaleEvent = {
+  bookingId: number;
+  date: string;
+  quantity: number;
+};
+
 @Component({
   selector: 'app-depot-detail',
   standalone: true,
@@ -87,10 +93,10 @@ export class DepotDetailComponent implements OnInit {
         grouped.set(position.security_id, current);
       }
 
-      const soldBySecurity = this.buildSaleQuantityBySecurity(bookings, accountId);
+      const saleEventsBySecurity = this.buildSaleEventsBySecurity(bookings, accountId);
 
       this.summaryRows = Array.from(grouped.entries())
-        .map(([securityId, purchases]) => this.buildSummaryRow(securityId, purchases, securityMap, soldBySecurity))
+        .map(([securityId, purchases]) => this.buildSummaryRow(securityId, purchases, securityMap, saleEventsBySecurity))
         .filter((row): row is DepotSummaryRow => row !== null);
 
       this.purchaseHistory = this.buildPurchaseHistory(bookings, accountId, securityMap);
@@ -115,19 +121,20 @@ export class DepotDetailComponent implements OnInit {
     securityId: number,
     purchases: DepotPosition[],
     securityMap: Map<number, Security>,
-    soldBySecurity: Map<number, number>
+    saleEventsBySecurity: Map<number, SaleEvent[]>
   ): DepotSummaryRow | null {
     const security = securityMap.get(securityId);
     if (!security) {
       return null;
     }
 
-    const soldQuantity = soldBySecurity.get(securityId) ?? 0;
-    const totalQuantity = Math.max(0, purchases.reduce((sum, item) => sum + item.quantity, 0) - soldQuantity);
+    const sales = saleEventsBySecurity.get(securityId) ?? [];
+    const remainingLots = this.computeRemainingLots(purchases, sales);
+    const totalQuantity = remainingLots.reduce((sum, item) => sum + item.quantity, 0);
     if (totalQuantity <= 0) {
       return null;
     }
-    const totalPurchaseValue = purchases.reduce((sum, item) => sum + item.quantity * item.price_per_unit, 0);
+    const totalPurchaseValue = remainingLots.reduce((sum, item) => sum + item.quantity * item.price_per_unit, 0);
 
     return {
       security_id: securityId,
@@ -143,19 +150,54 @@ export class DepotDetailComponent implements OnInit {
     };
   }
 
-  private buildSaleQuantityBySecurity(bookings: Booking[], depotAccountId: number): Map<number, number> {
-    const map = new Map<number, number>();
+  private buildSaleEventsBySecurity(bookings: Booking[], depotAccountId: number): Map<number, SaleEvent[]> {
+    const map = new Map<number, SaleEvent[]>();
 
     for (const booking of bookings) {
-      if (booking.vorgang !== 'Verkauf' || booking.saleDetails?.depot_account_id !== depotAccountId) {
+      if (
+        booking.vorgang !== 'Verkauf'
+        || booking.id === undefined
+        || booking.saleDetails?.depot_account_id !== depotAccountId
+      ) {
         continue;
       }
 
       const securityId = booking.saleDetails.security_id;
-      map.set(securityId, (map.get(securityId) ?? 0) + booking.saleDetails.quantity);
+      const current = map.get(securityId) ?? [];
+      current.push({
+        bookingId: booking.id,
+        date: booking.date,
+        quantity: booking.saleDetails.quantity,
+      });
+      map.set(securityId, current);
+    }
+
+    for (const events of map.values()) {
+      events.sort((left, right) => left.date.localeCompare(right.date) || left.bookingId - right.bookingId);
     }
 
     return map;
+  }
+
+  private computeRemainingLots(purchases: DepotPosition[], sales: SaleEvent[]): DepotPosition[] {
+    const lots = [...purchases]
+      .map((item) => ({ ...item }))
+      .sort((left, right) => left.purchase_date.localeCompare(right.purchase_date) || left.booking_id - right.booking_id);
+
+    for (const sale of sales) {
+      let quantityToConsume = sale.quantity;
+      for (const lot of lots) {
+        if (quantityToConsume <= 0) {
+          break;
+        }
+
+        const consume = Math.min(lot.quantity, quantityToConsume);
+        lot.quantity -= consume;
+        quantityToConsume -= consume;
+      }
+    }
+
+    return lots.filter((lot) => lot.quantity > 0);
   }
 
   private buildSaleBookingIdSet(bookings: Booking[], depotAccountId: number): Set<number> {
