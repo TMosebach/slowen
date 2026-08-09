@@ -309,6 +309,47 @@ describe('purchase bookings', () => {
     ).rejects.toThrow('Nicht genügend Bestand');
   });
 
+  it('creates same-day sale using earlier same-day buy cost basis', async () => {
+    await seedPurchaseReferences();
+
+    await bookings.create({
+      vorgang: 'Kauf',
+      date: '2026-08-10',
+      positions: [],
+      purchaseDetails: {
+        security_id: 7,
+        depot_account_id: 3,
+        settlement_account_id: 2,
+        quantity: 5,
+        price_per_unit: 100,
+        fees: 0,
+        accrued_interest: 0,
+      },
+    } satisfies Booking);
+
+    const created = await bookings.create({
+      vorgang: 'Verkauf',
+      date: '2026-08-10',
+      positions: [],
+      saleDetails: {
+        security_id: 7,
+        depot_account_id: 3,
+        settlement_account_id: 2,
+        quantity: 2,
+        price_per_unit: 130,
+        fees: 2,
+        capital_gains_tax: 5,
+        solidarity_surcharge: 0.5,
+      },
+    } satisfies Booking);
+
+    const reloaded = await bookings.getById(created.id!);
+
+    expect(reloaded?.vorgang).toBe('Verkauf');
+    expect(reloaded?.positions.find((position) => position.account_id === 3)?.amount).toBe(-200);
+    expect(reloaded?.positions.some((position) => position.amount === 52.5)).toBe(true);
+  });
+
   it('prices backdated sales from prior events only and recomputes later same-pair sales', async () => {
     await seedPurchaseReferences();
 

@@ -407,7 +407,7 @@ export const bookings = {
         booking.vorgang === 'Kauf'
           ? buildPurchasePositions(booking)
           : booking.vorgang === 'Verkauf'
-            ? buildSalePositions(booking)
+            ? buildSalePositions({ ...booking, id: bookingId })
             : booking.positions;
 
       for (const pos of effectivePositions) {
