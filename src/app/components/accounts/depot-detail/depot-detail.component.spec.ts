@@ -79,6 +79,36 @@ describe('DepotDetailComponent', () => {
     expect(component.summaryRows[0].average_price_per_unit).toBe(106.66666666666667);
   });
 
+  it('reduces displayed quantity by matching sale bookings', async () => {
+    mockDepotPositionsService.getByDepot.mockResolvedValue([
+      { booking_id: 1, depot_account_id: 2, security_id: 7, quantity: 5, price_per_unit: 100, purchase_date: '2026-08-01' }
+    ]);
+
+    mockBookingService.getAll.mockResolvedValue([
+      {
+        id: 11,
+        vorgang: 'Verkauf',
+        date: '2026-08-05',
+        positions: [],
+        saleDetails: {
+          security_id: 7,
+          depot_account_id: 2,
+          settlement_account_id: 1,
+          quantity: 2,
+          price_per_unit: 130
+        }
+      }
+    ]);
+
+    mockSecuritiesService.getAll.mockResolvedValue([
+      { id: 7, name: 'ETF World', type: 'ETF', isin: 'IE00TEST0001', wkn: 'TEST01' }
+    ]);
+
+    await component.loadDepot();
+
+    expect(component.summaryRows[0].total_quantity).toBe(3);
+  });
+
   it('builds purchase history from purchase bookings of the depot', async () => {
     mockBookingService.getAll.mockResolvedValue([
       {
@@ -120,7 +150,7 @@ describe('DepotDetailComponent', () => {
     expect(component.summaryRows[0].expanded).toBe(true);
   });
 
-  it('does not divide by zero for a depot position with zero quantity', async () => {
+  it('omits aggregated rows with non-positive net quantity', async () => {
     mockDepotPositionsService.getByDepot.mockResolvedValue([
       { booking_id: 1, depot_account_id: 2, security_id: 7, quantity: 0, price_per_unit: 100, purchase_date: '2026-08-01' }
     ]);
@@ -130,7 +160,7 @@ describe('DepotDetailComponent', () => {
 
     await component.loadDepot();
 
-    expect(component.summaryRows[0].average_price_per_unit).toBe(0);
+    expect(component.summaryRows).toEqual([]);
   });
 
   it('redirects to the account list when the account is not a depot', async () => {

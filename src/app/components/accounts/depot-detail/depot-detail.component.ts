@@ -82,8 +82,10 @@ export class DepotDetailComponent implements OnInit {
         grouped.set(position.security_id, current);
       }
 
+      const soldBySecurity = this.buildSaleQuantityBySecurity(bookings, accountId);
+
       this.summaryRows = Array.from(grouped.entries())
-        .map(([securityId, purchases]) => this.buildSummaryRow(securityId, purchases, securityMap))
+        .map(([securityId, purchases]) => this.buildSummaryRow(securityId, purchases, securityMap, soldBySecurity))
         .filter((row): row is DepotSummaryRow => row !== null);
 
       this.purchaseHistory = this.buildPurchaseHistory(bookings, accountId, securityMap);
@@ -107,14 +109,19 @@ export class DepotDetailComponent implements OnInit {
   private buildSummaryRow(
     securityId: number,
     purchases: DepotPosition[],
-    securityMap: Map<number, Security>
+    securityMap: Map<number, Security>,
+    soldBySecurity: Map<number, number>
   ): DepotSummaryRow | null {
     const security = securityMap.get(securityId);
     if (!security) {
       return null;
     }
 
-    const totalQuantity = purchases.reduce((sum, item) => sum + item.quantity, 0);
+    const soldQuantity = soldBySecurity.get(securityId) ?? 0;
+    const totalQuantity = Math.max(0, purchases.reduce((sum, item) => sum + item.quantity, 0) - soldQuantity);
+    if (totalQuantity <= 0) {
+      return null;
+    }
     const totalPurchaseValue = purchases.reduce((sum, item) => sum + item.quantity * item.price_per_unit, 0);
 
     return {
@@ -129,6 +136,21 @@ export class DepotDetailComponent implements OnInit {
       purchases,
       expanded: this.expandedSecurityIds.has(securityId)
     };
+  }
+
+  private buildSaleQuantityBySecurity(bookings: Booking[], depotAccountId: number): Map<number, number> {
+    const map = new Map<number, number>();
+
+    for (const booking of bookings) {
+      if (booking.vorgang !== 'Verkauf' || booking.saleDetails?.depot_account_id !== depotAccountId) {
+        continue;
+      }
+
+      const securityId = booking.saleDetails.security_id;
+      map.set(securityId, (map.get(securityId) ?? 0) + booking.saleDetails.quantity);
+    }
+
+    return map;
   }
 
   private buildPurchaseHistory(
