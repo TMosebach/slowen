@@ -186,6 +186,24 @@ describe('BookingFormComponent', () => {
     expect(mockBookingService.create).toHaveBeenCalledWith(component.booking);
   });
 
+  it('calculates sale gross, deductions and net from sale details', () => {
+    component.booking.vorgang = 'Verkauf';
+    component.booking.saleDetails = {
+      security_id: 7,
+      depot_account_id: 3,
+      settlement_account_id: 2,
+      quantity: 2,
+      price_per_unit: 130,
+      fees: 2,
+      capital_gains_tax: 5,
+      solidarity_surcharge: 0.5,
+    };
+
+    expect(component.getSaleGross()).toBe(260);
+    expect(component.getSaleDeductions()).toBe(7.5);
+    expect(component.getSaleNet()).toBe(252.5);
+  });
+
   it('allows fractional quantity input in purchase mode', () => {
     component.booking.vorgang = 'Kauf';
     component.booking.purchaseDetails = {

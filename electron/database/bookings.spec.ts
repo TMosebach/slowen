@@ -272,6 +272,48 @@ describe('purchase bookings', () => {
     expect(sum).toBeCloseTo(0, 8);
   });
 
+  it('books Kursverlust when sale net is below fifo cost basis', async () => {
+    await seedPurchaseReferences();
+
+    await bookings.create({
+      vorgang: 'Kauf',
+      date: '2026-08-01',
+      positions: [],
+      purchaseDetails: {
+        security_id: 7,
+        depot_account_id: 3,
+        settlement_account_id: 2,
+        quantity: 1,
+        price_per_unit: 100,
+        fees: 0,
+        accrued_interest: 0,
+      },
+    } satisfies Booking);
+
+    const created = await bookings.create({
+      vorgang: 'Verkauf',
+      date: '2026-08-10',
+      positions: [],
+      saleDetails: {
+        security_id: 7,
+        depot_account_id: 3,
+        settlement_account_id: 2,
+        quantity: 1,
+        price_per_unit: 90,
+        fees: 0,
+        capital_gains_tax: 0,
+        solidarity_surcharge: 0,
+      },
+    } satisfies Booking);
+
+    const reloaded = await bookings.getById(created.id!);
+    const kursverlustAccount = db.prepare(`SELECT id FROM accounts WHERE name = 'Kursverlust'`).get() as { id: number };
+    const kursgewinnAccount = db.prepare(`SELECT id FROM accounts WHERE name = 'Kursgewinn'`).get() as { id: number };
+
+    expect(reloaded?.positions.find((position) => position.account_id === kursverlustAccount.id)?.amount).toBe(10);
+    expect(reloaded?.positions.some((position) => position.account_id === kursgewinnAccount.id)).toBe(false);
+  });
+
   it('rejects sale when quantity exceeds available holdings', async () => {
     await seedPurchaseReferences();
 
@@ -513,5 +555,117 @@ describe('purchase bookings', () => {
 
     const afterDelete = await bookings.getById(laterSale.id!);
     expect(afterDelete?.positions.find((position) => position.account_id === 3)?.amount).toBe(-200);
+  });
+
+  it('keeps consistency after updating sale quantity', async () => {
+    await seedPurchaseReferences();
+
+    await bookings.create({
+      vorgang: 'Kauf',
+      date: '2026-08-01',
+      positions: [],
+      purchaseDetails: {
+        security_id: 7,
+        depot_account_id: 3,
+        settlement_account_id: 2,
+        quantity: 5,
+        price_per_unit: 100,
+        fees: 0,
+        accrued_interest: 0,
+      },
+    } satisfies Booking);
+
+    const created = await bookings.create({
+      vorgang: 'Verkauf',
+      date: '2026-08-10',
+      positions: [],
+      saleDetails: {
+        security_id: 7,
+        depot_account_id: 3,
+        settlement_account_id: 2,
+        quantity: 2,
+        price_per_unit: 130,
+        fees: 2,
+        capital_gains_tax: 5,
+        solidarity_surcharge: 0.5,
+      },
+    } satisfies Booking);
+
+    await bookings.update(created.id!, {
+      vorgang: 'Verkauf',
+      date: '2026-08-10',
+      positions: [],
+      saleDetails: {
+        security_id: 7,
+        depot_account_id: 3,
+        settlement_account_id: 2,
+        quantity: 3,
+        price_per_unit: 130,
+        fees: 2,
+        capital_gains_tax: 5,
+        solidarity_surcharge: 0.5,
+      },
+    } satisfies Booking);
+
+    const reloaded = await bookings.getById(created.id!);
+    const sum = reloaded?.positions.reduce((acc, position) => acc + position.amount, 0) ?? 0;
+
+    expect(reloaded?.saleDetails?.quantity).toBe(3);
+    expect(sum).toBeCloseTo(0, 8);
+  });
+
+  it('restores availability after deleting sale', async () => {
+    await seedPurchaseReferences();
+
+    await bookings.create({
+      vorgang: 'Kauf',
+      date: '2026-08-01',
+      positions: [],
+      purchaseDetails: {
+        security_id: 7,
+        depot_account_id: 3,
+        settlement_account_id: 2,
+        quantity: 1,
+        price_per_unit: 100,
+        fees: 0,
+        accrued_interest: 0,
+      },
+    } satisfies Booking);
+
+    const firstSale = await bookings.create({
+      vorgang: 'Verkauf',
+      date: '2026-08-10',
+      positions: [],
+      saleDetails: {
+        security_id: 7,
+        depot_account_id: 3,
+        settlement_account_id: 2,
+        quantity: 1,
+        price_per_unit: 130,
+        fees: 0,
+        capital_gains_tax: 0,
+        solidarity_surcharge: 0,
+      },
+    } satisfies Booking);
+
+    await bookings.delete(firstSale.id!);
+
+    const secondSale = await bookings.create({
+      vorgang: 'Verkauf',
+      date: '2026-08-11',
+      positions: [],
+      saleDetails: {
+        security_id: 7,
+        depot_account_id: 3,
+        settlement_account_id: 2,
+        quantity: 1,
+        price_per_unit: 125,
+        fees: 0,
+        capital_gains_tax: 0,
+        solidarity_surcharge: 0,
+      },
+    } satisfies Booking);
+
+    expect(secondSale.id).toBeTruthy();
   });
 });
