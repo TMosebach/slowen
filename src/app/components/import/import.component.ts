@@ -2,16 +2,10 @@ import { Component, OnInit, ChangeDetectorRef } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { AccountService } from '../../services/account.service';
+import { ImportParserService } from '../../services/import/import-parser.service';
 import { Account } from '../../models/account.model';
-
-export type ImportType = 'Umsatz' | 'Depot-Bestand';
-export type Institution = 'ING' | 'Comdirect' | 'Deutsche Bank';
-
-export interface ParsedCsvData {
-  headers: string[];
-  rows: string[][];
-  rawRowCount: number;
-}
+import { Booking } from '../../models/booking.model';
+import { ImportType, Institution } from '../../services/import/import-parser.types';
 
 @Component({
   selector: 'app-import',
@@ -35,10 +29,11 @@ export class ImportComponent implements OnInit {
 
   isReadingFile = false;
   parseError: string | null = null;
-  parsedCsv: ParsedCsvData | null = null;
+  parsedBookings: Booking[] = [];
 
   constructor(
     private accountService: AccountService,
+    private parserService: ImportParserService,
     private cdr: ChangeDetectorRef
   ) {}
 
@@ -88,6 +83,13 @@ export class ImportComponent implements OnInit {
     return this.accounts.find(acc => acc.id === this.selectedAccountId);
   }
 
+  get totalAmount(): number {
+    return this.parsedBookings.reduce((sum, booking) => {
+      const posSum = booking.positions.reduce((pSum, pos) => pSum + (pos.amount || 0), 0);
+      return sum + posSum;
+    }, 0);
+  }
+
   onFileSelected(event: Event): void {
     const input = event.target as HTMLInputElement;
     if (input.files && input.files.length > 0) {
@@ -112,7 +114,7 @@ export class ImportComponent implements OnInit {
   }
 
   async onLoadCsv(): Promise<void> {
-    if (!this.canLoad || !this.selectedFile) {
+    if (!this.canLoad || !this.selectedFile || !this.selectedAccountId) {
       return;
     }
 
@@ -121,14 +123,20 @@ export class ImportComponent implements OnInit {
 
     try {
       const content = await this.readFileContent(this.selectedFile);
-      const parsed = this.parseCsv(content);
-      if (parsed.rows.length === 0 && parsed.headers.length === 0) {
-        throw new Error('Die CSV-Datei enthält keine lesbaren Daten.');
+      const bookings = this.parserService.parse(content, {
+        importType: this.importType,
+        institution: this.institution,
+        accountId: this.selectedAccountId
+      });
+
+      if (!bookings || bookings.length === 0) {
+        throw new Error('Es konnten keine Buchungen aus der Datei extrahiert werden.');
       }
-      this.parsedCsv = parsed;
+
+      this.parsedBookings = bookings;
       this.step = 2;
     } catch (err: any) {
-      console.error('Failed to parse CSV:', err);
+      console.error('Failed to parse import file:', err);
       this.parseError = err?.message || 'Fehler beim Einlesen der CSV-Datei.';
     } finally {
       this.isReadingFile = false;
@@ -138,7 +146,7 @@ export class ImportComponent implements OnInit {
 
   onFinish(): void {
     this.step = 1;
-    this.parsedCsv = null;
+    this.parsedBookings = [];
     this.selectedFile = null;
     this.selectedFileName = '';
   }
@@ -150,70 +158,5 @@ export class ImportComponent implements OnInit {
       reader.onerror = () => reject(new Error('Fehler beim Lesen der Datei.'));
       reader.readAsText(file);
     });
-  }
-
-  parseCsv(content: string): ParsedCsvData {
-    const lines = content
-      .split(/\r\n|\n|\r/)
-      .map(line => line.trim())
-      .filter(line => line.length > 0);
-
-    if (lines.length === 0) {
-      return { headers: [], rows: [], rawRowCount: 0 };
-    }
-
-    // Detect delimiter (; or , or \t)
-    const delimiter = this.detectDelimiter(lines[0]);
-    const parsedRows = lines.map(line => this.parseCsvLine(line, delimiter));
-
-    const headers = parsedRows[0];
-    const rows = parsedRows.slice(1);
-
-    return {
-      headers,
-      rows,
-      rawRowCount: lines.length
-    };
-  }
-
-  private detectDelimiter(line: string): string {
-    const semicolons = (line.match(/;/g) || []).length;
-    const commas = (line.match(/,/g) || []).length;
-    const tabs = (line.match(/\t/g) || []).length;
-
-    if (semicolons >= commas && semicolons >= tabs && semicolons > 0) {
-      return ';';
-    }
-    if (tabs > semicolons && tabs > commas) {
-      return '\t';
-    }
-    return ',';
-  }
-
-  private parseCsvLine(line: string, delimiter: string): string[] {
-    const result: string[] = [];
-    let current = '';
-    let insideQuotes = false;
-
-    for (let i = 0; i < line.length; i++) {
-      const char = line[i];
-      const nextChar = line[i + 1];
-
-      if (char === '"') {
-        if (insideQuotes && nextChar === '"') {
-          current += '"';
-          i++;
-        } else {
-          insideQuotes = !insideQuotes;
-        }
-      } else if (char === delimiter && !insideQuotes) {
-        result.push(current.trim());
-        current = '';
-      } else {
-        current += char;
-      }
-    }
-    result.push(current.trim());
-    return result;
   }
 }

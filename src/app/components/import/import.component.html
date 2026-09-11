@@ -145,12 +145,12 @@
     </div>
   }
 
-  <!-- Step 2: Content View / Preview -->
-  @if (step === 2 && parsedCsv) {
+  <!-- Step 2: Parsed Bookings View -->
+  @if (step === 2) {
     <div class="bg-white rounded-lg shadow p-6">
       <div class="flex flex-col md:flex-row md:items-center justify-between gap-4 mb-6 border-b pb-4">
         <div>
-          <h1 class="text-2xl font-bold text-gray-800">CSV-Inhalt</h1>
+          <h1 class="text-2xl font-bold text-gray-800">Erkannte Buchungen</h1>
           <div class="flex flex-wrap gap-x-4 gap-y-1 text-sm text-gray-600 mt-2">
             <span><strong>Art:</strong> {{ importType }}</span>
             <span>•</span>
@@ -160,7 +160,14 @@
             <span>•</span>
             <span><strong>Datei:</strong> {{ selectedFileName }}</span>
             <span>•</span>
-            <span><strong>Zeilen:</strong> {{ parsedCsv.rows.length }}</span>
+            <span><strong>Buchungen:</strong> {{ parsedBookings.length }}</span>
+            <span>•</span>
+            <span>
+              <strong>Summe:</strong>
+              <span [class.text-green-600]="totalAmount >= 0" [class.text-red-600]="totalAmount < 0" class="font-semibold ml-1">
+                {{ totalAmount | number:'1.2-2' }} €
+              </span>
+            </span>
           </div>
         </div>
 
@@ -180,24 +187,48 @@
               <th scope="col" class="px-4 py-3 text-left font-semibold text-gray-700 bg-gray-50 w-12 text-xs">
                 #
               </th>
-              @for (col of parsedCsv.headers; track $index) {
-                <th scope="col" class="px-4 py-3 text-left font-semibold text-gray-700 bg-gray-50 whitespace-nowrap">
-                  {{ col || ('Spalte ' + ($index + 1)) }}
-                </th>
-              }
+              <th scope="col" class="px-4 py-3 text-left font-semibold text-gray-700 bg-gray-50 whitespace-nowrap">
+                Buchungsdatum
+              </th>
+              <th scope="col" class="px-4 py-3 text-left font-semibold text-gray-700 bg-gray-50 whitespace-nowrap">
+                Empfänger / Sender
+              </th>
+              <th scope="col" class="px-4 py-3 text-left font-semibold text-gray-700 bg-gray-50">
+                Beschreibung / Verwendungszweck
+              </th>
+              <th scope="col" class="px-4 py-3 text-left font-semibold text-gray-700 bg-gray-50 whitespace-nowrap">
+                Valuta
+              </th>
+              <th scope="col" class="px-4 py-3 text-right font-semibold text-gray-700 bg-gray-50 whitespace-nowrap">
+                Betrag
+              </th>
             </tr>
           </thead>
           <tbody class="divide-y divide-gray-200 bg-white">
-            @for (row of parsedCsv.rows; track $index) {
+            @for (booking of parsedBookings; track $index) {
               <tr class="hover:bg-gray-50">
-                <td class="px-4 py-2 text-xs text-gray-400 whitespace-nowrap">
+                <td class="px-4 py-3 text-xs text-gray-400 whitespace-nowrap align-top">
                   {{ $index + 1 }}
                 </td>
-                @for (cell of row; track $index) {
-                  <td class="px-4 py-2 text-gray-700 whitespace-nowrap">
-                    {{ cell }}
-                  </td>
-                }
+                <td class="px-4 py-3 text-gray-700 whitespace-nowrap align-top font-mono text-xs">
+                  {{ booking.date }}
+                </td>
+                <td class="px-4 py-3 text-gray-900 font-medium whitespace-nowrap align-top">
+                  {{ booking.sender_receiver || '-' }}
+                </td>
+                <td class="px-4 py-3 text-gray-600 align-top max-w-md break-words">
+                  {{ booking.description || '-' }}
+                </td>
+                <td class="px-4 py-3 text-gray-500 whitespace-nowrap align-top font-mono text-xs">
+                  {{ booking.positions[0]?.valuta || booking.date }}
+                </td>
+                <td
+                  class="px-4 py-3 text-right whitespace-nowrap align-top font-semibold"
+                  [class.text-green-600]="(booking.positions[0]?.amount || 0) >= 0"
+                  [class.text-red-600]="(booking.positions[0]?.amount || 0) < 0"
+                >
+                  {{ (booking.positions[0]?.amount || 0) | number:'1.2-2' }} €
+                </td>
               </tr>
             }
           </tbody>

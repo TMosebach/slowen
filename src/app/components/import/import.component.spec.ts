@@ -2,12 +2,15 @@ import { ComponentFixture, TestBed } from '@angular/core/testing';
 import { provideRouter } from '@angular/router';
 import { ImportComponent } from './import.component';
 import { AccountService } from '../../services/account.service';
+import { ImportParserService } from '../../services/import/import-parser.service';
 import { Account } from '../../models/account.model';
+import { Booking } from '../../models/booking.model';
 
 describe('ImportComponent', () => {
   let component: ImportComponent;
   let fixture: ComponentFixture<ImportComponent>;
   let mockAccountService: { getAll: ReturnType<typeof vi.fn> };
+  let mockParserService: { parse: ReturnType<typeof vi.fn> };
 
   const mockAccounts: Account[] = [
     { id: 1, name: 'Girokonto ING', type: 'Bestand', subtype: 'Giro' },
@@ -16,9 +19,29 @@ describe('ImportComponent', () => {
     { id: 4, name: 'Depot DB', type: 'Bestand', subtype: 'Depot' },
   ];
 
+  const mockBookings: Booking[] = [
+    {
+      vorgang: 'Buchung',
+      date: '2026-09-01',
+      sender_receiver: 'Arbeitgeber GmbH',
+      description: 'Gehalt',
+      positions: [{ account_id: 1, valuta: '2026-09-01', amount: 2500 }]
+    },
+    {
+      vorgang: 'Buchung',
+      date: '2026-09-02',
+      sender_receiver: 'Supermarkt AG',
+      description: 'Lebensmittel',
+      positions: [{ account_id: 1, valuta: '2026-09-02', amount: -50 }]
+    }
+  ];
+
   beforeEach(async () => {
     mockAccountService = {
       getAll: vi.fn().mockResolvedValue(mockAccounts),
+    };
+    mockParserService = {
+      parse: vi.fn().mockReturnValue(mockBookings),
     };
 
     await TestBed.configureTestingModule({
@@ -26,6 +49,7 @@ describe('ImportComponent', () => {
       providers: [
         provideRouter([]),
         { provide: AccountService, useValue: mockAccountService },
+        { provide: ImportParserService, useValue: mockParserService },
       ],
     }).compileComponents();
 
@@ -62,7 +86,7 @@ describe('ImportComponent', () => {
   });
 
   it('should handle file selection', () => {
-    const file = new File(['Buchungstag;Betrag\n2026-09-01;100.00'], 'umsatz.csv', { type: 'text/csv' });
+    const file = new File(['Buchung;Valuta;Betrag\n01.09.2026;01.09.2026;100,00'], 'umsatz.csv', { type: 'text/csv' });
     const event = {
       target: {
         files: [file]
@@ -77,7 +101,7 @@ describe('ImportComponent', () => {
   it('should correctly evaluate canLoad', () => {
     expect(component.canLoad).toBeFalsy(); // no file yet
 
-    const file = new File(['a;b\n1;2'], 'test.csv', { type: 'text/csv' });
+    const file = new File(['test'], 'test.csv', { type: 'text/csv' });
     component.selectedFile = file;
     component.selectedFileName = 'test.csv';
     component.selectedAccountId = 1;
@@ -90,9 +114,8 @@ describe('ImportComponent', () => {
     expect(component.canLoad).toBeFalsy();
   });
 
-  it('should parse semicolon-delimited CSV correctly and switch to step 2', async () => {
-    const csvContent = 'Buchungsdatum;Verwendungszweck;Betrag\n01.09.2026;Gehalt;2500,00\n02.09.2026;Miete;-800,00';
-    const file = new File([csvContent], 'ing_umsatz.csv', { type: 'text/csv' });
+  it('should parse CSV using parser service and switch to step 2 with bookings', async () => {
+    const file = new File(['dummy-csv-content'], 'ing_umsatz.csv', { type: 'text/csv' });
 
     component.selectedFile = file;
     component.selectedFileName = 'ing_umsatz.csv';
@@ -102,26 +125,19 @@ describe('ImportComponent', () => {
 
     await component.onLoadCsv();
 
+    expect(mockParserService.parse).toHaveBeenCalledWith('dummy-csv-content', {
+      importType: 'Umsatz',
+      institution: 'ING',
+      accountId: 1
+    });
+
     expect(component.step).toBe(2);
-    expect(component.parsedCsv).toBeTruthy();
-    expect(component.parsedCsv?.headers).toEqual(['Buchungsdatum', 'Verwendungszweck', 'Betrag']);
-    expect(component.parsedCsv?.rows.length).toBe(2);
-    expect(component.parsedCsv?.rows[0]).toEqual(['01.09.2026', 'Gehalt', '2500,00']);
-    expect(component.parsedCsv?.rows[1]).toEqual(['02.09.2026', 'Miete', '-800,00']);
-  });
-
-  it('should parse comma-delimited CSV with quoted strings correctly', () => {
-    const csvContent = 'ISIN,Name,Stuecke,Kurs\nUS0378331005,"Apple, Inc.",10,180.50';
-    const parsed = component.parseCsv(csvContent);
-
-    expect(parsed.headers).toEqual(['ISIN', 'Name', 'Stuecke', 'Kurs']);
-    expect(parsed.rows.length).toBe(1);
-    expect(parsed.rows[0]).toEqual(['US0378331005', 'Apple, Inc.', '10', '180.50']);
+    expect(component.parsedBookings.length).toBe(2);
+    expect(component.totalAmount).toBe(2450);
   });
 
   it('should return to step 1 and reset state on finish', async () => {
-    const csvContent = 'Header1;Header2\nValue1;Value2';
-    const file = new File([csvContent], 'test.csv', { type: 'text/csv' });
+    const file = new File(['dummy'], 'test.csv', { type: 'text/csv' });
     component.selectedFile = file;
     component.selectedFileName = 'test.csv';
     component.selectedAccountId = 1;
@@ -131,19 +147,23 @@ describe('ImportComponent', () => {
 
     component.onFinish();
     expect(component.step).toBe(1);
-    expect(component.parsedCsv).toBeNull();
+    expect(component.parsedBookings).toEqual([]);
     expect(component.selectedFile).toBeNull();
     expect(component.selectedFileName).toBe('');
   });
 
-  it('should handle empty file with error message', async () => {
-    const file = new File([''], 'empty.csv', { type: 'text/csv' });
+  it('should display error when parser service throws', async () => {
+    mockParserService.parse.mockImplementation(() => {
+      throw new Error('Kein Parser für Format gefunden');
+    });
+
+    const file = new File(['bad-content'], 'bad.csv', { type: 'text/csv' });
     component.selectedFile = file;
-    component.selectedFileName = 'empty.csv';
+    component.selectedFileName = 'bad.csv';
     component.selectedAccountId = 1;
 
     await component.onLoadCsv();
     expect(component.step).toBe(1);
-    expect(component.parseError).toBeTruthy();
+    expect(component.parseError).toBe('Kein Parser für Format gefunden');
   });
 });
