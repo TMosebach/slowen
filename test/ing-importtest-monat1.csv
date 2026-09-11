@@ -1,0 +1,16 @@
+Umsatzanzeige;Datei erstellt am: 01.02.2026 15:45
+
+IBAN;DE77 5001 0517 XXXX XXXX XX
+Kontoname;Girokonto
+Bank;ING
+Kunde;Vorname Zuname
+Zeitraum;02.09.2026 - 02.09.2026
+Saldo;625,09;EUR
+
+Sortierung;Datum absteigend
+
+In der CSV-Datei finden Sie alle bereits gebuchten Ums�tze. Die vorgemerkten Ums�tze werden nicht aufgenommen, auch wenn sie in Ihrem Internetbanking angezeigt werden.
+
+Buchung;Wertstellungsdatum;Auftraggeber/Empf�nger;Buchungstext;Verwendungszweck;Saldo;W�hrung;Betrag;W�hrung
+01.02.2026;02.02.2026;VISA REWE;Lastschrift;Refernznummer Apple Pay 4711;1.446,10;EUR;-8,79;EUR
+01.02.2026;02.02.2026;Aktion Mensch e.V.;Gutschrift;Herzlichen Glueckwunsch. Das Los 0815 hat gewonnen.;1.454,89;EUR;7,50;EUR
