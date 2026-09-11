@@ -8,6 +8,7 @@ import { SecuritiesListComponent } from './components/securities/securities-list
 import { SecuritiesFormComponent } from './components/securities/securities-form/securities-form.component';
 import { PricesInputComponent } from './components/securities/prices-input/prices-input.component';
 import { DashboardComponent } from './components/dashboard/dashboard.component';
+import { ImportComponent } from './components/import/import.component';
 
 export const routes: Routes = [
   { path: '', redirectTo: '/dashboard', pathMatch: 'full' },
@@ -24,5 +25,6 @@ export const routes: Routes = [
   { path: 'securities', component: SecuritiesListComponent },
   { path: 'securities/form', component: SecuritiesFormComponent },
   { path: 'securities/form/:id', component: SecuritiesFormComponent },
-  { path: 'securities/prices', component: PricesInputComponent }
+  { path: 'securities/prices', component: PricesInputComponent },
+  { path: 'import', component: ImportComponent }
 ];

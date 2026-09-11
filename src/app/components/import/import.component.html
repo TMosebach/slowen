@@ -1,0 +1,218 @@
+<div class="p-6">
+  <!-- Step 1: Configuration -->
+  @if (step === 1) {
+    <div class="max-w-2xl mx-auto bg-white rounded-lg shadow p-6">
+      <div class="mb-6 border-b pb-4">
+        <h1 class="text-2xl font-bold text-gray-800">Daten importieren</h1>
+        <p class="text-sm text-gray-500 mt-1">
+          Wählen Sie die Art des Imports, das Institut, das Zielkonto sowie die CSV-Datei aus.
+        </p>
+      </div>
+
+      @if (accountError) {
+        <div class="mb-4 p-3 bg-red-100 border border-red-400 text-red-700 rounded text-sm">
+          {{ accountError }}
+        </div>
+      }
+
+      @if (parseError) {
+        <div class="mb-4 p-3 bg-red-100 border border-red-400 text-red-700 rounded text-sm">
+          {{ parseError }}
+        </div>
+      }
+
+      <form (ngSubmit)="onLoadCsv()" class="space-y-6">
+        <!-- Import-Art -->
+        <div>
+          <label class="block text-sm font-medium text-gray-700 mb-2">
+            Art des Imports *
+          </label>
+          <div class="grid grid-cols-2 gap-4">
+            <label
+              class="flex items-center p-3 border rounded cursor-pointer transition"
+              [class.border-blue-500]="importType === 'Umsatz'"
+              [class.bg-blue-50]="importType === 'Umsatz'"
+              [class.border-gray-300]="importType !== 'Umsatz'"
+            >
+              <input
+                type="radio"
+                name="importType"
+                value="Umsatz"
+                [(ngModel)]="importType"
+                (ngModelChange)="onImportTypeChange()"
+                class="text-blue-600 focus:ring-blue-500 mr-2"
+              />
+              <span class="text-sm font-medium text-gray-900">Umsatz</span>
+            </label>
+
+            <label
+              class="flex items-center p-3 border rounded cursor-pointer transition"
+              [class.border-blue-500]="importType === 'Depot-Bestand'"
+              [class.bg-blue-50]="importType === 'Depot-Bestand'"
+              [class.border-gray-300]="importType !== 'Depot-Bestand'"
+            >
+              <input
+                type="radio"
+                name="importType"
+                value="Depot-Bestand"
+                [(ngModel)]="importType"
+                (ngModelChange)="onImportTypeChange()"
+                class="text-blue-600 focus:ring-blue-500 mr-2"
+              />
+              <span class="text-sm font-medium text-gray-900">Depot-Bestand</span>
+            </label>
+          </div>
+        </div>
+
+        <!-- Institut -->
+        <div>
+          <label for="institution" class="block text-sm font-medium text-gray-700 mb-1">
+            Institut *
+          </label>
+          <select
+            id="institution"
+            name="institution"
+            [(ngModel)]="institution"
+            class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+            required
+          >
+            @for (inst of institutions; track inst) {
+              <option [value]="inst">{{ inst }}</option>
+            }
+          </select>
+        </div>
+
+        <!-- Konto / Depot -->
+        <div>
+          <label for="accountId" class="block text-sm font-medium text-gray-700 mb-1">
+            {{ importType === 'Depot-Bestand' ? 'Depot *' : 'Konto *' }}
+          </label>
+          <select
+            id="accountId"
+            name="accountId"
+            [(ngModel)]="selectedAccountId"
+            class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+            required
+          >
+            @if (availableAccounts.length === 0) {
+              <option [ngValue]="null" disabled>
+                {{ importType === 'Depot-Bestand' ? 'Keine Depot-Konten vorhanden' : 'Keine passenden Konten vorhanden' }}
+              </option>
+            }
+            @for (acc of availableAccounts; track acc.id) {
+              <option [ngValue]="acc.id">
+                {{ acc.name }} ({{ acc.subtype }})
+              </option>
+            }
+          </select>
+        </div>
+
+        <!-- CSV-Datei -->
+        <div>
+          <label for="csvFile" class="block text-sm font-medium text-gray-700 mb-1">
+            CSV-Datei *
+          </label>
+          <div class="mt-1 flex items-center gap-3">
+            <input
+              id="csvFile"
+              name="csvFile"
+              type="file"
+              accept=".csv,text/csv,text/plain"
+              (change)="onFileSelected($event)"
+              class="block w-full text-sm text-gray-500 file:mr-4 file:py-2 file:px-4 file:rounded-md file:border-0 file:text-sm file:font-semibold file:bg-blue-50 file:text-blue-700 hover:file:bg-blue-100 cursor-pointer border border-gray-300 rounded-md p-1"
+            />
+          </div>
+          @if (selectedFileName) {
+            <p class="text-xs text-gray-500 mt-1">Ausgewählt: {{ selectedFileName }}</p>
+          }
+        </div>
+
+        <!-- Laden Button -->
+        <div class="pt-4 flex justify-end">
+          <button
+            type="submit"
+            [disabled]="!canLoad"
+            class="px-6 py-2 bg-blue-600 text-white font-medium rounded-md hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 disabled:bg-gray-400 disabled:cursor-not-allowed transition"
+          >
+            @if (isReadingFile) {
+              Laden...
+            } @else {
+              Laden
+            }
+          </button>
+        </div>
+      </form>
+    </div>
+  }
+
+  <!-- Step 2: Content View / Preview -->
+  @if (step === 2 && parsedCsv) {
+    <div class="bg-white rounded-lg shadow p-6">
+      <div class="flex flex-col md:flex-row md:items-center justify-between gap-4 mb-6 border-b pb-4">
+        <div>
+          <h1 class="text-2xl font-bold text-gray-800">CSV-Inhalt</h1>
+          <div class="flex flex-wrap gap-x-4 gap-y-1 text-sm text-gray-600 mt-2">
+            <span><strong>Art:</strong> {{ importType }}</span>
+            <span>•</span>
+            <span><strong>Institut:</strong> {{ institution }}</span>
+            <span>•</span>
+            <span><strong>{{ importType === 'Depot-Bestand' ? 'Depot' : 'Konto' }}:</strong> {{ selectedAccount?.name }}</span>
+            <span>•</span>
+            <span><strong>Datei:</strong> {{ selectedFileName }}</span>
+            <span>•</span>
+            <span><strong>Zeilen:</strong> {{ parsedCsv.rows.length }}</span>
+          </div>
+        </div>
+
+        <button
+          type="button"
+          (click)="onFinish()"
+          class="px-6 py-2 bg-blue-600 text-white font-medium rounded-md hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 self-start md:self-auto transition"
+        >
+          Fertig
+        </button>
+      </div>
+
+      <div class="overflow-x-auto border border-gray-200 rounded-lg max-h-[600px] overflow-y-auto">
+        <table class="min-w-full divide-y divide-gray-200 text-sm">
+          <thead class="bg-gray-50 sticky top-0 z-10 shadow-sm">
+            <tr>
+              <th scope="col" class="px-4 py-3 text-left font-semibold text-gray-700 bg-gray-50 w-12 text-xs">
+                #
+              </th>
+              @for (col of parsedCsv.headers; track $index) {
+                <th scope="col" class="px-4 py-3 text-left font-semibold text-gray-700 bg-gray-50 whitespace-nowrap">
+                  {{ col || ('Spalte ' + ($index + 1)) }}
+                </th>
+              }
+            </tr>
+          </thead>
+          <tbody class="divide-y divide-gray-200 bg-white">
+            @for (row of parsedCsv.rows; track $index) {
+              <tr class="hover:bg-gray-50">
+                <td class="px-4 py-2 text-xs text-gray-400 whitespace-nowrap">
+                  {{ $index + 1 }}
+                </td>
+                @for (cell of row; track $index) {
+                  <td class="px-4 py-2 text-gray-700 whitespace-nowrap">
+                    {{ cell }}
+                  </td>
+                }
+              </tr>
+            }
+          </tbody>
+        </table>
+      </div>
+
+      <div class="mt-6 flex justify-end">
+        <button
+          type="button"
+          (click)="onFinish()"
+          class="px-6 py-2 bg-blue-600 text-white font-medium rounded-md hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 transition"
+        >
+          Fertig
+        </button>
+      </div>
+    </div>
+  }
+</div>
