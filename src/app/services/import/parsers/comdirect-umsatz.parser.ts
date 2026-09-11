@@ -1,7 +1,7 @@
 import { Injectable } from '@angular/core';
 import { Booking } from '../../../models/booking.model';
 import { ImportContext, ImportParser, ImportType, Institution } from '../import-parser.types';
-import { parseAmount, parseCsvRows, parseDateToIso } from '../csv-utils';
+import { isValidDateString, parseAmount, parseCsvRows, parseDateToIso } from '../csv-utils';
 
 @Injectable({ providedIn: 'root' })
 export class ComdirectUmsatzParser implements ImportParser {
@@ -20,9 +20,12 @@ export class ComdirectUmsatzParser implements ImportParser {
 
     // Find header line
     const headerRowIndex = rows.findIndex(row => {
+      if (row.length < 3) {
+        return false;
+      }
       const lower = row.map(cell => cell.toLowerCase());
-      const hasDate = lower.some(c => c.includes('buchung'));
-      const hasAmount = lower.some(c => c.includes('umsatz') || c.includes('betrag'));
+      const hasDate = lower.some(c => c.startsWith('buchung'));
+      const hasAmount = lower.some(c => c.includes('umsatz') || c.startsWith('betrag'));
       return hasDate && hasAmount;
     });
 
@@ -34,10 +37,10 @@ export class ComdirectUmsatzParser implements ImportParser {
     const dateIdx = header.findIndex(c => c.startsWith('buchung'));
     const valutaIdx = header.findIndex(c => c.includes('wertstellung') || c.includes('valuta'));
     const senderReceiverIdx = header.findIndex(c =>
-      c.includes('zahlungsempfänger') || c.includes('zahlungspflichtiger') || c.includes('empfänger')
+      c.includes('zahlungsempfänger') || c.includes('zahlungspflichtiger') || (c.includes('empfänger') && !c.includes('abweichender'))
     );
-    const vorgangIdx = header.findIndex(c => c.includes('vorgang') || c.includes('buchungstext'));
-    const purposeIdx = header.findIndex(c => c.includes('verwendungszweck'));
+    const vorgangIdx = header.findIndex(c => c.includes('vorgang'));
+    const purposeIdx = header.findIndex(c => c.includes('verwendungszweck') || c.includes('buchungstext'));
     const amountIdx = header.findIndex(c => c.includes('umsatz in eur') || c.startsWith('betrag') || c.includes('umsatz'));
 
     if (dateIdx === -1 || amountIdx === -1) {
@@ -54,20 +57,22 @@ export class ComdirectUmsatzParser implements ImportParser {
 
       const rawDate = row[dateIdx];
       const rawAmount = row[amountIdx];
-      if (!rawDate || !rawAmount) {
+      if (!rawDate || !isValidDateString(rawDate) || !rawAmount) {
         continue;
       }
 
       const date = parseDateToIso(rawDate);
-      const valuta = valutaIdx !== -1 && row[valutaIdx] ? parseDateToIso(row[valutaIdx]) : date;
-      const senderReceiver = senderReceiverIdx !== -1 ? row[senderReceiverIdx] : '';
+      const valuta = valutaIdx !== -1 && row[valutaIdx] && isValidDateString(row[valutaIdx])
+        ? parseDateToIso(row[valutaIdx])
+        : date;
+      const senderReceiver = senderReceiverIdx !== -1 ? row[senderReceiverIdx]?.trim() : '';
 
       const textParts: string[] = [];
-      if (vorgangIdx !== -1 && row[vorgangIdx]) {
-        textParts.push(row[vorgangIdx]);
+      if (vorgangIdx !== -1 && row[vorgangIdx]?.trim()) {
+        textParts.push(row[vorgangIdx].trim());
       }
-      if (purposeIdx !== -1 && row[purposeIdx]) {
-        textParts.push(row[purposeIdx]);
+      if (purposeIdx !== -1 && row[purposeIdx]?.trim()) {
+        textParts.push(row[purposeIdx].trim());
       }
       const description = textParts.join(' - ');
       const amount = parseAmount(rawAmount);

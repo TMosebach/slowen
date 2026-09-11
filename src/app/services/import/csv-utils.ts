@@ -41,25 +41,45 @@ export function parseCsvRows(content: string, customDelimiter?: string): string[
     return [];
   }
 
-  const delimiter = customDelimiter || detectDelimiter(rawLines[0]);
+  const delimiter = customDelimiter || detectDelimiter(content);
   return rawLines.map(line => tokenizeCsvLine(line, delimiter));
 }
 
 /**
- * Auto-detect delimiter from line.
+ * Auto-detect delimiter from content or line.
  */
-export function detectDelimiter(line: string): string {
-  const semicolons = (line.match(/;/g) || []).length;
-  const commas = (line.match(/,/g) || []).length;
-  const tabs = (line.match(/\t/g) || []).length;
+export function detectDelimiter(contentOrLine: string): string {
+  const semicolons = (contentOrLine.match(/;/g) || []).length;
+  const commas = (contentOrLine.match(/,/g) || []).length;
+  const tabs = (contentOrLine.match(/\t/g) || []).length;
 
   if (semicolons >= commas && semicolons >= tabs && semicolons > 0) {
     return ';';
   }
-  if (tabs > semicolons && tabs > commas) {
+  if (tabs > semicolons && tabs > commas && tabs > 0) {
     return '\t';
   }
   return ',';
+}
+
+/**
+ * Checks whether a string resembles a valid date (DD.MM.YYYY, DD.MM.YY, YYYY-MM-DD).
+ */
+export function isValidDateString(rawDate: string): boolean {
+  if (!rawDate) {
+    return false;
+  }
+  const cleaned = rawDate.trim();
+  if (/^\d{4}-\d{2}-\d{2}$/.test(cleaned)) {
+    return true;
+  }
+  const match = cleaned.match(/^(\d{1,2})\.(\d{1,2})\.(\d{2,4})$/);
+  if (!match) {
+    return false;
+  }
+  const day = parseInt(match[1], 10);
+  const month = parseInt(match[2], 10);
+  return day >= 1 && day <= 31 && month >= 1 && month <= 12;
 }
 
 /**
@@ -107,7 +127,7 @@ export function parseDateToIso(rawDate: string): string {
 
 /**
  * Parse German or standard amount string to number.
- * e.g. "1.234,56" -> 1234.56, "-49,90" -> -49.90, "+ 1.000,00" -> 1000.00
+ * e.g. "1.234,56" -> 1234.56, "-49,90" -> -49.90, "+ 1.000,00" -> 1000.00, "-2.000" -> -2000.00
  */
 export function parseAmount(rawAmount: string): number {
   if (!rawAmount) {
@@ -123,6 +143,13 @@ export function parseAmount(rawAmount: string): number {
   // German format with comma as decimal: 1.234,56 or 1234,56 or -45,00
   if (cleaned.includes(',')) {
     cleaned = cleaned.replace(/\./g, '').replace(',', '.');
+  } else if (cleaned.includes('.')) {
+    // No comma, but contains dots.
+    // Check if it's German thousand dot format (e.g. -2.000 or 1.500.000)
+    const dotCount = (cleaned.match(/\./g) || []).length;
+    if (dotCount > 1 || /\.\d{3}$/.test(cleaned)) {
+      cleaned = cleaned.replace(/\./g, '');
+    }
   }
 
   const val = parseFloat(cleaned);

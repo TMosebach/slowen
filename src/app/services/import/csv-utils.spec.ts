@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest';
-import { detectDelimiter, parseAmount, parseCsvRows, parseDateToIso, tokenizeCsvLine } from './csv-utils';
+import { detectDelimiter, isValidDateString, parseAmount, parseCsvRows, parseDateToIso, tokenizeCsvLine } from './csv-utils';
 
 describe('csv-utils', () => {
   describe('tokenizeCsvLine', () => {
@@ -49,10 +49,26 @@ describe('csv-utils', () => {
     });
   });
 
+  describe('isValidDateString', () => {
+    it('returns true for valid German and ISO dates', () => {
+      expect(isValidDateString('05.09.2026')).toBe(true);
+      expect(isValidDateString('3.8.2026')).toBe(true);
+      expect(isValidDateString('20.7.2026')).toBe(true);
+      expect(isValidDateString('2026-09-05')).toBe(true);
+    });
+
+    it('returns false for non-dates', () => {
+      expect(isValidDateString('Kontostand')).toBe(false);
+      expect(isValidDateString('')).toBe(false);
+      expect(isValidDateString('15,85')).toBe(false);
+    });
+  });
+
   describe('parseDateToIso', () => {
     it('converts DD.MM.YYYY to YYYY-MM-DD', () => {
       expect(parseDateToIso('05.09.2026')).toBe('2026-09-05');
       expect(parseDateToIso('1.9.2026')).toBe('2026-09-01');
+      expect(parseDateToIso('3.8.2026')).toBe('2026-08-03');
     });
 
     it('converts DD.MM.YY to YYYY-MM-DD', () => {
@@ -70,6 +86,14 @@ describe('csv-utils', () => {
       expect(parseAmount('-49,90')).toBe(-49.9);
       expect(parseAmount('+1.500,00')).toBe(1500);
       expect(parseAmount('0,00')).toBe(0);
+      expect(parseAmount('2.014,08')).toBe(2014.08);
+      expect(parseAmount('15,85')).toBe(15.85);
+    });
+
+    it('parses German thousand notation without decimals', () => {
+      expect(parseAmount('-2.000')).toBe(-2000);
+      expect(parseAmount('2.000')).toBe(2000);
+      expect(parseAmount('1.500.000')).toBe(1500000);
     });
 
     it('parses standard dot numbers', () => {
