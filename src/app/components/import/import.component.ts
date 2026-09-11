@@ -3,6 +3,7 @@ import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { AccountService } from '../../services/account.service';
 import { ImportParserService } from '../../services/import/import-parser.service';
+import { decodeCsvBuffer } from '../../services/import/csv-utils';
 import { Account } from '../../models/account.model';
 import { Booking } from '../../models/booking.model';
 import { ImportType, Institution } from '../../services/import/import-parser.types';
@@ -154,9 +155,17 @@ export class ImportComponent implements OnInit {
   private readFileContent(file: File): Promise<string> {
     return new Promise((resolve, reject) => {
       const reader = new FileReader();
-      reader.onload = () => resolve(reader.result as string);
+      reader.onload = () => {
+        try {
+          const buffer = reader.result as ArrayBuffer;
+          const text = decodeCsvBuffer(buffer);
+          resolve(text);
+        } catch (err) {
+          reject(err);
+        }
+      };
       reader.onerror = () => reject(new Error('Fehler beim Lesen der Datei.'));
-      reader.readAsText(file);
+      reader.readAsArrayBuffer(file);
     });
   }
 }

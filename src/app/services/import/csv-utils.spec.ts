@@ -1,7 +1,33 @@
 import { describe, it, expect } from 'vitest';
-import { detectDelimiter, isValidDateString, parseAmount, parseCsvRows, parseDateToIso, tokenizeCsvLine } from './csv-utils';
+import { decodeCsvBuffer, detectDelimiter, isValidDateString, parseAmount, parseCsvRows, parseDateToIso, tokenizeCsvLine } from './csv-utils';
 
 describe('csv-utils', () => {
+  describe('decodeCsvBuffer', () => {
+    it('decodes standard UTF-8 buffer', () => {
+      const utf8Bytes = new TextEncoder().encode('Umsätze;Betrag\n01.09.2026;100,00');
+      expect(decodeCsvBuffer(utf8Bytes)).toBe('Umsätze;Betrag\n01.09.2026;100,00');
+    });
+
+    it('decodes UTF-8 buffer with BOM and removes BOM', () => {
+      const utf8WithBom = new Uint8Array([0xef, 0xbb, 0xbf, ...new TextEncoder().encode('Umsätze;Betrag')]);
+      expect(decodeCsvBuffer(utf8WithBom)).toBe('Umsätze;Betrag');
+    });
+
+    it('decodes Windows-1252 / ISO-8859-1 buffer with German umlauts', () => {
+      // "Umsätze: ä ö ü Ä Ö Ü ß" in Windows-1252:
+      // ä = 0xe4, ö = 0xf6, ü = 0xfc, Ä = 0xc4, Ö = 0xd6, Ü = 0xdc, ß = 0xdf
+      const win1252Bytes = new Uint8Array([
+        0x55, 0x6d, 0x73, 0xe4, 0x74, 0x7a, 0x65, // Umsätze
+        0x3b, // ;
+        0xdc, 0x62, 0x65, 0x72, 0x74, 0x72, 0x61, 0x67 // Übertrag
+      ]);
+
+      const decoded = decodeCsvBuffer(win1252Bytes);
+      expect(decoded).toBe('Umsätze;Übertrag');
+      expect(decoded.includes('\ufffd')).toBe(false);
+    });
+  });
+
   describe('tokenizeCsvLine', () => {
     it('splits standard semicolon delimited line', () => {
       const line = 'a;b;c';

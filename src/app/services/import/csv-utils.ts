@@ -1,4 +1,22 @@
 /**
+ * Decode binary CSV content buffer to string.
+ * Automatically tries strict UTF-8 (handling BOM) and falls back to Windows-1252 / ISO-8859-1.
+ */
+export function decodeCsvBuffer(buffer: ArrayBuffer | Uint8Array): string {
+  try {
+    const utf8Decoder = new TextDecoder('utf-8', { fatal: true });
+    let text = utf8Decoder.decode(buffer);
+    if (text.charCodeAt(0) === 0xfeff) {
+      text = text.slice(1);
+    }
+    return text;
+  } catch {
+    const latin1Decoder = new TextDecoder('windows-1252');
+    return latin1Decoder.decode(buffer);
+  }
+}
+
+/**
  * Tokenize a CSV line respecting quotes and specified delimiter.
  */
 export function tokenizeCsvLine(line: string, delimiter: string): string[] {
