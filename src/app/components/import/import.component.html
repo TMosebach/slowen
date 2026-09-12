@@ -196,6 +196,9 @@
               <th scope="col" class="px-4 py-3 text-left font-semibold text-gray-700 bg-gray-50">
                 Beschreibung / Verwendungszweck
               </th>
+              <th scope="col" class="px-4 py-3 text-left font-semibold text-gray-700 bg-gray-50 whitespace-nowrap min-w-[200px]">
+                Gegenkonto
+              </th>
               <th scope="col" class="px-4 py-3 text-left font-semibold text-gray-700 bg-gray-50 whitespace-nowrap">
                 Valuta
               </th>
@@ -218,6 +221,21 @@
                 </td>
                 <td class="px-4 py-3 text-gray-600 align-top max-w-md break-words">
                   {{ booking.description || '-' }}
+                </td>
+                <td class="px-4 py-3 align-top whitespace-nowrap">
+                  @if (booking.positions[1]) {
+                    <select
+                      [(ngModel)]="booking.positions[1].account_id"
+                      class="text-xs px-2 py-1.5 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 bg-white w-full min-w-[180px]"
+                    >
+                      <option [ngValue]="0">-- Gegenkonto wählen --</option>
+                      @for (acc of accounts; track acc.id) {
+                        <option [ngValue]="acc.id">
+                          {{ acc.name }} ({{ acc.subtype }})
+                        </option>
+                      }
+                    </select>
+                  }
                 </td>
                 <td class="px-4 py-3 text-gray-500 whitespace-nowrap align-top font-mono text-xs">
                   {{ booking.positions[0]?.valuta || booking.date }}

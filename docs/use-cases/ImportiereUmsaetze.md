@@ -2,7 +2,7 @@
 
 ## Beschreibung
 
-Der Anwender importiert Umsätze aus CSV-Dateien externer Kreditinstitute (ING, Comdirect, Deutsche Bank) in ein ausgewähltes Konto. Das System ermittelt den passenden instituts- und artenspezifischen Parser, überführt die Fremddaten in das Slowen-interne Buchungsmodell (`Booking` und `BookingPosition`) und visualisiert die erkannten Buchungen auf einer zweiten Seite.
+Der Anwender importiert Umsätze aus CSV-Dateien externer Kreditinstitute (ING, Comdirect, Deutsche Bank) in ein ausgewähltes Konto. Das System ermittelt den passenden instituts- und artenspezifischen Parser, überführt die Fremddaten in das Slowen-interne Buchungsmodell (`Booking` mit zwei ausgeglichenen `BookingPosition`en) und visualisiert die erkannten Buchungen auf einer zweiten Seite, auf der der Anwender das Gegenkonto der Buchung manuell zuweist.
 
 ## Beteiligte
 
@@ -23,9 +23,11 @@ Der Anwender importiert Umsätze aus CSV-Dateien externer Kreditinstitute (ING, 
 3. Der Anwender wählt die Art des Imports, das Institut, das Zielkonto bzw. -depot und wählt die CSV-Datei aus.
 4. Der Anwender klickt auf den Button **"Laden"**.
 5. Das System ermittelt den zur Kombination aus `Art des Imports` und `Institut` passenden Parser.
-6. Der Parser liest die CSV-Datei ein, übersetzt die institutionsspezifischen Spalten/Formate in das interne Slowen-Buchungsmodell (`Booking` mit `BookingPosition`en) und ordnet die Positionen dem ausgewählten Konto zu.
-7. Das System wechselt auf die **zweite Seite (Buchungsvorschau)** und zeigt die erzeugten Buchungen mit ihren Positionen (Buchungsdatum, Sender/Empfänger, Verwendungszweck, Valuta, Betrag) strukturiert an.
-8. Der Anwender prüft die Anzeige und klickt auf den Button **"Fertig"**.
+6. Der Parser liest die CSV-Datei ein, übersetzt die institutionsspezifischen Spalten/Formate in das interne Slowen-Buchungsmodell (`Booking` mit zwei Positionen: 1. Position auf das Zielkonto, 2. Position als Gegenbuchung mit invertiertem Betrag) und wechselt auf die zweite Seite.
+7. Das System zeigt die erzeugten Buchungen auf der **zweiten Seite (Buchungsvorschau & Kontierung)** an:
+   * Für jede Buchung existiert eine Spalte **Gegenkonto** links von Valuta und Betrag.
+   * Der Anwender kann in der Auswahlbox das gewünschte Gegenkonto für die Gegenposition auswählen.
+8. Der Anwender prüft die Buchungen und klickt auf den Button **"Fertig"**.
 9. Das System wechselt wieder auf die erste Import-Seite zurück.
 
 ## Validierungs- und Parserregeln
@@ -45,10 +47,15 @@ Der Anwender importiert Umsätze aus CSV-Dateien externer Kreditinstitute (ING, 
 * **Vorgang (`vorgang`)**: Vorbelegt mit `'Buchung'`.
 * **Empfänger / Sender (`sender_receiver`)**: Aus dem entsprechenden Namensfeld des Instituts (z. B. "Auftraggeber/Empfänger" bei ING, "Zahlungsempfänger" bei Comdirect, "Begünstigter / Auftraggeber" bei Deutsche Bank).
 * **Beschreibung (`description`)**: Buchungstext und/oder Verwendungszweck.
-* **Position (`BookingPosition`)**:
-  - `account_id`: ID des im Schritt 1 ausgewählten Zielkontos.
-  - `valuta`: Wertstellungsdatum der Bank (ISO-Format `YYYY-MM-DD`), Fallback auf Buchungsdatum.
-  - `amount`: Berechneter Fließkomma-Betrag (positiv für Einnahmen/Gutschriften, negativ für Ausgaben/Lastschriften).
+* **Positionen (`BookingPosition[]`)**:
+  - **1. Position (Zielkonto):**
+    - `account_id`: ID des im Schritt 1 ausgewählten Zielkontos.
+    - `valuta`: Wertstellungsdatum der Bank (ISO-Format `YYYY-MM-DD`), Fallback auf Buchungsdatum.
+    - `amount`: Berechneter Fließkomma-Betrag (positiv für Einnahmen/Gutschriften, negativ für Ausgaben/Lastschriften).
+  - **2. Position (Gegenbuchung):**
+    - `account_id`: Initial unbesetzt (`0` / keine Vorauswahl), wird vom Anwender auf der zweiten Seite gewählt.
+    - `valuta`: Entspricht der Valuta der 1. Position.
+    - `amount`: Invertierter Betrag der 1. Position (`-Betrag`).
 
 ## UI-Hinweise
 
@@ -59,7 +66,14 @@ Der Anwender importiert Umsätze aus CSV-Dateien externer Kreditinstitute (ING, 
   - Dropdown für Konto / Depot (gefiltert nach der gewählten Art).
   - Dateiauswahlfeld (File Input) für die CSV-Datei mit Anzeige des Dateinamens.
   - Primärer Button "Laden".
-* **Zweite Seite (Buchungsanzeige):**
-  - Zusammenfassung: Import-Art, Institut, Zielkonto, Dateiname und Anzahl der erkannten Buchungen.
-  - Strukturierte Buchungstabelle mit Spalten: Datum, Empfänger / Sender, Beschreibung / Verwendungszweck, Valuta, Betrag (mit Farbcodierung grün/rot).
+* **Zweite Seite (Buchungsanzeige & Kontierung):**
+  - Zusammenfassung: Import-Art, Institut, Zielkonto, Dateiname, Anzahl Buchungen und Summe der Banktransaktionen (1. Position).
+  - Strukturierte Buchungstabelle mit Spalten:
+    - `#`
+    - `Buchungsdatum`
+    - `Empfänger / Sender`
+    - `Beschreibung / Verwendungszweck`
+    - **`Gegenkonto`** (Auswahlbox mit allen verfügbaren Konten)
+    - `Valuta`
+    - `Betrag` (mit Farbcodierung grün/rot)
   - Button "Fertig", welcher zurück zur ersten Seite navigiert/umschaltet.

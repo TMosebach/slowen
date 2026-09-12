@@ -25,14 +25,20 @@ describe('ImportComponent', () => {
       date: '2026-09-01',
       sender_receiver: 'Arbeitgeber GmbH',
       description: 'Gehalt',
-      positions: [{ account_id: 1, valuta: '2026-09-01', amount: 2500 }]
+      positions: [
+        { account_id: 1, valuta: '2026-09-01', amount: 2500 },
+        { account_id: 0, valuta: '2026-09-01', amount: -2500 }
+      ]
     },
     {
       vorgang: 'Buchung',
       date: '2026-09-02',
       sender_receiver: 'Supermarkt AG',
       description: 'Lebensmittel',
-      positions: [{ account_id: 1, valuta: '2026-09-02', amount: -50 }]
+      positions: [
+        { account_id: 1, valuta: '2026-09-02', amount: -50 },
+        { account_id: 0, valuta: '2026-09-02', amount: 50 }
+      ]
     }
   ];
 
@@ -134,6 +140,10 @@ describe('ImportComponent', () => {
     expect(component.step).toBe(2);
     expect(component.parsedBookings.length).toBe(2);
     expect(component.totalAmount).toBe(2450);
+
+    // Verify contra position account can be updated
+    component.parsedBookings[0].positions[1].account_id = 2;
+    expect(component.parsedBookings[0].positions[1].account_id).toBe(2);
   });
 
   it('should return to step 1 and reset state on finish', async () => {

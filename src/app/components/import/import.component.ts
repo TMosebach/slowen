@@ -86,8 +86,7 @@ export class ImportComponent implements OnInit {
 
   get totalAmount(): number {
     return this.parsedBookings.reduce((sum, booking) => {
-      const posSum = booking.positions.reduce((pSum, pos) => pSum + (pos.amount || 0), 0);
-      return sum + posSum;
+      return sum + (booking.positions[0]?.amount || 0);
     }, 0);
   }
 

@@ -84,6 +84,7 @@ export class DeutscheBankUmsatzParser implements ImportParser {
       }
       const description = textParts.join(' - ');
       const amount = parseAmount(rawAmount);
+      const contraAmount = amount === 0 ? 0 : Math.round(-amount * 100) / 100;
 
       bookings.push({
         vorgang: 'Buchung',
@@ -95,6 +96,11 @@ export class DeutscheBankUmsatzParser implements ImportParser {
             account_id: context.accountId,
             valuta,
             amount
+          },
+          {
+            account_id: 0,
+            valuta,
+            amount: contraAmount
           }
         ]
       });

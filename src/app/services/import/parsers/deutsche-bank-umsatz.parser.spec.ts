@@ -29,6 +29,11 @@ describe('DeutscheBankUmsatzParser', () => {
           account_id: 99,
           valuta: '2026-09-05',
           amount: -110.00
+        },
+        {
+          account_id: 0,
+          valuta: '2026-09-05',
+          amount: 110.00
         }
       ]
     });
@@ -66,6 +71,11 @@ Kontostand;3.8.2026;;;29,93;EUR`;
           account_id: 15,
           valuta: '2026-08-04',
           amount: 15.85
+        },
+        {
+          account_id: 0,
+          valuta: '2026-08-04',
+          amount: -15.85
         }
       ]
     });
@@ -81,6 +91,11 @@ Kontostand;3.8.2026;;;29,93;EUR`;
           account_id: 15,
           valuta: '2026-07-20',
           amount: -2000.00
+        },
+        {
+          account_id: 0,
+          valuta: '2026-07-20',
+          amount: 2000.00
         }
       ]
     });

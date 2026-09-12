@@ -31,6 +31,11 @@ describe('IngUmsatzParser', () => {
           account_id: 42,
           valuta: '2026-09-01',
           amount: 2500.00
+        },
+        {
+          account_id: 0,
+          valuta: '2026-09-01',
+          amount: -2500.00
         }
       ]
     });
@@ -45,6 +50,11 @@ describe('IngUmsatzParser', () => {
           account_id: 42,
           valuta: '2026-09-03',
           amount: -800.00
+        },
+        {
+          account_id: 0,
+          valuta: '2026-09-03',
+          amount: 800.00
         }
       ]
     });
@@ -76,11 +86,16 @@ Buchung;Wertstellungsdatum;Auftraggeber/Empfänger;Buchungstext;Verwendungszweck
 
     expect(bookings.length).toBe(2);
     expect(bookings[0].sender_receiver).toBe('VISA REWE');
+    expect(bookings[0].positions.length).toBe(2);
     expect(bookings[0].positions[0].amount).toBe(-8.79);
+    expect(bookings[0].positions[1].amount).toBe(8.79);
+    expect(bookings[0].positions[1].account_id).toBe(0);
     expect(bookings[0].positions[0].valuta).toBe('2026-02-02');
 
     expect(bookings[1].sender_receiver).toBe('Aktion Mensch e.V.');
+    expect(bookings[1].positions.length).toBe(2);
     expect(bookings[1].positions[0].amount).toBe(7.50);
+    expect(bookings[1].positions[1].amount).toBe(-7.50);
   });
 
   it('throws error when header line is missing', () => {

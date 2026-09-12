@@ -30,6 +30,11 @@ describe('ComdirectUmsatzParser', () => {
           account_id: 10,
           valuta: '2026-09-02',
           amount: -45.90
+        },
+        {
+          account_id: 0,
+          valuta: '2026-09-02',
+          amount: 45.90
         }
       ]
     });
@@ -44,6 +49,11 @@ describe('ComdirectUmsatzParser', () => {
           account_id: 10,
           valuta: '2026-09-04',
           amount: 150.00
+        },
+        {
+          account_id: 0,
+          valuta: '2026-09-04',
+          amount: -150.00
         }
       ]
     });
@@ -66,9 +76,14 @@ describe('ComdirectUmsatzParser', () => {
 
     expect(bookings.length).toBe(2);
     expect(bookings[0].date).toBe('2026-04-13');
+    expect(bookings[0].positions.length).toBe(2);
     expect(bookings[0].positions[0].amount).toBe(-5000.00);
+    expect(bookings[0].positions[1].amount).toBe(5000.00);
+    expect(bookings[0].positions[1].account_id).toBe(0);
 
     expect(bookings[1].date).toBe('2026-03-31');
+    expect(bookings[1].positions.length).toBe(2);
     expect(bookings[1].positions[0].amount).toBe(20.60);
+    expect(bookings[1].positions[1].amount).toBe(-20.60);
   });
 });
