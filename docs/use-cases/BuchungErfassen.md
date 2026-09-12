@@ -1,4 +1,4 @@
-# Buchung anlegen
+# Buchung erfassen
 
 # Beschreibung
 
