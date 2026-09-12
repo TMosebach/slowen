@@ -77,6 +77,8 @@ export class BookingFormComponent implements OnInit {
       this.settlementAccounts = this.accounts.filter((account) => account.type === 'Bestand' && account.subtype !== 'Depot');
     } catch (err) {
       console.error('Failed to load accounts:', err);
+    } finally {
+      this.cdr.detectChanges();
     }
   }
 
@@ -85,6 +87,8 @@ export class BookingFormComponent implements OnInit {
       this.securities = await this.securitiesService.getAll();
     } catch (err) {
       console.error('Failed to load securities:', err);
+    } finally {
+      this.cdr.detectChanges();
     }
   }
 
@@ -110,6 +114,8 @@ export class BookingFormComponent implements OnInit {
     } catch (err) {
       console.error('Failed to load bookings:', err);
       this.allBookings = [];
+    } finally {
+      this.cdr.detectChanges();
     }
   }
 

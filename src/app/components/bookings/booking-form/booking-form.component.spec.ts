@@ -115,6 +115,22 @@ describe('BookingFormComponent', () => {
     expect(mockBookingService.create).toHaveBeenCalledWith(component.booking);
   });
 
+  it('loads accounts and populates dropdown options in template', async () => {
+    mockAccountService.getAll.mockResolvedValue([
+      { id: 1, name: 'Girokonto', type: 'Bestand', subtype: 'Giro' },
+      { id: 2, name: 'Tagesgeld', type: 'Bestand', subtype: 'Giro' }
+    ]);
+
+    await component.ngOnInit();
+    fixture.detectChanges();
+
+    const select = fixture.nativeElement.querySelector('tbody select') as HTMLSelectElement;
+    expect(select).toBeTruthy();
+    const options = Array.from(select.querySelectorAll('option')).map((o) => o.textContent?.trim());
+    expect(options).toContain('Girokonto');
+    expect(options).toContain('Tagesgeld');
+  });
+
   it('filters depot and settlement accounts for purchase mode', async () => {
     mockAccountService.getAll.mockResolvedValue([
       { id: 1, name: 'Depot A', type: 'Bestand', subtype: 'Depot' },
