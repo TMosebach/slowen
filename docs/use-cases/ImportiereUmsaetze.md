@@ -27,8 +27,15 @@ Der Anwender importiert Umsätze aus CSV-Dateien externer Kreditinstitute (ING, 
 7. Das System zeigt die erzeugten Buchungen auf der **zweiten Seite (Buchungsvorschau & Kontierung)** an:
    * Für jede Buchung existiert eine Spalte **Gegenkonto** links von Valuta und Betrag.
    * Der Anwender kann in der Auswahlbox das gewünschte Gegenkonto für die Gegenposition auswählen.
-8. Der Anwender prüft die Buchungen und klickt auf den Button **"Fertig"**.
-9. Das System wechselt wieder auf die erste Import-Seite zurück.
+8. Der Anwender klickt auf den Button **"Fertig"**.
+9. Das System prüft, ob der Anwender in allen Buchungen ein Gegenkonto angegeben hat:
+   * **Fall A (Alle Gegenkonten gepflegt):**
+     1. Das System speichert alle Buchungen mit ihren Positionen in der Datenbank, sodass der Import wirksam wird.
+     2. Das System kehrt auf die erste Import-Seite zurück und zeigt eine Erfolgsmeldung an.
+   * **Fall B (Mindestens ein Gegenkonto fehlt):**
+     1. Das System bricht den Abschluss ab und verbleibt auf der zweiten Seite.
+     2. Das System weist den Anwender mit einer Fehlermeldung darauf hin.
+     3. Das System markiert die noch zu bearbeitenden Gegenkonto-Eingabefelder optisch rot.
 
 ## Validierungs- und Parserregeln
 
@@ -40,6 +47,7 @@ Der Anwender importiert Umsätze aus CSV-Dateien externer Kreditinstitute (ING, 
 | CSV-Datei | Pflichtfeld, lesbare CSV-Datei im Format des gewählten Instituts |
 | Laden-Button | Nur aktiv, wenn alle Pflichtfelder ausgefüllt und eine CSV-Datei ausgewählt ist |
 | Parser-Ermittlung | Für die gewählte Kombination (z. B. `Umsatz` + `ING`) muss ein registrierter Parser vorhanden sein; andernfalls wird eine verständliche Fehlermeldung ausgegeben |
+| Gegenkonto-Pflicht bei Abschluss | Beim Klick auf "Fertig" muss jeder Buchung ein gültiges Gegenkonto (`account_id > 0`) zugewiesen sein; andernfalls werden fehlende Felder rot markiert |
 
 ### Datenübernahme in das Buchungsmodell
 
@@ -66,14 +74,16 @@ Der Anwender importiert Umsätze aus CSV-Dateien externer Kreditinstitute (ING, 
   - Dropdown für Konto / Depot (gefiltert nach der gewählten Art).
   - Dateiauswahlfeld (File Input) für die CSV-Datei mit Anzeige des Dateinamens.
   - Primärer Button "Laden".
+  - Erfolgsbanner bei erfolgreichem Buchungsimport.
 * **Zweite Seite (Buchungsanzeige & Kontierung):**
   - Zusammenfassung: Import-Art, Institut, Zielkonto, Dateiname, Anzahl Buchungen und Summe der Banktransaktionen (1. Position).
+  - Fehlermeldungsbanner bei unvollständiger Gegenkontierung.
   - Strukturierte Buchungstabelle mit Spalten:
     - `#`
-    - `Buchungsdatum`
+    - `Buchungsdatum` (deutsches Format `DD.MM.YYYY`)
     - `Empfänger / Sender`
     - `Beschreibung / Verwendungszweck`
-    - **`Gegenkonto`** (Auswahlbox mit allen verfügbaren Konten)
-    - `Valuta`
+    - **`Gegenkonto`** (Auswahlbox mit allen verfügbaren Konten; bei Validierungsfehler rot umrandet und hinterlegt)
+    - `Valuta` (deutsches Format `DD.MM.YYYY`)
     - `Betrag` (mit Farbcodierung grün/rot)
-  - Button "Fertig", welcher zurück zur ersten Seite navigiert/umschaltet.
+  - Button "Fertig", welcher die Validierung und Speicherung aller Buchungen anstößt.

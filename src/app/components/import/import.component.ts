@@ -2,6 +2,7 @@ import { Component, OnInit, ChangeDetectorRef } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { AccountService } from '../../services/account.service';
+import { BookingService } from '../../services/booking.service';
 import { ImportParserService } from '../../services/import/import-parser.service';
 import { decodeCsvBuffer, formatIsoToGermanDate } from '../../services/import/csv-utils';
 import { Account } from '../../models/account.model';
@@ -32,8 +33,14 @@ export class ImportComponent implements OnInit {
   parseError: string | null = null;
   parsedBookings: Booking[] = [];
 
+  submitted = false;
+  saveError: string | null = null;
+  successMessage: string | null = null;
+  saving = false;
+
   constructor(
     private accountService: AccountService,
+    private bookingService: BookingService,
     private parserService: ImportParserService,
     private cdr: ChangeDetectorRef
   ) {}
@@ -65,6 +72,7 @@ export class ImportComponent implements OnInit {
   }
 
   onImportTypeChange(): void {
+    this.successMessage = null;
     this.ensureValidAccountSelection();
   }
 
@@ -91,6 +99,7 @@ export class ImportComponent implements OnInit {
   }
 
   onFileSelected(event: Event): void {
+    this.successMessage = null;
     const input = event.target as HTMLInputElement;
     if (input.files && input.files.length > 0) {
       this.selectedFile = input.files[0];
@@ -120,6 +129,9 @@ export class ImportComponent implements OnInit {
 
     this.isReadingFile = true;
     this.parseError = null;
+    this.successMessage = null;
+    this.saveError = null;
+    this.submitted = false;
 
     try {
       const content = await this.readFileContent(this.selectedFile);
@@ -144,11 +156,39 @@ export class ImportComponent implements OnInit {
     }
   }
 
-  onFinish(): void {
-    this.step = 1;
-    this.parsedBookings = [];
-    this.selectedFile = null;
-    this.selectedFileName = '';
+  hasMissingContraAccount(booking: Booking): boolean {
+    return !booking.positions[1] || !booking.positions[1].account_id || booking.positions[1].account_id === 0;
+  }
+
+  async onFinish(): Promise<void> {
+    this.submitted = true;
+    this.saveError = null;
+
+    const missing = this.parsedBookings.filter(b => this.hasMissingContraAccount(b));
+    if (missing.length > 0) {
+      this.saveError = 'Bitte wählen Sie für alle Buchungen ein Gegenkonto aus.';
+      return;
+    }
+
+    this.saving = true;
+    try {
+      for (const booking of this.parsedBookings) {
+        await this.bookingService.create(booking);
+      }
+      const count = this.parsedBookings.length;
+      this.step = 1;
+      this.parsedBookings = [];
+      this.selectedFile = null;
+      this.selectedFileName = '';
+      this.submitted = false;
+      this.successMessage = `${count} Buchungen wurden erfolgreich importiert.`;
+    } catch (err: any) {
+      console.error('Failed to save imported bookings:', err);
+      this.saveError = err?.message || 'Fehler beim Speichern der Buchungen.';
+    } finally {
+      this.saving = false;
+      this.cdr.detectChanges();
+    }
   }
 
   formatDate(isoDate?: string): string {

@@ -2,6 +2,7 @@ import { ComponentFixture, TestBed } from '@angular/core/testing';
 import { provideRouter } from '@angular/router';
 import { ImportComponent } from './import.component';
 import { AccountService } from '../../services/account.service';
+import { BookingService } from '../../services/booking.service';
 import { ImportParserService } from '../../services/import/import-parser.service';
 import { Account } from '../../models/account.model';
 import { Booking } from '../../models/booking.model';
@@ -10,6 +11,7 @@ describe('ImportComponent', () => {
   let component: ImportComponent;
   let fixture: ComponentFixture<ImportComponent>;
   let mockAccountService: { getAll: ReturnType<typeof vi.fn> };
+  let mockBookingService: { create: ReturnType<typeof vi.fn> };
   let mockParserService: { parse: ReturnType<typeof vi.fn> };
 
   const mockAccounts: Account[] = [
@@ -46,8 +48,11 @@ describe('ImportComponent', () => {
     mockAccountService = {
       getAll: vi.fn().mockResolvedValue(mockAccounts),
     };
+    mockBookingService = {
+      create: vi.fn().mockImplementation((b: Booking) => Promise.resolve({ id: 100, ...b })),
+    };
     mockParserService = {
-      parse: vi.fn().mockReturnValue(mockBookings),
+      parse: vi.fn().mockReturnValue(mockBookings.map(b => JSON.parse(JSON.stringify(b)))),
     };
 
     await TestBed.configureTestingModule({
@@ -55,6 +60,7 @@ describe('ImportComponent', () => {
       providers: [
         provideRouter([]),
         { provide: AccountService, useValue: mockAccountService },
+        { provide: BookingService, useValue: mockBookingService },
         { provide: ImportParserService, useValue: mockParserService },
       ],
     }).compileComponents();
@@ -120,7 +126,7 @@ describe('ImportComponent', () => {
     expect(component.canLoad).toBeFalsy();
   });
 
-  it('should parse CSV using parser service and switch to step 2 with bookings', async () => {
+  it('should parse CSV using parser service and switch to step 2 with formatted dates', async () => {
     const file = new File(['dummy-csv-content'], 'ing_umsatz.csv', { type: 'text/csv' });
 
     component.selectedFile = file;
@@ -146,13 +152,9 @@ describe('ImportComponent', () => {
     const dateCells = compiled.querySelectorAll('tbody tr td:nth-child(2)');
     expect(dateCells[0].textContent?.trim()).toBe('01.09.2026');
     expect(dateCells[1].textContent?.trim()).toBe('02.09.2026');
-
-    // Verify contra position account can be updated
-    component.parsedBookings[0].positions[1].account_id = 2;
-    expect(component.parsedBookings[0].positions[1].account_id).toBe(2);
   });
 
-  it('should return to step 1 and reset state on finish', async () => {
+  it('shows error and highlights fields if Gegenkonto is missing on finish', async () => {
     const file = new File(['dummy'], 'test.csv', { type: 'text/csv' });
     component.selectedFile = file;
     component.selectedFileName = 'test.csv';
@@ -161,11 +163,60 @@ describe('ImportComponent', () => {
     await component.onLoadCsv();
     expect(component.step).toBe(2);
 
-    component.onFinish();
+    // Only assign 1 of the 2 bookings
+    component.parsedBookings[0].positions[1].account_id = 2;
+    component.parsedBookings[1].positions[1].account_id = 0; // Missing
+
+    await component.onFinish();
+
+    expect(component.step).toBe(2);
+    expect(component.saveError).toContain('Bitte wählen Sie für alle Buchungen ein Gegenkonto aus');
+    expect(mockBookingService.create).not.toHaveBeenCalled();
+
+    fixture.detectChanges();
+    const compiled = fixture.nativeElement as HTMLElement;
+    const selects = compiled.querySelectorAll('tbody tr select');
+    expect(selects[1].classList.contains('border-red-500')).toBe(true);
+  });
+
+  it('saves all bookings and returns to step 1 with success message when all Gegenkonten are chosen', async () => {
+    const file = new File(['dummy'], 'test.csv', { type: 'text/csv' });
+    component.selectedFile = file;
+    component.selectedFileName = 'test.csv';
+    component.selectedAccountId = 1;
+
+    await component.onLoadCsv();
+    expect(component.step).toBe(2);
+
+    // Assign all Gegenkonten
+    component.parsedBookings[0].positions[1].account_id = 2;
+    component.parsedBookings[1].positions[1].account_id = 3;
+
+    await component.onFinish();
+
+    expect(mockBookingService.create).toHaveBeenCalledTimes(2);
     expect(component.step).toBe(1);
+    expect(component.successMessage).toContain('2 Buchungen wurden erfolgreich importiert');
     expect(component.parsedBookings).toEqual([]);
     expect(component.selectedFile).toBeNull();
-    expect(component.selectedFileName).toBe('');
+  });
+
+  it('handles booking save errors gracefully', async () => {
+    mockBookingService.create.mockRejectedValue(new Error('DB Fehler beim Speichern'));
+
+    const file = new File(['dummy'], 'test.csv', { type: 'text/csv' });
+    component.selectedFile = file;
+    component.selectedFileName = 'test.csv';
+    component.selectedAccountId = 1;
+
+    await component.onLoadCsv();
+    component.parsedBookings[0].positions[1].account_id = 2;
+    component.parsedBookings[1].positions[1].account_id = 3;
+
+    await component.onFinish();
+
+    expect(component.step).toBe(2);
+    expect(component.saveError).toBe('DB Fehler beim Speichern');
   });
 
   it('should display error when parser service throws', async () => {

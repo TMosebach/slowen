@@ -15,6 +15,12 @@
         </div>
       }
 
+      @if (successMessage) {
+        <div class="mb-4 p-3 bg-green-100 border border-green-400 text-green-800 rounded text-sm font-medium">
+          {{ successMessage }}
+        </div>
+      }
+
       @if (parseError) {
         <div class="mb-4 p-3 bg-red-100 border border-red-400 text-red-700 rounded text-sm">
           {{ parseError }}
@@ -174,11 +180,22 @@
         <button
           type="button"
           (click)="onFinish()"
-          class="px-6 py-2 bg-blue-600 text-white font-medium rounded-md hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 self-start md:self-auto transition"
+          [disabled]="saving"
+          class="px-6 py-2 bg-blue-600 text-white font-medium rounded-md hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 self-start md:self-auto disabled:bg-gray-400 disabled:cursor-not-allowed transition"
         >
-          Fertig
+          @if (saving) {
+            Speichern...
+          } @else {
+            Fertig
+          }
         </button>
       </div>
+
+      @if (saveError) {
+        <div class="mb-4 p-3 bg-red-100 border border-red-400 text-red-700 rounded text-sm font-medium">
+          {{ saveError }}
+        </div>
+      }
 
       <div class="overflow-x-auto border border-gray-200 rounded-lg max-h-[600px] overflow-y-auto">
         <table class="min-w-full divide-y divide-gray-200 text-sm">
@@ -226,7 +243,12 @@
                   @if (booking.positions[1]) {
                     <select
                       [(ngModel)]="booking.positions[1].account_id"
-                      class="text-xs px-2 py-1.5 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 bg-white w-full min-w-[180px]"
+                      (ngModelChange)="saveError = null"
+                      [class.border-red-500]="submitted && hasMissingContraAccount(booking)"
+                      [class.bg-red-50]="submitted && hasMissingContraAccount(booking)"
+                      [class.ring-1]="submitted && hasMissingContraAccount(booking)"
+                      [class.ring-red-400]="submitted && hasMissingContraAccount(booking)"
+                      class="text-xs px-2 py-1.5 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 bg-white w-full min-w-[180px] transition"
                     >
                       <option [ngValue]="0">-- Gegenkonto wählen --</option>
                       @for (acc of accounts; track acc.id) {
@@ -257,9 +279,14 @@
         <button
           type="button"
           (click)="onFinish()"
-          class="px-6 py-2 bg-blue-600 text-white font-medium rounded-md hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 transition"
+          [disabled]="saving"
+          class="px-6 py-2 bg-blue-600 text-white font-medium rounded-md hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 disabled:bg-gray-400 disabled:cursor-not-allowed transition"
         >
-          Fertig
+          @if (saving) {
+            Speichern...
+          } @else {
+            Fertig
+          }
         </button>
       </div>
     </div>
