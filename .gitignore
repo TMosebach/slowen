@@ -41,6 +41,7 @@ __screenshots__/
 # Electron
 dist-electron/
 *.log
+*.db
 slowen.db
 slowen.db-wal
 slowen.db-shm
