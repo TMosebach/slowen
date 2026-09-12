@@ -101,6 +101,21 @@ export function isValidDateString(rawDate: string): boolean {
 }
 
 /**
+ * Format an ISO date string (YYYY-MM-DD) to German presentation format (DD.MM.YYYY).
+ */
+export function formatIsoToGermanDate(isoDate?: string): string {
+  if (!isoDate) {
+    return '-';
+  }
+  const match = isoDate.trim().match(/^(\d{4})-(\d{2})-(\d{2})/);
+  if (match) {
+    const [, year, month, day] = match;
+    return `${day}.${month}.${year}`;
+  }
+  return isoDate;
+}
+
+/**
  * Parse German/ISO date format to ISO date string (YYYY-MM-DD).
  * Supports DD.MM.YYYY, DD.MM.YY, YYYY-MM-DD.
  */

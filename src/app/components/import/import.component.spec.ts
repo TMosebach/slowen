@@ -141,6 +141,12 @@ describe('ImportComponent', () => {
     expect(component.parsedBookings.length).toBe(2);
     expect(component.totalAmount).toBe(2450);
 
+    fixture.detectChanges();
+    const compiled = fixture.nativeElement as HTMLElement;
+    const dateCells = compiled.querySelectorAll('tbody tr td:nth-child(2)');
+    expect(dateCells[0].textContent?.trim()).toBe('01.09.2026');
+    expect(dateCells[1].textContent?.trim()).toBe('02.09.2026');
+
     // Verify contra position account can be updated
     component.parsedBookings[0].positions[1].account_id = 2;
     expect(component.parsedBookings[0].positions[1].account_id).toBe(2);

@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest';
-import { decodeCsvBuffer, detectDelimiter, isValidDateString, parseAmount, parseCsvRows, parseDateToIso, tokenizeCsvLine } from './csv-utils';
+import { decodeCsvBuffer, detectDelimiter, formatIsoToGermanDate, isValidDateString, parseAmount, parseCsvRows, parseDateToIso, tokenizeCsvLine } from './csv-utils';
 
 describe('csv-utils', () => {
   describe('decodeCsvBuffer', () => {
@@ -87,6 +87,18 @@ describe('csv-utils', () => {
       expect(isValidDateString('Kontostand')).toBe(false);
       expect(isValidDateString('')).toBe(false);
       expect(isValidDateString('15,85')).toBe(false);
+    });
+  });
+
+  describe('formatIsoToGermanDate', () => {
+    it('formats ISO YYYY-MM-DD to German DD.MM.YYYY', () => {
+      expect(formatIsoToGermanDate('2026-08-03')).toBe('03.08.2026');
+      expect(formatIsoToGermanDate('2026-07-20')).toBe('20.07.2026');
+    });
+
+    it('handles empty or undefined input', () => {
+      expect(formatIsoToGermanDate('')).toBe('-');
+      expect(formatIsoToGermanDate(undefined)).toBe('-');
     });
   });
 

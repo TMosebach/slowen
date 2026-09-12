@@ -3,7 +3,7 @@ import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { AccountService } from '../../services/account.service';
 import { ImportParserService } from '../../services/import/import-parser.service';
-import { decodeCsvBuffer } from '../../services/import/csv-utils';
+import { decodeCsvBuffer, formatIsoToGermanDate } from '../../services/import/csv-utils';
 import { Account } from '../../models/account.model';
 import { Booking } from '../../models/booking.model';
 import { ImportType, Institution } from '../../services/import/import-parser.types';
@@ -149,6 +149,10 @@ export class ImportComponent implements OnInit {
     this.parsedBookings = [];
     this.selectedFile = null;
     this.selectedFileName = '';
+  }
+
+  formatDate(isoDate?: string): string {
+    return formatIsoToGermanDate(isoDate);
   }
 
   private readFileContent(file: File): Promise<string> {
