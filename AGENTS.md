@@ -26,8 +26,13 @@ Instructions and context for OpenCode sessions in **Slowen** (Electron + Angular
 ### Development
 - `npm start` — Rebuilds sqlite, compiles electron, starts Angular dev server, and launches Electron app.
 
-### New Features
-Always create or update use-cases in docs/use-cases.
+### New Features & Architecture Guidelines
+- **Architecture Documentation:** Always read and follow `docs/Architektur.md` for architectural design, layer responsibilities, conventions, and data formats.
+- **Use Cases:** Always create or update use-cases in `docs/use-cases/`.
+- **Date & Number Formatting:**
+  - Internal layers (SQLite database, domain models in TypeScript, IPC) strictly use ISO 8601 strings (`YYYY-MM-DD`).
+  - External UI presentation in tables, lists, and detail cards must always format dates in German format (`DD.MM.YYYY`, e.g. via Angular DatePipe `| date:'dd.MM.yyyy'`) and currency amounts in German format (`1.234,56 €`).
+  - Ingress / CSV import immediately normalizes any external date/number representations into ISO / standard numeric types.
 
 ## Critical Gotchas & Domain Rules
 

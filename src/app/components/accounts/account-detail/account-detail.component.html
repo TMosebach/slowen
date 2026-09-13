@@ -61,14 +61,14 @@
           <tbody class="divide-y divide-gray-200">
             @for (booking of bookings; track booking.id) {
               <tr class="align-top hover:bg-gray-50">
-                <td class="px-4 py-3 whitespace-nowrap text-sm text-gray-900">{{ booking.date }}</td>
+                <td class="px-4 py-3 whitespace-nowrap text-sm text-gray-900">{{ booking.date | date:'dd.MM.yyyy' }}</td>
                 <td class="px-4 py-3 whitespace-nowrap text-sm text-gray-600">{{ booking.vorgang }}</td>
                 <td class="px-4 py-3 text-sm text-gray-600">{{ booking.description || '-' }}</td>
                 <td class="px-4 py-3 text-sm text-gray-600">{{ booking.sender_receiver || '-' }}</td>
 
                 @if (booking.positionsCount <= 2) {
                   <td class="px-4 py-3 text-sm text-gray-900">{{ booking.counterAccountName }}</td>
-                  <td class="px-4 py-3 whitespace-nowrap text-sm text-gray-600">{{ booking.valuta }}</td>
+                  <td class="px-4 py-3 whitespace-nowrap text-sm text-gray-600">{{ booking.valuta | date:'dd.MM.yyyy' }}</td>
                   <td class="px-4 py-3 whitespace-nowrap text-sm text-right font-medium"
                       [ngClass]="(booking.amount ?? 0) < 0 ? 'text-red-600' : 'text-green-700'">
                     {{ booking.amount | number:'1.2-2' }} €
@@ -79,7 +79,7 @@
                       @for (pos of booking.positions; track $index) {
                         <div class="flex items-center px-4 py-1.5 text-sm" [ngClass]="pos.isCurrentAccount ? 'bg-blue-50/50 font-medium' : 'text-gray-600'">
                           <div class="w-1/3 truncate pr-2" title="{{ pos.accountName }}">{{ pos.accountName }}</div>
-                          <div class="w-1/3 whitespace-nowrap">{{ pos.valuta }}</div>
+                          <div class="w-1/3 whitespace-nowrap">{{ pos.valuta | date:'dd.MM.yyyy' }}</div>
                           <div class="w-1/3 text-right whitespace-nowrap" [ngClass]="pos.amount < 0 ? 'text-red-600' : 'text-green-700'">
                             {{ pos.amount | number:'1.2-2' }} €
                           </div>

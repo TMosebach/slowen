@@ -41,7 +41,7 @@
           @for (booking of bookings; track booking.id) {
             <tr>
               <td class="px-6 py-4 whitespace-nowrap">{{ booking.vorgang }}</td>
-              <td class="px-6 py-4 whitespace-nowrap">{{ booking.date }}</td>
+              <td class="px-6 py-4 whitespace-nowrap">{{ booking.date | date:'dd.MM.yyyy' }}</td>
               <td class="px-6 py-4 whitespace-nowrap">{{ booking.description || '-' }}</td>
               <td class="px-6 py-4 whitespace-nowrap">{{ booking.sender_receiver || '-' }}</td>
               <td class="px-6 py-4 whitespace-nowrap text-right">

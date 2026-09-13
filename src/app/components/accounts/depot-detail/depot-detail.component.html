@@ -30,17 +30,17 @@
           <td class="px-4 py-2 text-right">{{ row.total_quantity | number:'1.2-2' }}</td>
           <td class="px-4 py-2 text-right">{{ row.average_price_per_unit | number:'1.2-2' }}</td>
           <td class="px-4 py-2 text-right">{{ row.total_purchase_value | number:'1.2-2' }}</td>
-          <td class="px-4 py-2">{{ row.first_purchase_date }}</td>
+          <td class="px-4 py-2">{{ row.first_purchase_date | date:'dd.MM.yyyy' }}</td>
         </tr>
         @if (row.expanded) {
           @for (purchase of row.purchases; track purchase.booking_id) {
             <tr class="bg-gray-50 text-sm text-gray-700">
-              <td class="px-4 py-2 pl-8">Kauf {{ purchase.purchase_date }}</td>
+              <td class="px-4 py-2 pl-8">Kauf {{ purchase.purchase_date | date:'dd.MM.yyyy' }}</td>
               <td class="px-4 py-2">Einzelkauf</td>
               <td class="px-4 py-2 text-right">{{ purchase.quantity | number:'1.2-2' }}</td>
               <td class="px-4 py-2 text-right">{{ purchase.price_per_unit | number:'1.2-2' }}</td>
               <td class="px-4 py-2 text-right">{{ purchase.quantity * purchase.price_per_unit | number:'1.2-2' }}</td>
-              <td class="px-4 py-2">{{ purchase.purchase_date }}</td>
+              <td class="px-4 py-2">{{ purchase.purchase_date | date:'dd.MM.yyyy' }}</td>
             </tr>
           }
         }
@@ -63,7 +63,7 @@
     <tbody>
       @for (item of purchaseHistory; track item.booking_id) {
         <tr>
-          <td class="px-4 py-2">{{ item.booking_date }}</td>
+          <td class="px-4 py-2">{{ item.booking_date | date:'dd.MM.yyyy' }}</td>
           <td class="px-4 py-2">{{ item.security_name }}</td>
           <td class="px-4 py-2 text-right">{{ item.quantity | number:'1.2-2' }}</td>
           <td class="px-4 py-2 text-right">{{ item.price_per_unit | number:'1.2-2' }}</td>
