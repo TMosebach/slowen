@@ -1,10 +1,15 @@
 import { ComponentFixture, TestBed } from '@angular/core/testing';
 import { ActivatedRoute, provideRouter } from '@angular/router';
+import { LOCALE_ID } from '@angular/core';
+import { registerLocaleData } from '@angular/common';
+import localeDe from '@angular/common/locales/de';
 import { AccountDetailComponent } from './account-detail.component';
 import { AccountService } from '../../../services/account.service';
 import { BookingService } from '../../../services/booking.service';
 import { Account } from '../../../models/account.model';
 import { Booking } from '../../../models/booking.model';
+
+registerLocaleData(localeDe);
 
 describe('AccountDetailComponent', () => {
   let component: AccountDetailComponent;
@@ -90,6 +95,7 @@ describe('AccountDetailComponent', () => {
       imports: [AccountDetailComponent],
       providers: [
         provideRouter([]),
+        { provide: LOCALE_ID, useValue: 'de-DE' },
         { provide: ActivatedRoute, useValue: { snapshot: { paramMap: { get: () => '1' } } } },
         { provide: AccountService, useValue: mockAccountService },
         { provide: BookingService, useValue: mockBookingService }
@@ -154,7 +160,7 @@ describe('AccountDetailComponent', () => {
     expect(booking103?.positions[1].isCurrentAccount).toBe(false);
   });
 
-  it('should render header card with name, type, subtype, iban, and saldo in DOM', async () => {
+  it('should render header card with name, type, subtype, iban, and saldo formatted in German in DOM', async () => {
     fixture.detectChanges();
     await component.loadData();
     fixture.detectChanges();
@@ -164,7 +170,8 @@ describe('AccountDetailComponent', () => {
     expect(nativeEl.textContent).toContain('Bestand');
     expect(nativeEl.textContent).toContain('Giro');
     expect(nativeEl.textContent).toContain('DE1234567890');
-    expect(nativeEl.textContent).toMatch(/2[.,]830[.,]00/);
+    expect(nativeEl.textContent).toContain('2.830,00 €');
+    expect(nativeEl.textContent).toContain('05.09.2026');
   });
 
   it('should handle account not found error', async () => {
