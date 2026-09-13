@@ -1,6 +1,7 @@
 import { Routes } from '@angular/router';
 import { AccountListComponent } from './components/accounts/account-list/account-list.component';
 import { AccountFormComponent } from './components/accounts/account-form/account-form.component';
+import { AccountDetailComponent } from './components/accounts/account-detail/account-detail.component';
 import { BookingListComponent } from './components/bookings/booking-list/booking-list.component';
 import { BookingFormComponent } from './components/bookings/booking-form/booking-form.component';
 import { DepotDetailComponent } from './components/accounts/depot-detail/depot-detail.component';
@@ -20,6 +21,7 @@ export const routes: Routes = [
   { path: 'bookings/:id/edit', component: BookingFormComponent },
   { path: 'accounts', component: AccountListComponent },
   { path: 'accounts/new', component: AccountFormComponent },
+  { path: 'accounts/:id', component: AccountDetailComponent },
   { path: 'accounts/:id/depot', component: DepotDetailComponent },
   { path: 'accounts/:id/edit', component: AccountFormComponent },
   { path: 'securities', component: SecuritiesListComponent },

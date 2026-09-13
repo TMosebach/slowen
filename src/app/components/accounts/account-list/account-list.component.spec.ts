@@ -55,6 +55,25 @@ describe('AccountListComponent', () => {
     expect(mockService.getAll).toHaveBeenCalled();
   });
 
+  it('shows a detail link for every account name', async () => {
+    mockService.getAll.mockResolvedValue([
+      { id: 1, name: 'Girokonto', type: 'Bestand', subtype: 'Giro' },
+      { id: 2, name: 'Tagesgeld', type: 'Bestand', subtype: 'Tagesgeld' },
+    ]);
+
+    await component.loadAccounts();
+    fixture.detectChanges();
+
+    const anchorNodes = fixture.nativeElement.querySelectorAll('a') as NodeListOf<HTMLAnchorElement>;
+    const links = Array.from(anchorNodes).map((link) => ({
+      text: link.textContent?.trim(),
+      href: link.getAttribute('href')
+    }));
+
+    expect(links).toContainEqual({ text: 'Girokonto', href: '/accounts/1' });
+    expect(links).toContainEqual({ text: 'Tagesgeld', href: '/accounts/2' });
+  });
+
   it('shows a depot detail link for depot accounts only', async () => {
     mockService.getAll.mockResolvedValue([
       { id: 1, name: 'Girokonto', type: 'Bestand', subtype: 'Giro' },
