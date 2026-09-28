@@ -41,10 +41,12 @@ __screenshots__/
 # Electron
 dist-electron/
 *.log
+
+# Slowen
 *.db
-slowen.db
-slowen.db-wal
-slowen.db-shm
+*.db-wal
+*.db-shm
+*.slowen
 
 # System files
 .DS_Store

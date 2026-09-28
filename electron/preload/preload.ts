@@ -35,5 +35,8 @@ contextBridge.exposeInMainWorld('electronAPI', {
     update: (security_id: number, date: string, price: number) =>
       ipcRenderer.invoke('security-prices:update', security_id, date, price),
     getLatest: (security_id: number) => ipcRenderer.invoke('security-prices:getLatest', security_id)
+  },
+  backup: {
+    create: () => ipcRenderer.invoke('backup:create')
   }
 });

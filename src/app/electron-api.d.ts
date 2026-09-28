@@ -19,6 +19,9 @@ interface ElectronAPI {
     getByBooking: (bookingId: number) => Promise<DepotPosition | null>;
     getByDepot: (depotAccountId: number) => Promise<DepotPosition[]>;
   };
+  backup: {
+    create: () => Promise<{ success: boolean; canceled?: boolean; filePath?: string; error?: string }>;
+  };
 }
 
 declare global {

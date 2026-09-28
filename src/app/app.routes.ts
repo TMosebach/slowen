@@ -10,6 +10,7 @@ import { SecuritiesFormComponent } from './components/securities/securities-form
 import { PricesInputComponent } from './components/securities/prices-input/prices-input.component';
 import { DashboardComponent } from './components/dashboard/dashboard.component';
 import { ImportComponent } from './components/import/import.component';
+import { BackupComponent } from './components/backup/backup.component';
 
 export const routes: Routes = [
   { path: '', redirectTo: '/dashboard', pathMatch: 'full' },
@@ -28,5 +29,6 @@ export const routes: Routes = [
   { path: 'securities/form', component: SecuritiesFormComponent },
   { path: 'securities/form/:id', component: SecuritiesFormComponent },
   { path: 'securities/prices', component: PricesInputComponent },
-  { path: 'import', component: ImportComponent }
+  { path: 'import', component: ImportComponent },
+  { path: 'backup', component: BackupComponent }
 ];
