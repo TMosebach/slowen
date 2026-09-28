@@ -14,6 +14,12 @@ export class BackupComponent {
   savedFilePath: string | null = null;
   errorMessage: string | null = null;
 
+  isRestoring = false;
+  showRestoreConfirmModal = false;
+  restoreSuccessMessage: string | null = null;
+  restoreFilePath: string | null = null;
+  restoreErrorMessage: string | null = null;
+
   constructor(
     private backupService: BackupService,
     private cdr: ChangeDetectorRef
@@ -32,7 +38,7 @@ export class BackupComponent {
         this.successMessage = 'Das Backup wurde erfolgreich erstellt.';
         this.savedFilePath = result.filePath;
       } else if (result.canceled) {
-        // User canceled the dialog - reset state cleanly
+        // User canceled dialog cleanly
       } else if (result.error) {
         this.errorMessage = `Fehler beim Erstellen des Backups: ${result.error}`;
       }
@@ -40,6 +46,43 @@ export class BackupComponent {
       this.errorMessage = `Unerwarteter Fehler: ${err?.message || String(err)}`;
     } finally {
       this.isCreating = false;
+      this.cdr.markForCheck();
+    }
+  }
+
+  openRestoreModal(): void {
+    this.restoreSuccessMessage = null;
+    this.restoreFilePath = null;
+    this.restoreErrorMessage = null;
+    this.showRestoreConfirmModal = true;
+  }
+
+  cancelRestoreModal(): void {
+    this.showRestoreConfirmModal = false;
+  }
+
+  async confirmAndRestore(): Promise<void> {
+    this.showRestoreConfirmModal = false;
+    this.isRestoring = true;
+    this.restoreSuccessMessage = null;
+    this.restoreFilePath = null;
+    this.restoreErrorMessage = null;
+
+    try {
+      const result = await this.backupService.restoreBackup();
+
+      if (result.success && result.filePath) {
+        this.restoreSuccessMessage = 'Das Backup wurde erfolgreich eingespielt.';
+        this.restoreFilePath = result.filePath;
+      } else if (result.canceled) {
+        // User canceled file dialog
+      } else if (result.error) {
+        this.restoreErrorMessage = `Fehler beim Einspielen des Backups: ${result.error}`;
+      }
+    } catch (err: any) {
+      this.restoreErrorMessage = `Unerwarteter Fehler: ${err?.message || String(err)}`;
+    } finally {
+      this.isRestoring = false;
       this.cdr.markForCheck();
     }
   }

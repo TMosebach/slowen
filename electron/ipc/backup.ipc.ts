@@ -39,4 +39,38 @@ export function registerBackupIPC() {
       return { success: false, error: error?.message || String(error) };
     }
   });
+
+  ipcMain.handle('backup:restore', async (): Promise<BackupResult> => {
+    try {
+      const { filePaths, canceled } = await dialog.showOpenDialog({
+        title: 'Backup auswählen und einspielen',
+        filters: [{ name: 'Slowen Backup (*.slowen)', extensions: ['slowen'] }],
+        properties: ['openFile']
+      });
+
+      if (canceled || !filePaths || filePaths.length === 0) {
+        return { success: false, canceled: true };
+      }
+
+      const targetPath = filePaths[0];
+      const rawContent = fs.readFileSync(targetPath, 'utf-8');
+
+      let backupData: any;
+      try {
+        backupData = JSON.parse(rawContent);
+      } catch {
+        return {
+          success: false,
+          error: 'Die ausgewählte Datei ist keine gültige JSON-Datei.'
+        };
+      }
+
+      await backup.import(backupData);
+
+      return { success: true, filePath: targetPath };
+    } catch (error: any) {
+      console.error('IPC backup:restore failed:', error);
+      return { success: false, error: error?.message || String(error) };
+    }
+  });
 }

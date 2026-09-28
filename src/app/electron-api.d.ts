@@ -21,6 +21,7 @@ interface ElectronAPI {
   };
   backup: {
     create: () => Promise<{ success: boolean; canceled?: boolean; filePath?: string; error?: string }>;
+    restore: () => Promise<{ success: boolean; canceled?: boolean; filePath?: string; error?: string }>;
   };
 }
 

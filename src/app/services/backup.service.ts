@@ -22,4 +22,14 @@ export class BackupService {
     }
     return this.api.create();
   }
+
+  restoreBackup(): Promise<BackupResponse> {
+    if (!this.api) {
+      return Promise.resolve({
+        success: false,
+        error: 'Electron API ist nicht verfügbar.'
+      });
+    }
+    return this.api.restore();
+  }
 }
