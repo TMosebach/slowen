@@ -1,6 +1,6 @@
 import { Component } from '@angular/core';
 import { ComponentFixture, TestBed } from '@angular/core/testing';
-import { ActivatedRoute, provideRouter } from '@angular/router';
+import { ActivatedRoute, Router, provideRouter } from '@angular/router';
 import { BookingFormComponent } from './booking-form.component';
 import { BookingService } from '../../../services/booking.service';
 import { AccountService } from '../../../services/account.service';
@@ -373,5 +373,83 @@ describe('BookingFormComponent', () => {
     expect(priceInput.getAttribute('step')).toBe('any');
     expect(feesInput.getAttribute('step')).toBe('any');
     expect(interestInput.getAttribute('step')).toBe('any');
+  });
+
+  describe('Buchung ändern', () => {
+    function setReturnTo(value: string | null) {
+      const route = TestBed.inject(ActivatedRoute);
+      Object.defineProperty(route.snapshot, 'queryParamMap', {
+        configurable: true,
+        value: { get: (key: string) => (key === 'returnTo' ? value : null) },
+      });
+    }
+
+    const validBooking = () => ({
+      vorgang: 'Buchung' as const,
+      date: '2026-08-01',
+      positions: [{ account_id: 1, valuta: '2026-08-01', amount: 10 }],
+    });
+
+    it('uses /bookings as default return target', () => {
+      setReturnTo(null);
+      fixture.detectChanges();
+      expect(component.returnTo).toBe('/bookings');
+    });
+
+    it('accepts an internal returnTo target', () => {
+      setReturnTo('/accounts/3');
+      fixture.detectChanges();
+      expect(component.returnTo).toBe('/accounts/3');
+    });
+
+    it('rejects external returnTo targets', () => {
+      setReturnTo('//evil.com');
+      fixture.detectChanges();
+      expect(component.returnTo).toBe('/bookings');
+
+      const fixture2 = TestBed.createComponent(BookingFormComponent);
+      setReturnTo('https://evil.com');
+      fixture2.detectChanges();
+      expect(fixture2.componentInstance.returnTo).toBe('/bookings');
+    });
+
+    it('labels the submit button "Buchen" when creating', () => {
+      setReturnTo(null);
+      fixture.detectChanges();
+      const button = (fixture.nativeElement as HTMLElement).querySelector('button[type="submit"]');
+      expect(button?.textContent?.trim()).toBe('Buchen');
+    });
+
+    it('labels the submit button "Ändern" when editing', () => {
+      setReturnTo(null);
+      component.isEditing = true;
+      fixture.detectChanges();
+      const button = (fixture.nativeElement as HTMLElement).querySelector('button[type="submit"]');
+      expect(button?.textContent?.trim()).toBe('Ändern');
+    });
+
+    it('updates and navigates to returnTo after submit', async () => {
+      setReturnTo('/accounts/3');
+      fixture.detectChanges();
+      const router = TestBed.inject(Router);
+      const navSpy = vi.spyOn(router, 'navigateByUrl').mockResolvedValue(true);
+
+      component.isEditing = true;
+      component.bookingId = 5;
+      component.booking = validBooking();
+      await component.onSubmit();
+
+      expect(mockBookingService.update).toHaveBeenCalledWith(5, component.booking);
+      expect(navSpy).toHaveBeenCalledWith('/accounts/3');
+    });
+
+    it('cancel link points to returnTo target', () => {
+      setReturnTo('/accounts/3');
+      fixture.detectChanges();
+      const cancel = Array.from(
+        (fixture.nativeElement as HTMLElement).querySelectorAll('a')
+      ).find(a => a.textContent?.trim() === 'Abbrechen') as HTMLAnchorElement;
+      expect(cancel.getAttribute('href')).toBe('/accounts/3');
+    });
   });
 });

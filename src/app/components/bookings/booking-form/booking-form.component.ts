@@ -38,6 +38,7 @@ export class BookingFormComponent implements OnInit {
   bookingId: number | null = null;
   saving = false;
   errorMessage: string | null = null;
+  returnTo = '/bookings';
   private allBookings: Booking[] = [];
 
   constructor(
@@ -50,6 +51,10 @@ export class BookingFormComponent implements OnInit {
   ) {}
 
   ngOnInit() {
+    const returnTo = this.route.snapshot.queryParamMap.get('returnTo');
+    if (returnTo && returnTo.startsWith('/') && !returnTo.startsWith('//')) {
+      this.returnTo = returnTo;
+    }
     this.loadAccounts();
     this.loadSecurities();
     this.loadAllBookings();
@@ -413,7 +418,7 @@ export class BookingFormComponent implements OnInit {
       } else {
         await this.bookingService.create(this.booking);
       }
-      this.router.navigate(['/bookings']);
+      this.router.navigateByUrl(this.returnTo);
     } catch (err) {
       console.error('Failed to save booking:', err);
       this.errorMessage = this.isEditing

@@ -182,4 +182,20 @@ describe('AccountDetailComponent', () => {
     expect(component.error).toBe('Konto nicht gefunden');
     expect(component.account).toBeNull();
   });
+
+  it('should render a change icon per booking linking to the edit route with returnTo', async () => {
+    fixture.detectChanges();
+    await component.loadData();
+    fixture.detectChanges();
+
+    const links = Array.from(
+      (fixture.nativeElement as HTMLElement).querySelectorAll('a[aria-label="Buchung ändern"]')
+    ) as HTMLAnchorElement[];
+
+    expect(links.length).toBe(3);
+    const hrefs = links.map(a => a.getAttribute('href'));
+    expect(hrefs).toContain('/bookings/101/edit?returnTo=%2Faccounts%2F1');
+    expect(hrefs).toContain('/bookings/102/edit?returnTo=%2Faccounts%2F1');
+    expect(hrefs).toContain('/bookings/103/edit?returnTo=%2Faccounts%2F1');
+  });
 });

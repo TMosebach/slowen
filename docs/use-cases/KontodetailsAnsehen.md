@@ -34,9 +34,11 @@ Der Anwender öffnet die Detailansicht eines Kontos, um dessen Stammdaten, den a
         * Jeweils untereinander aufgeführt: Konto, Valuta und Betrag aller Positionen der Buchung
     * **Bei genau einer Position in der Buchung:**
         * Valuta und Betrag der Position (Gegenkonto entfällt bzw. "-")
+    * Ein Ändern-Icon an jeder Buchung (weiter mit Use Case „Buchung ändern“)
 
 # UI-Hinweise
 
 - In der Kontoliste ist der Kontoname als anklickbarer Link dargestellt.
 - In der Kontodetailansicht ermöglicht ein Button "Zurück zur Kontoliste" die Rückkehr zur Übersicht.
 - Der Saldo wird mit Vorzeichen und Nachkommastellen formatiert dargestellt.
+- Das Ändern-Icon (Stift) steht in der letzten Spalte jeder Buchung und ist für alle Vorgänge verfügbar.
