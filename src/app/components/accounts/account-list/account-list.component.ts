@@ -28,7 +28,12 @@ export class AccountListComponent implements OnInit {
     this.loading = true;
     this.error = null;
     try {
-      this.accounts = await this.accountService.getAll();
+      const accounts = await this.accountService.getAll();
+      this.accounts = [...accounts].sort(
+        (a, b) =>
+          this.typeRank(a) - this.typeRank(b) ||
+          a.name.localeCompare(b.name, 'de', { sensitivity: 'base' })
+      );
     } catch (err) {
       console.error('Failed to load accounts:', err);
       this.error = 'Konten konnten nicht geladen werden.';
@@ -36,6 +41,10 @@ export class AccountListComponent implements OnInit {
       this.loading = false;
       this.cdr.detectChanges();
     }
+  }
+
+  private typeRank(account: Account): number {
+    return account.type === 'Bestand' ? 0 : 1;
   }
 
   isProtectedSystemAccount(account: Account): boolean {

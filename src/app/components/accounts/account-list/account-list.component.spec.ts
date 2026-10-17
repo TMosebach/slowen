@@ -42,6 +42,19 @@ describe('AccountListComponent', () => {
     expect(component.loading).toBeFalsy();
   });
 
+  it('sorts accounts by type (Bestand before GuV) and then by name', async () => {
+    mockService.getAll.mockResolvedValue([
+      { id: 1, name: 'Zinsen', type: 'GuV', subtype: 'Ertrag' },
+      { id: 2, name: 'Tagesgeld', type: 'Bestand', subtype: 'Tagesgeld' },
+      { id: 3, name: 'Ärzte', type: 'GuV', subtype: 'Aufwand' },
+      { id: 4, name: 'girokonto', type: 'Bestand', subtype: 'Giro' },
+    ]);
+
+    await component.loadAccounts();
+
+    expect(component.accounts.map((a) => a.name)).toEqual(['girokonto', 'Tagesgeld', 'Ärzte', 'Zinsen']);
+  });
+
   it('should not call service.delete when deleteAccount is cancelled', async () => {
     vi.spyOn(window, 'confirm').mockReturnValue(false);
     await component.deleteAccount(1);

@@ -12,7 +12,9 @@ Der Anwender öffnet die Detailansicht eines Kontos, um dessen Stammdaten, den a
 # Ablauf
 
 1. Der Anwender wählt die Konten-Übersicht in der Navigation.
-2. Das System zeigt die Liste aller Konten an.
+2. Das System zeigt die Liste aller Konten an. Die Liste ist sortiert nach:
+    a) Typ: „Bestand“ vor „GuV“
+    b) Name: alphabetisch (aufsteigend, Groß-/Kleinschreibung unbeachtet)
 3. Der Anwender klickt auf den Namen eines Kontos.
 4. Das System öffnet die Detailansicht des Kontos und zeigt an:
     * Name des Kontos
