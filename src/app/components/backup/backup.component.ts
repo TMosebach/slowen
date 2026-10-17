@@ -55,15 +55,18 @@ export class BackupComponent {
     this.restoreFilePath = null;
     this.restoreErrorMessage = null;
     this.showRestoreConfirmModal = true;
+    this.cdr.markForCheck();
   }
 
   cancelRestoreModal(): void {
     this.showRestoreConfirmModal = false;
+    this.cdr.markForCheck();
   }
 
   async confirmAndRestore(): Promise<void> {
     this.showRestoreConfirmModal = false;
     this.isRestoring = true;
+    this.cdr.markForCheck();
     this.restoreSuccessMessage = null;
     this.restoreFilePath = null;
     this.restoreErrorMessage = null;
