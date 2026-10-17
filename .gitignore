@@ -48,6 +48,6 @@ dist-electron/
 *.db-shm
 *.slowen
 
-# System files
+# Lokale Dateien
+lfs/
 .DS_Store
-Thumbs.db
