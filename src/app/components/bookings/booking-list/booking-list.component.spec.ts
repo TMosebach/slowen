@@ -91,5 +91,10 @@ describe('BookingListComponent', () => {
     // Aktionen cell retains nowrap to keep buttons together
     const actionCell = rows[0].querySelectorAll('td')[4];
     expect(actionCell.classList.contains('whitespace-nowrap')).toBe(true);
+
+    // Edit link is rendered as an icon with aria-label
+    const editLink = actionCell.querySelector('a[aria-label="Buchung ändern"]');
+    expect(editLink).toBeTruthy();
+    expect(editLink?.querySelector('svg')).toBeTruthy();
   });
 });

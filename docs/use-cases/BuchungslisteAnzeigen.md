@@ -29,7 +29,7 @@ Der Anwender öffnet die Buchungsübersicht, um alle erfassten Buchungen mit Vor
     * „Neue Buchung“ (Einstieg in den Use Case „Buchung erfassen“)
     * „Neuer Kauf“ (Einstieg in den Use Case „Kauf erfassen“)
     * „Neuer Verkauf“ (Einstieg in den Use Case „Verkauf erfassen“)
-- Pro Tabellenzeile werden die Aktionen „Bearbeiten“ und „Löschen“ nebeneinander in einer Spalte angeboten:
-    * „Bearbeiten“: Öffnet das Buchungsformular zur Bearbeitung.
-    * „Löschen“: Entfernt die Buchung nach Bestätigung.
+- Pro Tabellenzeile werden die Aktionen Ändern und Löschen nebeneinander in einer Spalte angeboten:
+    * Ändern-Icon (Stift): Einstieg in den Use Case „Buchung ändern“.
+    * „Löschen“-Button: Entfernt die Buchung nach Bestätigung.
 - Bei leerer Liste wird der Text „Noch keine Buchungen vorhanden.“ angezeigt.
