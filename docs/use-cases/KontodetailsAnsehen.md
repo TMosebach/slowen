@@ -41,4 +41,5 @@ Der Anwender öffnet die Detailansicht eines Kontos, um dessen Stammdaten, den a
 - In der Kontoliste ist der Kontoname als anklickbarer Link dargestellt.
 - In der Kontodetailansicht ermöglicht ein Button "Zurück zur Kontoliste" die Rückkehr zur Übersicht.
 - Der Saldo wird mit Vorzeichen und Nachkommastellen formatiert dargestellt.
+- Die Buchungstabelle passt sich der Fensterbreite an (`table-fixed`), sodass alle Spalten inklusive des Ändern-Icons von Anfang an ohne horizontales Scrollen im Fenster sichtbar sind. Lange Texte in Beschreibung und Sender/Empfänger brechen mehrzeilig um.
 - Das Ändern-Icon (Stift) steht in der letzten Spalte jeder Buchung und ist für alle Vorgänge verfügbar.
