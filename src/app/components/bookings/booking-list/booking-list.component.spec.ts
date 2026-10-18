@@ -72,4 +72,24 @@ describe('BookingListComponent', () => {
 
     expect(navigate).toHaveBeenCalledWith(['/bookings/new/sale']);
   });
+
+  it('renders table with table-fixed, zebra rows, and text-wrapping cells', () => {
+    const table = (fixture.nativeElement as HTMLElement).querySelector('table');
+    expect(table?.classList.contains('table-fixed')).toBe(true);
+
+    const rows = (fixture.nativeElement as HTMLElement).querySelectorAll('tbody tr');
+    expect(rows.length).toBe(2);
+    expect(rows[0].classList.contains('odd:bg-white')).toBe(true);
+    expect(rows[0].classList.contains('even:bg-gray-50')).toBe(true);
+
+    // Beschreibung cell should wrap rather than truncate/nowrap
+    const descCell = rows[0].querySelectorAll('td')[2];
+    expect(descCell.classList.contains('whitespace-normal')).toBe(true);
+    expect(descCell.classList.contains('break-words')).toBe(true);
+    expect(descCell.classList.contains('whitespace-nowrap')).toBe(false);
+
+    // Aktionen cell retains nowrap to keep buttons together
+    const actionCell = rows[0].querySelectorAll('td')[4];
+    expect(actionCell.classList.contains('whitespace-nowrap')).toBe(true);
+  });
 });
