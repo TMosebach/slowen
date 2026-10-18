@@ -24,8 +24,9 @@ function createWindow() {
   if (!app.isPackaged) {
     mainWindow.loadURL('http://localhost:4200');
   } else {
-    // Production: Angular Build
-    mainWindow.loadFile(path.join(__dirname, '..', 'dist', 'slowen', 'index.html'));
+    // Production: Angular Build (Angular CLI outputs browser build to dist/slowen/browser)
+    const indexPath = path.join(__dirname, '..', '..', 'dist', 'slowen', 'browser', 'index.html');
+    mainWindow.loadFile(indexPath);
   }
 }
 

@@ -1,12 +1,17 @@
 {
   "appId": "de.slowen.app",
   "productName": "Slowen",
+  "npmRebuild": false,
+  "nodeGypRebuild": false,
   "directories": {
-    "output": "dist-electron"
+    "output": "release"
   },
   "files": [
     "dist/**/*",
-    "electron/**/*"
+    "dist-electron/**/*"
+  ],
+  "asarUnpack": [
+    "**/node_modules/better-sqlite3/**/*"
   ],
   "mac": {
     "category": "public.app-category.finance",

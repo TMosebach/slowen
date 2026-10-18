@@ -14,17 +14,16 @@ Instructions and context for OpenCode sessions in **Slowen** (Electron + Angular
 ### Build & Typecheck
 - `npm run build` — Build Angular frontend (`ng build`)
 - `npm run build:electron` — Compile Electron TypeScript (`tsc -p electron/tsconfig.json` -> `dist-electron/`)
-- `npm run rebuild` — Rebuild native `better-sqlite3` bindings for Electron (`electron-rebuild -f -w better-sqlite3`)
 - `npm run lint` — Run Angular linter
 
 ### Testing
 - `npm test` — Run Angular unit tests (Vitest via Angular CLI)
-- `npm run test:electron` — Run Electron/DB unit tests using Electron's Node runtime
+- `npm run test:electron` — Run Electron/DB unit tests via Vitest
 - **Single Angular test:** `npx ng test --include src/app/components/dashboard/dashboard.component.spec.ts`
-- **Single Electron/DB test:** `ELECTRON_RUN_AS_NODE=1 electron node_modules/vitest/vitest.mjs run electron/database/accounts.spec.ts`
+- **Single Electron/DB test:** `npx vitest run electron/database/accounts.spec.ts`
 
 ### Development
-- `npm start` — Rebuilds sqlite, compiles electron, starts Angular dev server, and launches Electron app.
+- `npm start` — Compiles electron, starts Angular dev server, and launches Electron app.
 
 ### New Features & Architecture Guidelines
 - **Architecture Documentation:** Always read and follow `docs/Architektur.md` for architectural design, layer responsibilities, conventions, and data formats.
@@ -36,7 +35,7 @@ Instructions and context for OpenCode sessions in **Slowen** (Electron + Angular
 
 ## Critical Gotchas & Domain Rules
 
-- **Native module ABI:** `better-sqlite3` is compiled against Electron's Node ABI. Running Node directly on database code will fail; always run database tests/scripts through `ELECTRON_RUN_AS_NODE=1 electron ...`.
+- **Native SQLite Module:** Since `better-sqlite3` v13, the native addon uses N-API with cross-runtime prebuilds (`darwin`, `linux`, `win32`). No native compilation or `@electron/rebuild` step is required. Electron and Node share the same prebuilt binary.
 - **System Accounts:** System accounts (`Wertpapierprovision`, `Stückzinsen`, `Kursgewinn`, `Kursverlust`, `Kapitalertragsteuer`, `Solidaritätszuschlag`) are seeded on init and protected against deletion or renaming in `electron/database/accounts.ts`.
 - **Domain terminology (German):**
   - Booking types (`vorgang`): `'Buchung'`, `'Kauf'`, `'Verkauf'`
