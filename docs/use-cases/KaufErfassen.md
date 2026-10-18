@@ -9,12 +9,14 @@ Der Anwender erfasst den Kauf eines Wertpapiers in ein Depot-Konto gegen ein Ver
 * Anwender
 * Slowen, das System
 
+# Vorbedingung
+
+Der Anwender hat den Use Case „Buchungsliste anzeigen“ ausgeführt und befindet sich in der Buchungsübersicht.
+
 # Ablauf
 
-1. Der Anwender wählt den Buchungen-Eintrag in der Navigationsleiste.
-2. Das System zeigt die Buchung-Liste an.
-3. Der Anwender klickt auf "Neuer Kauf" (oder wechselt im Buchungsformular auf den Vorgang "Kauf").
-4. Das System zeigt das Kauf-Formular an mit:
+1. Der Anwender klickt auf "Neuer Kauf" (oder wechselt im Buchungsformular auf den Vorgang "Kauf").
+2. Das System zeigt das Kauf-Formular an mit:
     * Vorgang: Pflichtfeld, Enum { Buchung, Kauf, Verkauf }, Vorbelegung: Kauf
     * Datum: Pflichtfeld, Default: Tagesdatum
     * Beschreibung: optional, Freitext zur Buchung
@@ -29,9 +31,9 @@ Der Anwender erfasst den Kauf eines Wertpapiers in ein Depot-Konto gegen ein Ver
     * Live-Berechnung / Zusammenfassung:
         * Kurswert: Stückzahl * Kurs pro Stück
         * Gesamtbetrag: Kurswert + Gebühren + Stückzinsen
-5. Der Anwender füllt die Pflichtfelder sowie optional Beschreibung, Sender/Empfänger, Gebühren und Stückzinsen aus.
-6. Der Anwender klickt auf "Buchen" (bzw. "Speichern" bei Bearbeitung).
-7. Das System validiert die Angaben:
+3. Der Anwender füllt die Pflichtfelder sowie optional Beschreibung, Sender/Empfänger, Gebühren und Stückzinsen aus.
+4. Der Anwender klickt auf "Buchen" (bzw. "Speichern" bei Bearbeitung).
+5. Das System validiert die Angaben:
     * Sind Pflichtfelder nicht ausgefüllt oder ungültig, zeigt es Fehlermeldungen an.
     * Andernfalls speichert das System den Kauf:
         * Erstellt den Buchungssatz in `bookings` mit Vorgang `'Kauf'`.
@@ -41,7 +43,7 @@ Der Anwender erfasst den Kauf eines Wertpapiers in ein Depot-Konto gegen ein Ver
             * Depot-Konto: Einbuchung mit `+Kurswert`
             * Systemkonto "Wertpapierprovision": Belastung mit `+Gebühren` (falls > 0)
             * Systemkonto "Stückzinsen": Belastung mit `+Stückzinsen` (falls > 0)
-8. Das System kehrt zur Buchungsliste zurück, die nun die erfasste Kaufbuchung anzeigt.
+6. Das System kehrt zur Buchungsliste zurück, die nun die erfasste Kaufbuchung anzeigt.
 
 ## Validierungsregeln
 

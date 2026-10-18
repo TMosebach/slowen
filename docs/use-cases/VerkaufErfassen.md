@@ -9,12 +9,14 @@ Der Anwender erfasst den Verkauf eines Wertpapiers aus einem Depot-Konto auf ein
 * Anwender
 * Slowen, das System
 
+# Vorbedingung
+
+Der Anwender hat den Use Case „Buchungsliste anzeigen“ ausgeführt und befindet sich in der Buchungsübersicht.
+
 # Ablauf
 
-1. Der Anwender wählt den Buchungen-Eintrag in der Navigationsleiste.
-2. Das System zeigt die Buchung-Liste an.
-3. Der Anwender klickt auf "Neuer Verkauf" (oder wechselt im Buchungsformular auf den Vorgang "Verkauf").
-4. Das System zeigt das Verkauf-Formular an mit:
+1. Der Anwender klickt auf "Neuer Verkauf" (oder wechselt im Buchungsformular auf den Vorgang "Verkauf").
+2. Das System zeigt das Verkauf-Formular an mit:
     * Vorgang: Pflichtfeld, Enum { Buchung, Kauf, Verkauf }, Vorbelegung: Verkauf
     * Datum: Pflichtfeld, Default: Tagesdatum
     * Beschreibung: optional, Freitext zur Buchung
@@ -34,15 +36,15 @@ Der Anwender erfasst den Verkauf eines Wertpapiers aus einem Depot-Konto auf ein
         * FIFO-Einstand (live): Summe der Anschaffungskosten der nach FIFO-Reihenfolge veräußerten Bestände bis zum Buchungsdatum
         * Kursgewinn/-verlust (live): Nettozufluss - FIFO-Einstand
         * Bestandsprüfung: Warnhinweis, wenn die gewünschte Verkaufsmenge den verfügbaren Depotbestand zum Buchungsdatum übersteigt
-5. Der Anwender füllt die Felder aus.
-6. Der Anwender klickt auf "Buchen" (bzw. "Speichern" bei Bearbeitung).
-7. Das System validiert die Angaben:
+3. Der Anwender füllt die Felder aus.
+4. Der Anwender klickt auf "Buchen" (bzw. "Speichern" bei Bearbeitung).
+5. Das System validiert die Angaben:
     * Prüfung auf Pflichtfelder und positive Werte für Menge und Kurs.
     * Prüfung, dass Depot-Konto und Verrechnungskonto unterschiedlich sind.
     * Prüfung, dass der Nettozufluss größer 0 ist.
     * Prüfung, dass zum Buchungsdatum genügend Wertpapierbestand im Depot vorhanden ist.
     * Bei Fehlern werden entsprechende Fehlermeldungen ausgegeben.
-8. Das System speichert den Verkauf:
+6. Das System speichert den Verkauf:
     * Erstellt den Buchungssatz in `bookings` mit Vorgang `'Verkauf'`.
     * Speichert die Verkaufsdetails in `sale_details` (Wertpapier, Depot-Konto, Verrechnungskonto, Menge, Kurs, Gebühren, Steuern).
     * Erzeugt automatisch die Buchungspositionen in `booking_positions`:
@@ -54,7 +56,7 @@ Der Anwender erfasst den Verkauf eines Wertpapiers aus einem Depot-Konto auf ein
         * Systemkonto "Kursgewinn": Ertrag mit `+Kursgewinn` (falls Gewinn > 0)
         * Systemkonto "Kursverlust": Aufwand mit `+Kursverlust` (falls Verlust > 0)
     * Führt bei nachträglichen Datumsänderungen oder Einschub historischer Transaktionen eine automatische FIFO-Neuberechnung zeitlich nachfolgender Verkäufe desselben Wertpapiers im selben Depot durch.
-9. Das System kehrt zur Buchungsliste zurück, die nun die erfasste Verkaufsbuchung anzeigt.
+7. Das System kehrt zur Buchungsliste zurück, die nun die erfasste Verkaufsbuchung anzeigt.
 
 ## Validierungsregeln
 

@@ -9,21 +9,23 @@ Der Anwender erfasst eine Buchung, um einen Geldfluss zwischen Konten zu dokumen
 * Anwender
 * Slowen, das System
 
+# Vorbedingung
+
+Der Anwender hat den Use Case „Buchungsliste anzeigen“ ausgeführt und befindet sich in der Buchungsübersicht.
+
 # Ablauf
 
-1. der Anwender wählt den Buchungen-Eintrag in der Navigationsleiste
-2. das System zeigt die Buchung-Liste an
-3. der Anwender klickt auf "neue Buchung"
-4. das System zeigt das Buchung-Formular an mit
+1. Der Anwender klickt auf „Neue Buchung“.
+2. Das System zeigt das Buchung-Formular an mit:
     * Vorgang: Pflichtfeld, Enum { Buchung }, Default: Buchung
     * Datum: Pflichtfeld, Default: Tagesdatum
     * Beschreibung: optional, Freitext zur Buchung
     * Sender/Empfänger: optional, beteiligte Person auf der Gegenseite
     * Liste mit Positionen, wobei die erste Position (Konto, Valuta - Default: aktuelles Datum, Betrag; alle Pflichtfelder) zur Erfassung vorgegeben ist
-5. Der Anwender füllt die Felder der Buchung und der Position (Konto, Valuta, Betrag; alle Pflichtfelder) aus.
-6. Der Anwender kann weitere Positionen der Liste hinzufügen und ausfüllen.
-7. der Anwender klickt auf Buchen.
-8. das System prüft, ob alle Pflichtfelder ausgefüllt sind, falls nicht zeigt es Fehlermeldungen.
+3. Der Anwender füllt die Felder der Buchung und der Position (Konto, Valuta, Betrag; alle Pflichtfelder) aus.
+4. Der Anwender kann weitere Positionen der Liste hinzufügen und ausfüllen.
+5. Der Anwender klickt auf Buchen.
+6. Das System prüft, ob alle Pflichtfelder ausgefüllt sind, falls nicht zeigt es Fehlermeldungen.
 Andernfalls speichert es die Buchung mit ihren Positionen und kehrt zur Buchung-Liste zurück, die nun die erfasste Buchung anzeigt.
 
 ## Validierungsregeln
