@@ -23,16 +23,26 @@ Der Anwender importiert Umsätze aus CSV-Dateien externer Kreditinstitute (ING, 
 3. Der Anwender wählt die Art des Imports, das Institut, das Zielkonto bzw. -depot und wählt die CSV-Datei aus.
 4. Der Anwender klickt auf den Button **"Laden"**.
 5. Das System ermittelt den zur Kombination aus `Art des Imports` und `Institut` passenden Parser.
-6. Der Parser liest die CSV-Datei ein, übersetzt die institutionsspezifischen Spalten/Formate in das interne Slowen-Buchungsmodell (`Booking` mit zwei Positionen: 1. Position auf das Zielkonto, 2. Position als Gegenbuchung mit invertiertem Betrag) und wechselt auf die zweite Seite.
-7. Das System zeigt die erzeugten Buchungen auf der **zweiten Seite (Buchungsvorschau & Kontierung)** an:
-   * Für jede Buchung existiert eine Spalte **Gegenkonto** links von Valuta und Betrag.
-   * Der Anwender kann in der Auswahlbox das gewünschte Gegenkonto für die Gegenposition auswählen.
+6. Der Parser liest die CSV-Datei ein, übersetzt die institutionsspezifischen Spalten/Formate in das interne Slowen-Buchungsmodell (`Booking` mit zwei Positionen: 1. Position auf das Zielkonto, 2. Position als Gegenbuchung mit invertiertem Betrag).
+   * Bei der Art *Umsatz* bestimmt das System den Datumszeitraum der importierten Buchungen über das Minimum und Maximum von Buchungsdatum (`date`) und Valuta (`valuta`) aller importierten Sätze, erweitert um jeweils 2 Tage Toleranz davor und danach (`von = min - 2 Tage`, `bis = max + 2 Tage`).
+   * Das System lädt alle bereits in Slowen vorhandenen Buchungen des Zielkontos, bei denen das Buchungsdatum ODER die Valuta einer Buchungsposition in diesen erweiterten Zeitraum fällt.
+   * Das System wechselt auf die zweite Seite.
+7. Das System zeigt die erzeugten Buchungen gemeinsam mit den vorhandenen Buchungen auf der **zweiten Seite (Buchungsvorschau & Kontierung)** an:
+   * **Kennzeichnung & Sortierung:** Die Buchungen werden chronologisch dargestellt. Vorhandene Buchungen sind optisch hervorgehoben und durch ein Badge (z. B. "Vorhanden") eindeutig von neuen Import-Buchungen ("Neu") unterscheidbar.
+   * **Dubletten-Hinweis:** Erkennt das System bei einer neuen Import-Buchung eine mögliche Übereinstimmung mit einer vorhandenen Buchung (gleicher Betrag und Datum/Valuta im Toleranzbereich), wird ein optischer Dubletten-Hinweis angezeigt.
+   * **Ignorieren von Import-Buchungen:** Jede neue Import-Buchung bietet eine Checkbox/Aktion "Ignorieren". Wird eine Buchung ignoriert, wird sie optisch entwertet (z. B. ausgegraut) und von der Gegenkonto-Pflicht sowie dem späteren Speichern ausgenommen.
+   * **Korrektur vorhandener Buchungen:** Der Anwender kann bei einer vorhandenen Buchung die Felder `Empfänger / Sender`, `Beschreibung / Verwendungszweck`, `Buchungsdatum` und `Valuta` direkt korrigieren. Die Beträge bleiben unverändert. Die Änderungen werden vorgemerkt und erst bei "Fertig" gespeichert.
+   * **Gegenkonto:**
+     - Für jede nicht ignorierte Import-Buchung existiert eine Spalte **Gegenkonto** links von Valuta und Betrag zur Auswahl des gewünschten Gegenkontos.
+     - Bei vorhandenen Buchungen wird das bereits zugeordnete Gegenkonto schreibgeschützt angezeigt.
 8. Der Anwender klickt auf den Button **"Fertig"**.
-9. Das System prüft, ob der Anwender in allen Buchungen ein Gegenkonto angegeben hat:
-   * **Fall A (Alle Gegenkonten gepflegt):**
-     1. Das System speichert alle Buchungen mit ihren Positionen in der Datenbank, sodass der Import wirksam wird.
-     2. Das System kehrt auf die erste Import-Seite zurück und zeigt eine Erfolgsmeldung an.
-   * **Fall B (Mindestens ein Gegenkonto fehlt):**
+9. Das System prüft, ob der Anwender in allen aktiven (nicht ignorierten) Import-Buchungen ein Gegenkonto angegeben hat:
+   * **Fall A (Alle erforderlichen Gegenkonten gepflegt):**
+     1. Das System speichert die vorgenommenen Korrekturen an vorhandenen Buchungen in der Datenbank.
+     2. Das System speichert alle nicht ignorierten Import-Buchungen mit ihren Positionen in der Datenbank.
+     3. Als "Ignorieren" markierte Import-Buchungen werden verworfen und nicht gespeichert.
+     4. Das System kehrt auf die erste Import-Seite zurück und zeigt eine Erfolgsmeldung an (inklusive Information über importierte, ignorierte und korrigierte Buchungen).
+   * **Fall B (Mindestens ein Gegenkonto bei einer aktiven Import-Buchung fehlt):**
      1. Das System bricht den Abschluss ab und verbleibt auf der zweiten Seite.
      2. Das System weist den Anwender mit einer Fehlermeldung darauf hin.
      3. Das System markiert die noch zu bearbeitenden Gegenkonto-Eingabefelder optisch rot.
@@ -47,7 +57,12 @@ Der Anwender importiert Umsätze aus CSV-Dateien externer Kreditinstitute (ING, 
 | CSV-Datei | Pflichtfeld, lesbare CSV-Datei im Format des gewählten Instituts |
 | Laden-Button | Nur aktiv, wenn alle Pflichtfelder ausgefüllt und eine CSV-Datei ausgewählt ist |
 | Parser-Ermittlung | Für die gewählte Kombination (z. B. `Umsatz` + `ING`) muss ein registrierter Parser vorhanden sein; andernfalls wird eine verständliche Fehlermeldung ausgegeben |
-| Gegenkonto-Pflicht bei Abschluss | Beim Klick auf "Fertig" muss jeder Buchung ein gültiges Gegenkonto (`account_id > 0`) zugewiesen sein; andernfalls werden fehlende Felder rot markiert |
+| Zeitraum Vorhandene Buchungen (nur Art *Umsatz*) | Berechnet als `[min(date, valuta) - 2 Tage, max(date, valuta) + 2 Tage]` über alle importierten Buchungen. Es werden alle Buchungen geladen, die das Zielkonto betreffen und deren `date` ODER `valuta` (einer Buchungsposition) in diesem Bereich liegen. |
+| Kennzeichnung vorhandener Buchungen | Optische Unterscheidung mit Badge "Vorhanden" (gegenüber "Neu"). Gegenkonto ist fest vorgegeben (bereits gebucht). Beträge sind unveränderlich. |
+| Korrektur vorhandener Buchungen | Felder `Empfänger / Sender`, `Beschreibung / Verwendungszweck`, `Buchungsdatum` und `Valuta` dürfen vom Anwender direkt in der Zeile editiert werden. Änderungen werden erst beim Klick auf "Fertig" gespeichert. |
+| Mögliche Dubletten | Hinweis-Icon/Badge an der Import-Zeile, wenn eine vorhandene Buchung den gleichen Betrag und ein Buchungsdatum oder eine Valuta innerhalb des Toleranzzeitraums (±2 Tage) aufweist. |
+| Ignorieren von Import-Buchungen | Kann pro neuer Import-Buchung aktiviert werden. Ignorierte Zeilen erfordern kein Gegenkonto und werden beim Speichern verworfen (verhindert Doppelbuchungen bei bereits anderweitig erfassten Umsätzen). |
+| Gegenkonto-Pflicht bei Abschluss | Beim Klick auf "Fertig" muss jeder **aktiven (nicht ignorierten) Import-Buchung** ein gültiges Gegenkonto (`account_id > 0`) zugewiesen sein; andernfalls werden fehlende Felder rot markiert. |
 
 ### Datenübernahme in das Buchungsmodell
 
@@ -67,7 +82,7 @@ Der Anwender importiert Umsätze aus CSV-Dateien externer Kreditinstitute (ING, 
 
 ## UI-Hinweise
 
-* **Navigation:** Neuer Menüeintrag "Import" in der Sidebar.
+* **Navigation:** Menüeintrag "Import" in der Sidebar.
 * **Erste Seite (Import-Formular):**
   - Segmentierte Auswahl für Import-Art (`Umsatz` / `Depot-Bestand`).
   - Dropdown für Institut (`ING`, `Comdirect`, `Deutsche Bank`).
@@ -76,14 +91,16 @@ Der Anwender importiert Umsätze aus CSV-Dateien externer Kreditinstitute (ING, 
   - Primärer Button "Laden".
   - Erfolgsbanner bei erfolgreichem Buchungsimport.
 * **Zweite Seite (Buchungsanzeige & Kontierung):**
-  - Zusammenfassung: Import-Art, Institut, Zielkonto, Dateiname, Anzahl Buchungen und Summe der Banktransaktionen (1. Position).
+  - Zusammenfassung: Import-Art, Institut, Zielkonto, Dateiname, Anzahl Buchungen (aufgeschlüsselt: neu, vorhanden, ignoriert) und Summe der aktiven Banktransaktionen (1. Position).
   - Fehlermeldungsbanner bei unvollständiger Gegenkontierung.
   - Strukturierte Buchungstabelle mit Spalten:
     - `#`
-    - `Buchungsdatum` (deutsches Format `DD.MM.YYYY`)
-    - `Empfänger / Sender`
-    - `Beschreibung / Verwendungszweck`
-    - **`Gegenkonto`** (Auswahlbox mit allen verfügbaren Konten; bei Validierungsfehler rot umrandet und hinterlegt)
-    - `Valuta` (deutsches Format `DD.MM.YYYY`)
-    - `Betrag` (mit Farbcodierung grün/rot)
-  - Button "Fertig", welcher die Validierung und Speicherung aller Buchungen anstößt.
+    - `Status` (Badge: "Neu" / "Vorhanden", ggf. Warnhinweis "Mögliche Dublette")
+    - `Ignorieren` (Checkbox für neue Import-Zeilen)
+    - `Buchungsdatum` (deutsches Format `DD.MM.YYYY`; editierbar für vorhandene Buchungen)
+    - `Empfänger / Sender` (editierbar für vorhandene Buchungen)
+    - `Beschreibung / Verwendungszweck` (editierbar für vorhandene Buchungen)
+    - **`Gegenkonto`** (Auswahlbox bei neuen Import-Buchungen; als fester Text bei vorhandenen Buchungen; rot markiert bei Validierungsfehler)
+    - `Valuta` (deutsches Format `DD.MM.YYYY`; editierbar für vorhandene Buchungen)
+    - `Betrag` (mit Farbcodierung grün/rot; schreibgeschützt)
+  - Button "Fertig", welcher die Validierung, die Aktualisierung korrigierter vorhandener Buchungen und die Speicherung aller aktiven Import-Buchungen anstößt.
