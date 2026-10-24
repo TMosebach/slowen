@@ -12,6 +12,7 @@ describe('BookingService', () => {
     mockApi = {
       getAll: vi.fn().mockResolvedValue([]),
       getById: vi.fn().mockResolvedValue(null),
+      getByAccountAndPeriod: vi.fn().mockResolvedValue([]),
       create: vi.fn().mockImplementation((b: any) => Promise.resolve({ id: 1, ...b })),
       update: vi.fn().mockImplementation((id: number, b: any) => Promise.resolve({ id, ...b })),
       delete: vi.fn().mockResolvedValue(undefined),
@@ -45,6 +46,13 @@ describe('BookingService', () => {
     const result = await service.getById(5);
     expect(mockApi.getById).toHaveBeenCalledWith(5);
     expect(result).toEqual(mockBooking);
+  });
+
+  it('should call api.getByAccountAndPeriod with correct parameters', async () => {
+    mockApi.getByAccountAndPeriod.mockResolvedValue([]);
+    const result = await service.getByAccountAndPeriod(1, '2026-09-01', '2026-09-10');
+    expect(mockApi.getByAccountAndPeriod).toHaveBeenCalledWith(1, '2026-09-01', '2026-09-10');
+    expect(result).toEqual([]);
   });
 
   it('should call api.create with booking data', async () => {

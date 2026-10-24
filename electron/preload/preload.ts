@@ -12,6 +12,8 @@ contextBridge.exposeInMainWorld('electronAPI', {
   bookings: {
     getAll: () => ipcRenderer.invoke('bookings:getAll'),
     getById: (id: number) => ipcRenderer.invoke('bookings:getById', id),
+    getByAccountAndPeriod: (accountId: number, fromDate: string, toDate: string) =>
+      ipcRenderer.invoke('bookings:getByAccountAndPeriod', accountId, fromDate, toDate),
     create: (booking: any) => ipcRenderer.invoke('bookings:create', booking),
     update: (id: number, booking: any) => ipcRenderer.invoke('bookings:update', id, booking),
     delete: (id: number) => ipcRenderer.invoke('bookings:delete', id)

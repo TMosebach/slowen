@@ -11,7 +11,11 @@ describe('ImportComponent', () => {
   let component: ImportComponent;
   let fixture: ComponentFixture<ImportComponent>;
   let mockAccountService: { getAll: ReturnType<typeof vi.fn> };
-  let mockBookingService: { create: ReturnType<typeof vi.fn> };
+  let mockBookingService: {
+    create: ReturnType<typeof vi.fn>;
+    update: ReturnType<typeof vi.fn>;
+    getByAccountAndPeriod: ReturnType<typeof vi.fn>;
+  };
   let mockParserService: { parse: ReturnType<typeof vi.fn> };
 
   const mockAccounts: Account[] = [
@@ -50,6 +54,8 @@ describe('ImportComponent', () => {
     };
     mockBookingService = {
       create: vi.fn().mockImplementation((b: Booking) => Promise.resolve({ id: 100, ...b })),
+      update: vi.fn().mockImplementation((id: number, b: Booking) => Promise.resolve({ id, ...b })),
+      getByAccountAndPeriod: vi.fn().mockResolvedValue([]),
     };
     mockParserService = {
       parse: vi.fn().mockReturnValue(mockBookings.map(b => JSON.parse(JSON.stringify(b)))),
@@ -149,7 +155,7 @@ describe('ImportComponent', () => {
 
     fixture.detectChanges();
     const compiled = fixture.nativeElement as HTMLElement;
-    const dateCells = compiled.querySelectorAll('tbody tr td:nth-child(2)');
+    const dateCells = compiled.querySelectorAll('tbody tr td:nth-child(4)');
     expect(dateCells[0].textContent?.trim()).toBe('01.09.2026');
     expect(dateCells[1].textContent?.trim()).toBe('02.09.2026');
   });
@@ -232,5 +238,150 @@ describe('ImportComponent', () => {
     await component.onLoadCsv();
     expect(component.step).toBe(1);
     expect(component.parseError).toBe('Kein Parser für Format gefunden');
+  });
+
+  it('loads existing bookings for extended period (±2 days) and displays them with Vorhanden badge', async () => {
+    const existing: Booking[] = [
+      {
+        id: 50,
+        vorgang: 'Buchung',
+        date: '2026-08-31',
+        sender_receiver: 'Vermieter',
+        description: 'Miete',
+        positions: [
+          { account_id: 1, valuta: '2026-08-31', amount: -600 },
+          { account_id: 2, valuta: '2026-08-31', amount: 600 }
+        ]
+      }
+    ];
+    mockBookingService.getByAccountAndPeriod.mockResolvedValue(existing);
+
+    const file = new File(['dummy'], 'test.csv', { type: 'text/csv' });
+    component.selectedFile = file;
+    component.selectedFileName = 'test.csv';
+    component.selectedAccountId = 1;
+    component.importType = 'Umsatz';
+
+    await component.onLoadCsv();
+
+    // Min date is 2026-09-01, max is 2026-09-02 -> extended period: 2026-08-30 to 2026-09-04
+    expect(mockBookingService.getByAccountAndPeriod).toHaveBeenCalledWith(1, '2026-08-30', '2026-09-04');
+    expect(component.tableItems.length).toBe(3); // 1 existing + 2 import
+    expect(component.existingCount).toBe(1);
+    expect(component.importCount).toBe(2);
+
+    fixture.detectChanges();
+    const compiled = fixture.nativeElement as HTMLElement;
+    const badges = compiled.querySelectorAll('tbody tr td:nth-child(2)');
+    expect(badges[0].textContent?.trim()).toContain('Vorhanden');
+  });
+
+  it('detects potential duplicates and marks them with Dublette? badge', async () => {
+    // Existing booking matching second mock booking: amount -50, date 2026-09-02 (within 2 days)
+    const existing: Booking[] = [
+      {
+        id: 51,
+        vorgang: 'Buchung',
+        date: '2026-09-03', // 1 day difference
+        sender_receiver: 'Supermarkt alt',
+        description: 'Lebensmittel Vorab',
+        positions: [
+          { account_id: 1, valuta: '2026-09-03', amount: -50 },
+          { account_id: 2, valuta: '2026-09-03', amount: 50 }
+        ]
+      }
+    ];
+    mockBookingService.getByAccountAndPeriod.mockResolvedValue(existing);
+
+    const file = new File(['dummy'], 'test.csv', { type: 'text/csv' });
+    component.selectedFile = file;
+    component.selectedFileName = 'test.csv';
+    component.selectedAccountId = 1;
+
+    await component.onLoadCsv();
+
+    const suspectRow = component.tableItems.find(item => item.source === 'import' && item.amount === -50);
+    expect(suspectRow?.isDuplicateSuspect).toBe(true);
+
+    fixture.detectChanges();
+    const compiled = fixture.nativeElement as HTMLElement;
+    expect(compiled.textContent).toContain('Dublette?');
+  });
+
+  it('allows ignoring an import booking: omits Gegenkonto validation and does not save ignored booking', async () => {
+    const file = new File(['dummy'], 'test.csv', { type: 'text/csv' });
+    component.selectedFile = file;
+    component.selectedFileName = 'test.csv';
+    component.selectedAccountId = 1;
+
+    await component.onLoadCsv();
+
+    // Mark 2nd booking as ignored
+    const itemToIgnore = component.tableItems.find(item => item.source === 'import' && item.amount === -50);
+    expect(itemToIgnore).toBeDefined();
+    itemToIgnore!.ignored = true;
+
+    // Set Gegenkonto only for the active 1st booking
+    const activeItem = component.tableItems.find(item => item.source === 'import' && !item.ignored);
+    activeItem!.booking.positions[1].account_id = 2;
+
+    await component.onFinish();
+
+    // Only 1 booking created
+    expect(mockBookingService.create).toHaveBeenCalledTimes(1);
+    expect(component.step).toBe(1);
+    expect(component.successMessage).toContain('1 Buchungen wurden erfolgreich importiert, 1 ignoriert.');
+  });
+
+  it('updates modified existing booking on finish', async () => {
+    const existing: Booking[] = [
+      {
+        id: 52,
+        vorgang: 'Buchung',
+        date: '2026-09-01',
+        sender_receiver: 'Alter Empfänger',
+        description: 'Alte Verwendung',
+        positions: [
+          { account_id: 1, valuta: '2026-09-01', amount: 100 },
+          { account_id: 2, valuta: '2026-09-01', amount: -100 }
+        ]
+      }
+    ];
+    mockBookingService.getByAccountAndPeriod.mockResolvedValue(existing);
+
+    const file = new File(['dummy'], 'test.csv', { type: 'text/csv' });
+    component.selectedFile = file;
+    component.selectedFileName = 'test.csv';
+    component.selectedAccountId = 1;
+
+    await component.onLoadCsv();
+
+    // Modify existing booking
+    const existingItem = component.tableItems.find(item => item.source === 'existing');
+    expect(existingItem).toBeDefined();
+    existingItem!.sender_receiver = 'Neuer Empfänger';
+    existingItem!.description = 'Neue Verwendung';
+    existingItem!.date = '2026-09-02';
+    existingItem!.valuta = '2026-09-03';
+
+    // Assign Gegenkonten for import items
+    const importItems = component.tableItems.filter(item => item.source === 'import');
+    importItems[0].booking.positions[1].account_id = 2;
+    importItems[1].booking.positions[1].account_id = 2;
+
+    await component.onFinish();
+
+    expect(mockBookingService.update).toHaveBeenCalledWith(52, expect.objectContaining({
+      id: 52,
+      sender_receiver: 'Neuer Empfänger',
+      description: 'Neue Verwendung',
+      date: '2026-09-02',
+      positions: [
+        { account_id: 1, valuta: '2026-09-03', amount: 100 },
+        { account_id: 2, valuta: '2026-09-03', amount: -100 }
+      ]
+    }));
+    expect(mockBookingService.create).toHaveBeenCalledTimes(2);
+    expect(component.successMessage).toContain('1 vorhandene Buchungen aktualisiert');
   });
 });

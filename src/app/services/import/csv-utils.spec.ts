@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest';
-import { decodeCsvBuffer, detectDelimiter, formatIsoToGermanDate, isValidDateString, parseAmount, parseCsvRows, parseDateToIso, tokenizeCsvLine } from './csv-utils';
+import { addDaysToIso, dateDiffInDays, decodeCsvBuffer, detectDelimiter, formatIsoToGermanDate, isValidDateString, parseAmount, parseCsvRows, parseDateToIso, tokenizeCsvLine } from './csv-utils';
 
 describe('csv-utils', () => {
   describe('decodeCsvBuffer', () => {
@@ -141,6 +141,25 @@ describe('csv-utils', () => {
 
     it('handles currency signs and spaces', () => {
       expect(parseAmount(' - 1.250,50 € ')).toBe(-1250.5);
+    });
+  });
+
+  describe('addDaysToIso', () => {
+    it('correctly adds and subtracts days crossing months and years', () => {
+      expect(addDaysToIso('2026-09-01', -2)).toBe('2026-08-30');
+      expect(addDaysToIso('2026-09-01', 2)).toBe('2026-09-03');
+      expect(addDaysToIso('2026-01-01', -2)).toBe('2025-12-30');
+      expect(addDaysToIso('2025-12-31', 2)).toBe('2026-01-02');
+      expect(addDaysToIso('2024-03-01', -2)).toBe('2024-02-28'); // leap year check
+    });
+  });
+
+  describe('dateDiffInDays', () => {
+    it('computes absolute day difference accurately', () => {
+      expect(dateDiffInDays('2026-09-01', '2026-09-03')).toBe(2);
+      expect(dateDiffInDays('2026-09-03', '2026-09-01')).toBe(2);
+      expect(dateDiffInDays('2026-08-31', '2026-09-02')).toBe(2);
+      expect(dateDiffInDays('2026-09-01', '2026-09-01')).toBe(0);
     });
   });
 });

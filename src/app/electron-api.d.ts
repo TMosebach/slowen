@@ -11,6 +11,7 @@ interface ElectronAPI {
   bookings: {
     getAll: () => Promise<any[]>;
     getById: (id: number) => Promise<any>;
+    getByAccountAndPeriod: (accountId: number, fromDate: string, toDate: string) => Promise<any[]>;
     create: (booking: any) => Promise<any>;
     update: (id: number, booking: any) => Promise<any>;
     delete: (id: number) => Promise<void>;

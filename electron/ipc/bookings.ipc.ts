@@ -20,6 +20,15 @@ export function registerBookingsIPC() {
     }
   });
 
+  ipcMain.handle('bookings:getByAccountAndPeriod', async (_event, accountId, fromDate, toDate) => {
+    try {
+      return await bookings.getByAccountAndPeriod(accountId, fromDate, toDate);
+    } catch (error) {
+      console.error('IPC bookings:getByAccountAndPeriod failed:', error);
+      throw error;
+    }
+  });
+
   ipcMain.handle('bookings:create', async (_event, booking) => {
     try {
       return await bookings.create(booking);

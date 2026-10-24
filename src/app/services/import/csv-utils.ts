@@ -188,3 +188,31 @@ export function parseAmount(rawAmount: string): number {
   const val = parseFloat(cleaned);
   return isNaN(val) ? 0 : Math.round(val * 100) / 100;
 }
+
+/**
+ * Add or subtract days from an ISO date string (YYYY-MM-DD).
+ */
+export function addDaysToIso(isoDate: string, days: number): string {
+  const parts = isoDate.split('-').map(Number);
+  if (parts.length !== 3 || isNaN(parts[0]) || isNaN(parts[1]) || isNaN(parts[2])) {
+    return isoDate;
+  }
+  const d = new Date(Date.UTC(parts[0], parts[1] - 1, parts[2]));
+  d.setUTCDate(d.getUTCDate() + days);
+  const y = d.getUTCFullYear();
+  const m = String(d.getUTCMonth() + 1).padStart(2, '0');
+  const day = String(d.getUTCDate()).padStart(2, '0');
+  return `${y}-${m}-${day}`;
+}
+
+/**
+ * Calculate absolute difference in days between two ISO date strings (YYYY-MM-DD).
+ */
+export function dateDiffInDays(isoDate1: string, isoDate2: string): number {
+  const p1 = isoDate1.split('-').map(Number);
+  const p2 = isoDate2.split('-').map(Number);
+  if (p1.length !== 3 || p2.length !== 3) return 0;
+  const utc1 = Date.UTC(p1[0], p1[1] - 1, p1[2]);
+  const utc2 = Date.UTC(p2[0], p2[1] - 1, p2[2]);
+  return Math.round(Math.abs(utc1 - utc2) / (1000 * 60 * 60 * 24));
+}

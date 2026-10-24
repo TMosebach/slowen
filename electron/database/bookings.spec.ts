@@ -805,4 +805,78 @@ describe('purchase bookings', () => {
 
     expect(secondSale.id).toBeTruthy();
   });
+
+  describe('getByAccountAndPeriod', () => {
+    it('returns bookings matching account and date or valuta within period', async () => {
+      await seedPurchaseReferences();
+
+      // Booking 1: date inside range, valuta inside range (account 1)
+      const b1 = await bookings.create({
+        vorgang: 'Buchung',
+        date: '2026-09-05',
+        sender_receiver: 'Test A',
+        description: 'Inside',
+        positions: [
+          { account_id: 1, valuta: '2026-09-05', amount: 100 },
+          { account_id: 2, valuta: '2026-09-05', amount: -100 },
+        ],
+      });
+
+      // Booking 2: date outside range (2026-08-30), but valuta inside range (2026-09-02) (account 1)
+      const b2 = await bookings.create({
+        vorgang: 'Buchung',
+        date: '2026-08-30',
+        sender_receiver: 'Test B',
+        description: 'Valuta inside',
+        positions: [
+          { account_id: 1, valuta: '2026-09-02', amount: 50 },
+          { account_id: 2, valuta: '2026-09-02', amount: -50 },
+        ],
+      });
+
+      // Booking 3: date inside range (2026-09-03), valuta outside (account 1)
+      const b3 = await bookings.create({
+        vorgang: 'Buchung',
+        date: '2026-09-03',
+        sender_receiver: 'Test C',
+        description: 'Date inside',
+        positions: [
+          { account_id: 1, valuta: '2026-09-12', amount: 20 },
+          { account_id: 2, valuta: '2026-09-12', amount: -20 },
+        ],
+      });
+
+      // Booking 4: both outside range (account 1)
+      await bookings.create({
+        vorgang: 'Buchung',
+        date: '2026-08-01',
+        sender_receiver: 'Test D',
+        description: 'Both outside',
+        positions: [
+          { account_id: 1, valuta: '2026-08-01', amount: 10 },
+          { account_id: 2, valuta: '2026-08-01', amount: -10 },
+        ],
+      });
+
+      // Booking 5: date inside range, but different account (only account 2)
+      await bookings.create({
+        vorgang: 'Buchung',
+        date: '2026-09-04',
+        sender_receiver: 'Test E',
+        description: 'Other account',
+        positions: [
+          { account_id: 2, valuta: '2026-09-04', amount: 70 },
+          { account_id: 3, valuta: '2026-09-04', amount: -70 },
+        ],
+      });
+
+      const results = await bookings.getByAccountAndPeriod(1, '2026-09-01', '2026-09-10');
+      expect(results.length).toBe(3);
+      const ids = results.map(r => r.id);
+      expect(ids).toContain(b1.id);
+      expect(ids).toContain(b2.id);
+      expect(ids).toContain(b3.id);
+      expect(results[0].positions?.length).toBe(2);
+    });
+  });
 });

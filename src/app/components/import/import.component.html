@@ -166,10 +166,18 @@
             <span>•</span>
             <span><strong>Datei:</strong> {{ selectedFileName }}</span>
             <span>•</span>
-            <span><strong>Buchungen:</strong> {{ parsedBookings.length }}</span>
+            <span>
+              <strong>Buchungen:</strong> {{ importCount }} neu
+              @if (ignoredCount > 0) {
+                <span class="text-gray-500">({{ ignoredCount }} ignoriert)</span>
+              }
+              @if (existingCount > 0) {
+                <span class="text-slate-600">, {{ existingCount }} vorhanden</span>
+              }
+            </span>
             <span>•</span>
             <span>
-              <strong>Summe:</strong>
+              <strong>Summe aktiv:</strong>
               <span [class.text-green-600]="totalAmount >= 0" [class.text-red-600]="totalAmount < 0" class="font-semibold ml-1">
                 {{ totalAmount | number:'1.2-2' }} €
               </span>
@@ -201,73 +209,184 @@
         <table class="min-w-full divide-y divide-gray-200 text-sm">
           <thead class="bg-gray-50 sticky top-0 z-10 shadow-sm">
             <tr>
-              <th scope="col" class="px-4 py-3 text-left font-semibold text-gray-700 bg-gray-50 w-12 text-xs">
+              <th scope="col" class="px-3 py-3 text-left font-semibold text-gray-700 bg-gray-50 w-10 text-xs">
                 #
               </th>
-              <th scope="col" class="px-4 py-3 text-left font-semibold text-gray-700 bg-gray-50 whitespace-nowrap">
+              <th scope="col" class="px-3 py-3 text-left font-semibold text-gray-700 bg-gray-50 whitespace-nowrap text-xs">
+                Status
+              </th>
+              <th scope="col" class="px-3 py-3 text-center font-semibold text-gray-700 bg-gray-50 whitespace-nowrap text-xs w-20">
+                Ignorieren
+              </th>
+              <th scope="col" class="px-3 py-3 text-left font-semibold text-gray-700 bg-gray-50 whitespace-nowrap text-xs">
                 Buchungsdatum
               </th>
-              <th scope="col" class="px-4 py-3 text-left font-semibold text-gray-700 bg-gray-50 whitespace-nowrap">
+              <th scope="col" class="px-3 py-3 text-left font-semibold text-gray-700 bg-gray-50 whitespace-nowrap text-xs">
                 Empfänger / Sender
               </th>
-              <th scope="col" class="px-4 py-3 text-left font-semibold text-gray-700 bg-gray-50">
+              <th scope="col" class="px-3 py-3 text-left font-semibold text-gray-700 bg-gray-50 text-xs">
                 Beschreibung / Verwendungszweck
               </th>
-              <th scope="col" class="px-4 py-3 text-left font-semibold text-gray-700 bg-gray-50 whitespace-nowrap min-w-[200px]">
+              <th scope="col" class="px-3 py-3 text-left font-semibold text-gray-700 bg-gray-50 whitespace-nowrap min-w-[200px] text-xs">
                 Gegenkonto
               </th>
-              <th scope="col" class="px-4 py-3 text-left font-semibold text-gray-700 bg-gray-50 whitespace-nowrap">
+              <th scope="col" class="px-3 py-3 text-left font-semibold text-gray-700 bg-gray-50 whitespace-nowrap text-xs">
                 Valuta
               </th>
-              <th scope="col" class="px-4 py-3 text-right font-semibold text-gray-700 bg-gray-50 whitespace-nowrap">
+              <th scope="col" class="px-3 py-3 text-right font-semibold text-gray-700 bg-gray-50 whitespace-nowrap text-xs">
                 Betrag
               </th>
             </tr>
           </thead>
           <tbody class="divide-y divide-gray-200 bg-white">
-            @for (booking of parsedBookings; track $index) {
-              <tr class="hover:bg-gray-50">
-                <td class="px-4 py-3 text-xs text-gray-400 whitespace-nowrap align-top">
+            @for (item of tableItems; track $index) {
+              <tr
+                [class.bg-slate-50]="item.source === 'existing'"
+                [class.hover:bg-slate-100]="item.source === 'existing'"
+                [class.bg-gray-100]="item.ignored"
+                [class.opacity-60]="item.ignored"
+                [class.hover:bg-gray-50]="item.source === 'import' && !item.ignored"
+                class="transition"
+              >
+                <!-- # -->
+                <td class="px-3 py-3 text-xs text-gray-400 whitespace-nowrap align-middle">
                   {{ $index + 1 }}
                 </td>
-                <td class="px-4 py-3 text-gray-700 whitespace-nowrap align-top font-mono text-xs">
-                  {{ formatDate(booking.date) }}
-                </td>
-                <td class="px-4 py-3 text-gray-900 font-medium whitespace-nowrap align-top">
-                  {{ booking.sender_receiver || '-' }}
-                </td>
-                <td class="px-4 py-3 text-gray-600 align-top max-w-md break-words">
-                  {{ booking.description || '-' }}
-                </td>
-                <td class="px-4 py-3 align-top whitespace-nowrap">
-                  @if (booking.positions[1]) {
-                    <select
-                      [(ngModel)]="booking.positions[1].account_id"
-                      (ngModelChange)="saveError = null"
-                      [class.border-red-500]="submitted && hasMissingContraAccount(booking)"
-                      [class.bg-red-50]="submitted && hasMissingContraAccount(booking)"
-                      [class.ring-1]="submitted && hasMissingContraAccount(booking)"
-                      [class.ring-red-400]="submitted && hasMissingContraAccount(booking)"
-                      class="text-xs px-2 py-1.5 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 bg-white w-full min-w-[180px] transition"
-                    >
-                      <option [ngValue]="0">-- Gegenkonto wählen --</option>
-                      @for (acc of accounts; track acc.id) {
-                        <option [ngValue]="acc.id">
-                          {{ acc.name }} ({{ acc.subtype }})
-                        </option>
+
+                <!-- Status -->
+                <td class="px-3 py-3 whitespace-nowrap align-middle">
+                  @if (item.source === 'existing') {
+                    <span class="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-slate-200 text-slate-800 border border-slate-300">
+                      Vorhanden
+                    </span>
+                  } @else {
+                    <div class="inline-flex items-center gap-1">
+                      <span
+                        class="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium"
+                        [class.bg-blue-100]="!item.ignored"
+                        [class.text-blue-800]="!item.ignored"
+                        [class.bg-gray-200]="item.ignored"
+                        [class.text-gray-500]="item.ignored"
+                      >
+                        {{ item.ignored ? 'Ignoriert' : 'Neu' }}
+                      </span>
+                      @if (item.isDuplicateSuspect && !item.ignored) {
+                        <span
+                          class="inline-flex items-center px-1.5 py-0.5 rounded text-xs font-medium bg-amber-100 text-amber-800 border border-amber-300"
+                          title="Mögliche Dublette: Betrag und Datum/Valuta stimmen mit einer vorhandenen Buchung überein"
+                        >
+                          Dublette?
+                        </span>
                       }
-                    </select>
+                    </div>
                   }
                 </td>
-                <td class="px-4 py-3 text-gray-500 whitespace-nowrap align-top font-mono text-xs">
-                  {{ formatDate(booking.positions[0]?.valuta || booking.date) }}
+
+                <!-- Ignorieren -->
+                <td class="px-3 py-3 text-center align-middle whitespace-nowrap">
+                  @if (item.source === 'import') {
+                    <input
+                      type="checkbox"
+                      [(ngModel)]="item.ignored"
+                      (ngModelChange)="onIgnoredChange()"
+                      title="Diese Buchung beim Import ignorieren"
+                      class="rounded text-blue-600 focus:ring-blue-500 h-4 w-4 cursor-pointer"
+                    />
+                  } @else {
+                    <span class="text-gray-300 text-xs">—</span>
+                  }
                 </td>
+
+                <!-- Buchungsdatum -->
+                <td class="px-3 py-3 text-gray-700 whitespace-nowrap align-middle font-mono text-xs">
+                  @if (item.source === 'existing') {
+                    <input
+                      type="date"
+                      [(ngModel)]="item.date"
+                      class="text-xs px-2 py-1 border border-gray-300 rounded focus:outline-none focus:ring-1 focus:ring-blue-500 font-mono w-32"
+                    />
+                  } @else {
+                    <span [class.line-through]="item.ignored">{{ formatDate(item.date) }}</span>
+                  }
+                </td>
+
+                <!-- Empfänger / Sender -->
+                <td class="px-3 py-3 text-gray-900 font-medium whitespace-nowrap align-middle">
+                  @if (item.source === 'existing') {
+                    <input
+                      type="text"
+                      [(ngModel)]="item.sender_receiver"
+                      placeholder="Empfänger / Sender"
+                      class="text-xs px-2 py-1 border border-gray-300 rounded focus:outline-none focus:ring-1 focus:ring-blue-500 w-full min-w-[140px]"
+                    />
+                  } @else {
+                    <span [class.line-through]="item.ignored">{{ item.sender_receiver || '-' }}</span>
+                  }
+                </td>
+
+                <!-- Beschreibung -->
+                <td class="px-3 py-3 text-gray-600 align-middle max-w-md">
+                  @if (item.source === 'existing') {
+                    <input
+                      type="text"
+                      [(ngModel)]="item.description"
+                      placeholder="Beschreibung"
+                      class="text-xs px-2 py-1 border border-gray-300 rounded focus:outline-none focus:ring-1 focus:ring-blue-500 w-full min-w-[180px]"
+                    />
+                  } @else {
+                    <span [class.line-through]="item.ignored" class="break-words">{{ item.description || '-' }}</span>
+                  }
+                </td>
+
+                <!-- Gegenkonto -->
+                <td class="px-3 py-3 align-middle whitespace-nowrap">
+                  @if (item.source === 'existing') {
+                    <span class="text-xs text-gray-700 bg-gray-100 px-2 py-1.5 rounded border border-gray-200 inline-block w-full">
+                      {{ item.contraAccountName || '-' }}
+                    </span>
+                  } @else {
+                    @if (item.booking.positions[1]) {
+                      <select
+                        [(ngModel)]="item.booking.positions[1].account_id"
+                        (ngModelChange)="saveError = null"
+                        [disabled]="item.ignored"
+                        [class.border-red-500]="submitted && !item.ignored && hasMissingContraAccount(item.booking)"
+                        [class.bg-red-50]="submitted && !item.ignored && hasMissingContraAccount(item.booking)"
+                        [class.ring-1]="submitted && !item.ignored && hasMissingContraAccount(item.booking)"
+                        [class.ring-red-400]="submitted && !item.ignored && hasMissingContraAccount(item.booking)"
+                        class="text-xs px-2 py-1.5 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 bg-white w-full min-w-[180px] disabled:bg-gray-100 disabled:text-gray-400 transition"
+                      >
+                        <option [ngValue]="0">-- Gegenkonto wählen --</option>
+                        @for (acc of accounts; track acc.id) {
+                          <option [ngValue]="acc.id">
+                            {{ acc.name }} ({{ acc.subtype }})
+                          </option>
+                        }
+                      </select>
+                    }
+                  }
+                </td>
+
+                <!-- Valuta -->
+                <td class="px-3 py-3 text-gray-500 whitespace-nowrap align-middle font-mono text-xs">
+                  @if (item.source === 'existing') {
+                    <input
+                      type="date"
+                      [(ngModel)]="item.valuta"
+                      class="text-xs px-2 py-1 border border-gray-300 rounded focus:outline-none focus:ring-1 focus:ring-blue-500 font-mono w-32"
+                    />
+                  } @else {
+                    <span [class.line-through]="item.ignored">{{ formatDate(item.valuta) }}</span>
+                  }
+                </td>
+
+                <!-- Betrag -->
                 <td
-                  class="px-4 py-3 text-right whitespace-nowrap align-top font-semibold"
-                  [class.text-green-600]="(booking.positions[0]?.amount || 0) >= 0"
-                  [class.text-red-600]="(booking.positions[0]?.amount || 0) < 0"
+                  class="px-3 py-3 text-right whitespace-nowrap align-middle font-semibold"
+                  [class.text-green-600]="item.amount >= 0"
+                  [class.text-red-600]="item.amount < 0"
                 >
-                  {{ (booking.positions[0]?.amount || 0) | number:'1.2-2' }} €
+                  <span [class.line-through]="item.ignored">{{ item.amount | number:'1.2-2' }} €</span>
                 </td>
               </tr>
             }

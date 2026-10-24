@@ -423,6 +423,29 @@ export const bookings = {
     return booking;
   },
 
+  getByAccountAndPeriod: async (accountId: number, fromDate: string, toDate: string): Promise<Booking[]> => {
+    const db = getDatabase();
+    const rows = db
+      .prepare(
+        `SELECT DISTINCT b.*
+         FROM bookings b
+         INNER JOIN booking_positions bp ON bp.booking_id = b.id
+         WHERE bp.account_id = ?
+           AND (
+             (b.date >= ? AND b.date <= ?)
+             OR
+             (bp.valuta >= ? AND bp.valuta <= ?)
+           )
+         ORDER BY b.date ASC, b.id ASC`
+      )
+      .all(accountId, fromDate, toDate, fromDate, toDate) as Booking[];
+
+    for (const row of rows) {
+      loadBookingRelations(row);
+    }
+    return rows;
+  },
+
   create: async (booking: Booking): Promise<Booking> => {
     const db = getDatabase();
     const insertBooking = db.prepare(

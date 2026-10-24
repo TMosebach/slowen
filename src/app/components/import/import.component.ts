@@ -4,10 +4,28 @@ import { FormsModule } from '@angular/forms';
 import { AccountService } from '../../services/account.service';
 import { BookingService } from '../../services/booking.service';
 import { ImportParserService } from '../../services/import/import-parser.service';
-import { decodeCsvBuffer, formatIsoToGermanDate } from '../../services/import/csv-utils';
+import { addDaysToIso, dateDiffInDays, decodeCsvBuffer, formatIsoToGermanDate } from '../../services/import/csv-utils';
 import { Account } from '../../models/account.model';
 import { Booking } from '../../models/booking.model';
 import { ImportType, Institution } from '../../services/import/import-parser.types';
+
+export interface ImportRowItem {
+  id?: number;
+  source: 'import' | 'existing';
+  ignored: boolean;
+  isDuplicateSuspect: boolean;
+  booking: Booking;
+  date: string;
+  valuta: string;
+  sender_receiver: string;
+  description: string;
+  amount: number;
+  originalDate: string;
+  originalValuta: string;
+  originalSenderReceiver: string;
+  originalDescription: string;
+  contraAccountName?: string;
+}
 
 @Component({
   selector: 'app-import',
@@ -32,6 +50,7 @@ export class ImportComponent implements OnInit {
   isReadingFile = false;
   parseError: string | null = null;
   parsedBookings: Booking[] = [];
+  tableItems: ImportRowItem[] = [];
 
   submitted = false;
   saveError: string | null = null;
@@ -93,9 +112,26 @@ export class ImportComponent implements OnInit {
   }
 
   get totalAmount(): number {
-    return this.parsedBookings.reduce((sum, booking) => {
-      return sum + (booking.positions[0]?.amount || 0);
-    }, 0);
+    if (this.tableItems.length === 0) {
+      return this.parsedBookings.reduce((sum, booking) => {
+        return sum + (booking.positions[0]?.amount || 0);
+      }, 0);
+    }
+    return this.tableItems
+      .filter(item => item.source === 'import' && !item.ignored)
+      .reduce((sum, item) => sum + (item.booking.positions[0]?.amount || 0), 0);
+  }
+
+  get importCount(): number {
+    return this.tableItems.filter(item => item.source === 'import' && !item.ignored).length;
+  }
+
+  get ignoredCount(): number {
+    return this.tableItems.filter(item => item.source === 'import' && item.ignored).length;
+  }
+
+  get existingCount(): number {
+    return this.tableItems.filter(item => item.source === 'existing').length;
   }
 
   onFileSelected(event: Event): void {
@@ -146,6 +182,7 @@ export class ImportComponent implements OnInit {
       }
 
       this.parsedBookings = bookings;
+      await this.buildTableItems(bookings);
       this.step = 2;
     } catch (err: any) {
       console.error('Failed to parse import file:', err);
@@ -156,6 +193,114 @@ export class ImportComponent implements OnInit {
     }
   }
 
+  async buildTableItems(bookings: Booking[]): Promise<void> {
+    const importItems: ImportRowItem[] = bookings.map(b => {
+      const targetPos = b.positions[0];
+      return {
+        source: 'import',
+        ignored: false,
+        isDuplicateSuspect: false,
+        booking: b,
+        date: b.date,
+        valuta: targetPos?.valuta || b.date,
+        sender_receiver: b.sender_receiver || '',
+        description: b.description || '',
+        amount: targetPos?.amount || 0,
+        originalDate: b.date,
+        originalValuta: targetPos?.valuta || b.date,
+        originalSenderReceiver: b.sender_receiver || '',
+        originalDescription: b.description || ''
+      };
+    });
+
+    let existingItems: ImportRowItem[] = [];
+
+    if (this.importType === 'Umsatz' && bookings.length > 0 && this.selectedAccountId) {
+      let minDate = bookings[0].date;
+      let maxDate = bookings[0].date;
+
+      for (const b of bookings) {
+        const valuta = b.positions[0]?.valuta || b.date;
+        if (b.date < minDate) minDate = b.date;
+        if (b.date > maxDate) maxDate = b.date;
+        if (valuta < minDate) minDate = valuta;
+        if (valuta > maxDate) maxDate = valuta;
+      }
+
+      const fromDate = addDaysToIso(minDate, -2);
+      const toDate = addDaysToIso(maxDate, 2);
+
+      try {
+        const existingBookings = await this.bookingService.getByAccountAndPeriod(
+          this.selectedAccountId,
+          fromDate,
+          toDate
+        );
+
+        existingItems = (existingBookings || []).map(b => {
+          const targetPos = b.positions.find(p => p.account_id === this.selectedAccountId) || b.positions[0];
+          const contraPos = b.positions.find(p => p.account_id !== this.selectedAccountId);
+          const contraAcc = contraPos ? this.accounts.find(a => a.id === contraPos.account_id) : undefined;
+          const contraAccountName = contraAcc
+            ? `${contraAcc.name} (${contraAcc.subtype})`
+            : (contraPos ? `Konto #${contraPos.account_id}` : '-');
+
+          const valuta = targetPos?.valuta || b.date;
+          return {
+            id: b.id,
+            source: 'existing',
+            ignored: false,
+            isDuplicateSuspect: false,
+            booking: b,
+            date: b.date,
+            valuta,
+            sender_receiver: b.sender_receiver || '',
+            description: b.description || '',
+            amount: targetPos?.amount || 0,
+            originalDate: b.date,
+            originalValuta: valuta,
+            originalSenderReceiver: b.sender_receiver || '',
+            originalDescription: b.description || '',
+            contraAccountName
+          };
+        });
+      } catch (err) {
+        console.warn('Could not load existing bookings for period:', err);
+      }
+    }
+
+    // Identify duplicate suspects for import items
+    for (const item of importItems) {
+      item.isDuplicateSuspect = existingItems.some(ex => {
+        const amountMatch = Math.abs(ex.amount - item.amount) < 0.005;
+        if (!amountMatch) return false;
+        return (
+          dateDiffInDays(item.date, ex.date) <= 2 ||
+          dateDiffInDays(item.valuta, ex.valuta) <= 2 ||
+          dateDiffInDays(item.date, ex.valuta) <= 2 ||
+          dateDiffInDays(item.valuta, ex.date) <= 2
+        );
+      });
+    }
+
+    // Merge and sort chronologically
+    this.tableItems = [...existingItems, ...importItems].sort((a, b) => {
+      const dateComp = a.date.localeCompare(b.date);
+      if (dateComp !== 0) return dateComp;
+      const valutaComp = a.valuta.localeCompare(b.valuta);
+      if (valutaComp !== 0) return valutaComp;
+      if (a.source !== b.source) {
+        return a.source === 'existing' ? -1 : 1;
+      }
+      return 0;
+    });
+  }
+
+  onIgnoredChange(): void {
+    this.saveError = null;
+    this.cdr.detectChanges();
+  }
+
   hasMissingContraAccount(booking: Booking): boolean {
     return !booking.positions[1] || !booking.positions[1].account_id || booking.positions[1].account_id === 0;
   }
@@ -164,7 +309,12 @@ export class ImportComponent implements OnInit {
     this.submitted = true;
     this.saveError = null;
 
-    const missing = this.parsedBookings.filter(b => this.hasMissingContraAccount(b));
+    if (this.tableItems.length === 0 && this.parsedBookings.length > 0) {
+      await this.buildTableItems(this.parsedBookings);
+    }
+
+    const activeImports = this.tableItems.filter(item => item.source === 'import' && !item.ignored);
+    const missing = activeImports.filter(item => this.hasMissingContraAccount(item.booking));
     if (missing.length > 0) {
       this.saveError = 'Bitte wählen Sie für alle Buchungen ein Gegenkonto aus.';
       return;
@@ -172,16 +322,63 @@ export class ImportComponent implements OnInit {
 
     this.saving = true;
     try {
-      for (const booking of this.parsedBookings) {
-        await this.bookingService.create(booking);
+      // 1. Update modified existing bookings
+      const modifiedExisting = this.tableItems.filter(item => {
+        if (item.source !== 'existing' || !item.booking.id) return false;
+        return (
+          item.date !== item.originalDate ||
+          item.valuta !== item.originalValuta ||
+          item.sender_receiver !== item.originalSenderReceiver ||
+          item.description !== item.originalDescription
+        );
+      });
+
+      for (const item of modifiedExisting) {
+        const b = item.booking;
+        b.date = item.date;
+        b.sender_receiver = item.sender_receiver;
+        b.description = item.description;
+
+        const targetPos = b.positions.find(p => p.account_id === this.selectedAccountId);
+        if (targetPos) {
+          targetPos.valuta = item.valuta;
+        }
+        const contraPos = b.positions.find(p => p.account_id !== this.selectedAccountId);
+        if (contraPos && contraPos.valuta === item.originalValuta) {
+          contraPos.valuta = item.valuta;
+        }
+
+        await this.bookingService.update(b.id!, b);
       }
-      const count = this.parsedBookings.length;
+
+      // 2. Create active import bookings
+      for (const item of activeImports) {
+        await this.bookingService.create(item.booking);
+      }
+
+      const importedCount = activeImports.length;
+      const ignoredCount = this.tableItems.filter(item => item.source === 'import' && item.ignored).length;
+      const updatedCount = modifiedExisting.length;
+
       this.step = 1;
+      this.tableItems = [];
       this.parsedBookings = [];
       this.selectedFile = null;
       this.selectedFileName = '';
       this.submitted = false;
-      this.successMessage = `${count} Buchungen wurden erfolgreich importiert.`;
+
+      if (ignoredCount === 0 && updatedCount === 0) {
+        this.successMessage = `${importedCount} Buchungen wurden erfolgreich importiert.`;
+      } else {
+        const parts: string[] = [`${importedCount} Buchungen wurden erfolgreich importiert`];
+        if (ignoredCount > 0) {
+          parts.push(`${ignoredCount} ignoriert`);
+        }
+        if (updatedCount > 0) {
+          parts.push(`${updatedCount} vorhandene Buchungen aktualisiert`);
+        }
+        this.successMessage = parts.join(', ') + '.';
+      }
     } catch (err: any) {
       console.error('Failed to save imported bookings:', err);
       this.saveError = err?.message || 'Fehler beim Speichern der Buchungen.';

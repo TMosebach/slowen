@@ -15,6 +15,10 @@ export class BookingService {
     return this.api.getById(id);
   }
 
+  getByAccountAndPeriod(accountId: number, fromDate: string, toDate: string): Promise<Booking[]> {
+    return this.api.getByAccountAndPeriod(accountId, fromDate, toDate);
+  }
+
   create(booking: Booking): Promise<Booking> {
     return this.api.create(booking);
   }
