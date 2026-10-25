@@ -42,7 +42,8 @@ slowen/
 │   └── preload/                          # Context-Bridge (window.electronAPI)
 ├── docs/                                 # Projektdokumentation
 │   ├── Architektur.md                    # Diese Architekturdokumentation
-│   └── use-cases/                        # Fachliche Use-Case-Spezifikationen
+│   ├── use-cases/                        # Fachliche Use-Case-Spezifikationen
+│   └── import-formate/                   # Instituts- und formatspezifische Import-Spezifikationen
 └── package.json
 ```
 

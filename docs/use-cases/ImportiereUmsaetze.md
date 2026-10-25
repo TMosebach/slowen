@@ -4,6 +4,8 @@
 
 Der Anwender importiert Umsätze aus CSV-Dateien externer Kreditinstitute (ING, Comdirect, Deutsche Bank) in ein ausgewähltes Konto. Das System ermittelt den passenden instituts- und artenspezifischen Parser, überführt die Fremddaten in das Slowen-interne Buchungsmodell (`Booking` mit zwei ausgeglichenen `BookingPosition`en) und visualisiert die erkannten Buchungen auf einer zweiten Seite, auf der der Anwender das Gegenkonto der Buchung manuell zuweist.
 
+Die instituts- und dateiformatspezifischen Kodierungs- und Spaltenregeln sowie die Erkennungsmerkmale für Vorgangsarten sind in den separaten Formatspezifikationen unter [`docs/import-formate/`](../import-formate/README.md) dokumentiert.
+
 ## Beteiligte
 
 * Anwender
@@ -22,8 +24,8 @@ Der Anwender importiert Umsätze aus CSV-Dateien externer Kreditinstitute (ING, 
    * Button **"Laden"** (deaktiviert, solange Pflichtfelder nicht vollständig sind)
 3. Der Anwender wählt die Art des Imports, das Institut, das Zielkonto bzw. -depot und wählt die CSV-Datei aus.
 4. Der Anwender klickt auf den Button **"Laden"**.
-5. Das System ermittelt den zur Kombination aus `Art des Imports` und `Institut` passenden Parser.
-6. Der Parser liest die CSV-Datei ein, übersetzt die institutionsspezifischen Spalten/Formate in das interne Slowen-Buchungsmodell (`Booking` mit zwei Positionen: 1. Position auf das Zielkonto, 2. Position als Gegenbuchung mit invertiertem Betrag).
+5. Das System ermittelt den zur Kombination aus `Art des Imports` und `Institut` passenden Parser (siehe Spezifikationen in [`docs/import-formate/`](../import-formate/README.md)).
+6. Der Parser liest die CSV-Datei ein, erkennt anhand der formatspezifischen Regeln die Vorgangsart (z. B. `Buchung`, `Tilgung`, `Einlieferung`, `Ertrag`) und übersetzt die Daten in das interne Buchungsmodell.
    * Bei der Art *Umsatz* bestimmt das System den Datumszeitraum der importierten Buchungen über das Minimum und Maximum von Buchungsdatum (`date`) und Valuta (`valuta`) aller importierten Sätze, erweitert um jeweils 2 Tage Toleranz davor und danach (`von = min - 2 Tage`, `bis = max + 2 Tage`).
    * Das System lädt alle bereits in Slowen vorhandenen Buchungen des Zielkontos, bei denen das Buchungsdatum ODER die Valuta einer Buchungsposition in diesen erweiterten Zeitraum fällt.
    * Das System wechselt auf die zweite Seite.
@@ -104,3 +106,25 @@ Der Anwender importiert Umsätze aus CSV-Dateien externer Kreditinstitute (ING, 
     - `Valuta` (deutsches Format `DD.MM.YYYY`; editierbar für vorhandene Buchungen)
     - `Betrag` (mit Farbcodierung grün/rot; schreibgeschützt)
   - Button "Fertig", welcher die Validierung, die Aktualisierung korrigierter vorhandener Buchungen und die Speicherung aller aktiven Import-Buchungen anstößt.
+
+## Vorgangsarten und Varianten
+
+Die importierten Umsätze werden anhand institutionsspezifischer Kriterien in unterschiedliche Vorgangsarten unterteilt. Die konkrete Erkennung und das Mapping pro Institut sind in [`docs/import-formate/`](../import-formate/README.md) spezifiziert.
+
+### 1. Standard-Umsatz (`vorgang = 'Buchung'`)
+* Typische Fälle: Überweisungen, Lastschriften, Kartenzahlungen, Daueraufträge auf Giro- oder Anlagekonten.
+* **Gegenkonto:** Freie Auswahl des Gegenkontos durch den Anwender (Aufwand, Ertrag oder Bestandskonto).
+* **Dublettenprüfung:** Voll aktiv (±2 Tage Toleranz), da Gegenbuchungen vorab auf anderen Konten erfasst oder importiert worden sein können.
+
+### 2. Wertpapiervorgänge auf dem Verrechnungskonto
+Wertpapiervorgänge entstehen auf dem dem Depot zugeordneten Verrechnungskonto (z. B. Giro- oder Verrechnungskonto).
+
+* **Tilgung (`vorgang = 'Tilgung'`):**
+  - Rückzahlung bzw. Fälligkeit eines Wertpapiers (z. B. Anleihe, Zertifikat) mit Gutschrift des Nennwerts auf dem Verrechnungskonto und Ausbuchung der Bestände aus dem Depot.
+* **Einlieferung (`vorgang = 'Einlieferung'`):**
+  - Übertrag bzw. Einbuchung von Wertpapierbeständen.
+* **Ertrag (`vorgang = 'Ertrag'`):**
+  - Gutschriften aus Dividenden, Zinsen oder Fondsausschüttungen auf dem Verrechnungskonto, ggf. unter Berücksichtigung einbehaltener Steuern.
+* **Besonderheit bei der Dublettenprüfung:**
+  - Die beteiligten Partnerkonten (Depotkonto, Ertrags- oder Steuerkonten) unterliegen keinem separaten Fremdimport.
+  - Daher können bei diesen Vorgängen keine Dubletten aus Gegenbuchungen eines Partnerkonto-Imports entstehen; die Dublettenprüfung gegen vorherige Importe entfällt hier.
