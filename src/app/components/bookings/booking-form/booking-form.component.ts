@@ -65,6 +65,10 @@ export class BookingFormComponent implements OnInit {
     } else if (this.route.snapshot.data['vorgang'] === 'Verkauf') {
       this.booking.vorgang = 'Verkauf';
       this.booking.saleDetails = this.createEmptySaleDetails();
+    } else if (this.route.snapshot.data['vorgang'] === 'Tilgung') {
+      this.booking.vorgang = 'Tilgung';
+      this.booking.saleDetails = this.createEmptySaleDetails();
+      this.booking.saleDetails.price_per_unit = 100;
     }
 
     const id = this.route.snapshot.paramMap.get('id');
@@ -180,6 +184,9 @@ export class BookingFormComponent implements OnInit {
 
     if (this.isSale() && !this.booking.saleDetails) {
       this.booking.saleDetails = this.createEmptySaleDetails();
+      if (this.isRedemption()) {
+        this.booking.saleDetails.price_per_unit = 100;
+      }
     }
   }
 
@@ -188,7 +195,24 @@ export class BookingFormComponent implements OnInit {
   }
 
   isSale(): boolean {
-    return this.booking.vorgang === 'Verkauf';
+    return this.booking.vorgang === 'Verkauf' || this.booking.vorgang === 'Tilgung';
+  }
+
+  isRedemption(): boolean {
+    return this.booking.vorgang === 'Tilgung';
+  }
+
+  onSecurityChange() {
+    if (this.isRedemption() && this.booking.saleDetails?.security_id) {
+      const sec = this.securities.find(s => s.id === Number(this.booking.saleDetails?.security_id));
+      if (sec?.faelligkeit) {
+        this.booking.date = sec.faelligkeit;
+        this.onDateChange();
+      }
+      if (!this.booking.saleDetails.price_per_unit) {
+        this.booking.saleDetails.price_per_unit = 100;
+      }
+    }
   }
 
   getPurchaseValue(): number {
@@ -304,7 +328,7 @@ export class BookingFormComponent implements OnInit {
           );
         }
 
-        if (booking.vorgang === 'Verkauf') {
+        if (booking.vorgang === 'Verkauf' || booking.vorgang === 'Tilgung') {
           return (
             booking.saleDetails?.depot_account_id === depotAccountId
             && booking.saleDetails.security_id === securityId
@@ -325,7 +349,7 @@ export class BookingFormComponent implements OnInit {
         continue;
       }
 
-      if (booking.vorgang === 'Verkauf' && booking.saleDetails) {
+      if ((booking.vorgang === 'Verkauf' || booking.vorgang === 'Tilgung') && booking.saleDetails) {
         let remaining = booking.saleDetails.quantity;
         for (const lot of lots) {
           if (remaining <= 0) {
@@ -367,7 +391,7 @@ export class BookingFormComponent implements OnInit {
     } else if (this.isSale()) {
       const details = this.booking.saleDetails;
       if (!details || !details.security_id || !details.depot_account_id || !details.settlement_account_id) {
-        alert('Alle Pflichtfelder des Verkaufs müssen ausgefüllt sein.');
+        alert(`Alle Pflichtfelder ${this.isRedemption() ? 'der Tilgung' : 'des Verkaufs'} müssen ausgefüllt sein.`);
         return;
       }
 
@@ -393,7 +417,7 @@ export class BookingFormComponent implements OnInit {
       }
 
       if (!this.hasEnoughHoldingsForSale()) {
-        alert('Nicht genügend Bestand für den Verkauf.');
+        alert(`Nicht genügend Bestand für ${this.isRedemption() ? 'die Tilgung' : 'den Verkauf'}.`);
         return;
       }
     } else {

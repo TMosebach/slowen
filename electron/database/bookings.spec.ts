@@ -806,6 +806,93 @@ describe('purchase bookings', () => {
     expect(secondSale.id).toBeTruthy();
   });
 
+  describe('Tilgung bookings', () => {
+    it('creates Tilgung with FIFO cost basis, positions and allows partial redemptions', async () => {
+      await seedPurchaseReferences();
+
+      // Purchase: 10 units @ 100 on 2026-08-01
+      await bookings.create({
+        vorgang: 'Kauf',
+        date: '2026-08-01',
+        positions: [],
+        purchaseDetails: {
+          security_id: 8, // Bundesanleihe
+          depot_account_id: 3,
+          settlement_account_id: 1,
+          quantity: 10,
+          price_per_unit: 100,
+          fees: 0,
+          accrued_interest: 0,
+        },
+      });
+
+      // Partial redemption: 6 units @ 100 on 2026-08-15
+      // Purchase cost for 6 units: 6 * 100 = 600
+      // Redemption proceeds: 6 * 100 = 600
+      const tilgung = await bookings.create({
+        vorgang: 'Tilgung',
+        date: '2026-08-15',
+        positions: [],
+        saleDetails: {
+          security_id: 8,
+          depot_account_id: 3,
+          settlement_account_id: 1,
+          quantity: 6,
+          price_per_unit: 100,
+          fees: 0,
+          capital_gains_tax: 0,
+          solidarity_surcharge: 0,
+        },
+      });
+
+      expect(tilgung.id).toBeTruthy();
+      expect(tilgung.vorgang).toBe('Tilgung');
+      expect(tilgung.saleDetails?.quantity).toBe(6);
+
+      // Check booking positions:
+      const depotPos = tilgung.positions.find(p => p.account_id === 3);
+      const settlementPos = tilgung.positions.find(p => p.account_id === 1);
+      expect(depotPos?.amount).toBe(-600);
+      expect(settlementPos?.amount).toBe(600);
+
+      const reloaded = await bookings.getById(tilgung.id!);
+      expect(reloaded?.vorgang).toBe('Tilgung');
+      expect(reloaded?.saleDetails?.quantity).toBe(6);
+    });
+
+    it('rejects Tilgung if quantity exceeds available FIFO inventory', async () => {
+      await seedPurchaseReferences();
+
+      await bookings.create({
+        vorgang: 'Kauf',
+        date: '2026-08-01',
+        positions: [],
+        purchaseDetails: {
+          security_id: 8,
+          depot_account_id: 3,
+          settlement_account_id: 1,
+          quantity: 5,
+          price_per_unit: 100,
+        },
+      });
+
+      await expect(
+        bookings.create({
+          vorgang: 'Tilgung',
+          date: '2026-08-10',
+          positions: [],
+          saleDetails: {
+            security_id: 8,
+            depot_account_id: 3,
+            settlement_account_id: 1,
+            quantity: 10, // Exceeds 5
+            price_per_unit: 100,
+          },
+        })
+      ).rejects.toThrow('Nicht genügend Bestand');
+    });
+  });
+
   describe('getByAccountAndPeriod', () => {
     it('returns bookings matching account and date or valuta within period', async () => {
       await seedPurchaseReferences();

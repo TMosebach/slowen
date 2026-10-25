@@ -1,4 +1,4 @@
-export const VORGANG_OPTIONS = ['Buchung', 'Kauf', 'Verkauf'] as const;
+export const VORGANG_OPTIONS = ['Buchung', 'Kauf', 'Verkauf', 'Tilgung'] as const;
 
 export type BookingVorgang = (typeof VORGANG_OPTIONS)[number];
 

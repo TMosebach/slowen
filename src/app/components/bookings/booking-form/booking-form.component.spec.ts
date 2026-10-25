@@ -452,4 +452,43 @@ describe('BookingFormComponent', () => {
       expect(cancel.getAttribute('href')).toBe('/accounts/3');
     });
   });
+
+  describe('Tilgung (redemption) handling', () => {
+    it('initializes Tilgung with price_per_unit = 100 when routing with vorgang Tilgung', async () => {
+      TestBed.resetTestingModule();
+      await TestBed.configureTestingModule({
+        imports: [BookingFormComponent],
+        providers: [
+          provideRouter([{ path: 'bookings', component: DummyBookingsComponent }]),
+          { provide: BookingService, useValue: mockBookingService },
+          { provide: AccountService, useValue: mockAccountService },
+          { provide: SecuritiesService, useValue: mockSecuritiesService },
+          { provide: ActivatedRoute, useValue: { snapshot: { data: { vorgang: 'Tilgung' }, paramMap: new Map(), queryParamMap: new Map() } } },
+        ],
+      }).compileComponents();
+
+      const tilgungFixture = TestBed.createComponent(BookingFormComponent);
+      const tilgungComp = tilgungFixture.componentInstance;
+      tilgungFixture.detectChanges();
+
+      expect(tilgungComp.booking.vorgang).toBe('Tilgung');
+      expect(tilgungComp.isRedemption()).toBe(true);
+      expect(tilgungComp.isSale()).toBe(true);
+      expect(tilgungComp.booking.saleDetails?.price_per_unit).toBe(100);
+    });
+
+    it('pre-fills date and valuta with security faelligkeit on security change', () => {
+      component.booking.vorgang = 'Tilgung';
+      component.securities = [
+        { id: 42, name: 'Bundesanleihe 2026', type: 'Anleihe', isin: 'DE000123', wkn: '123456', faelligkeit: '2026-11-15' },
+      ];
+      component.booking.saleDetails = component.createEmptySaleDetails();
+      component.booking.saleDetails.security_id = 42;
+
+      component.onSecurityChange();
+
+      expect(component.booking.date).toBe('2026-11-15');
+      expect(component.booking.saleDetails.price_per_unit).toBe(100);
+    });
+  });
 });

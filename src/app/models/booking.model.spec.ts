@@ -32,6 +32,10 @@ describe('purchase related booking models', () => {
     expect(VORGANG_OPTIONS).toContain('Verkauf');
   });
 
+  it('exposes Tilgung as valid booking vorgang', () => {
+    expect(VORGANG_OPTIONS).toContain('Tilgung');
+  });
+
   it('supports sale details on bookings', () => {
     const booking: Booking = {
       vorgang: 'Verkauf',

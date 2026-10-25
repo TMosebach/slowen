@@ -58,4 +58,8 @@ export class BookingListComponent implements OnInit {
   createSale() {
     this.router.navigate(['/bookings/new/sale']);
   }
+
+  createRedemption() {
+    this.router.navigate(['/bookings/new/redemption']);
+  }
 }

@@ -98,7 +98,7 @@ function loadFifoCostBasisForSale(booking: Booking, quantity: number): number {
           s.price_per_unit
         FROM bookings b
         INNER JOIN sale_details s ON s.booking_id = b.id
-        WHERE b.vorgang = 'Verkauf'
+        WHERE b.vorgang IN ('Verkauf', 'Tilgung')
           AND s.depot_account_id = ?
           AND s.security_id = ?
       ) history
@@ -179,10 +179,10 @@ function recomputeDerivedSalesForPairs(pairs: Array<{ depot_account_id: number; 
   const db = getDatabase();
   const uniquePairs = Array.from(new Map(pairs.map((pair) => [`${pair.depot_account_id}:${pair.security_id}`, pair])).values());
   const saleQuery = db.prepare(`
-    SELECT b.id, b.date
+    SELECT b.id, b.date, b.vorgang
     FROM bookings b
     INNER JOIN sale_details s ON s.booking_id = b.id
-    WHERE b.vorgang = 'Verkauf'
+    WHERE b.vorgang IN ('Verkauf', 'Tilgung')
       AND s.depot_account_id = ?
       AND s.security_id = ?
     ORDER BY b.date, b.id
@@ -193,13 +193,13 @@ function recomputeDerivedSalesForPairs(pairs: Array<{ depot_account_id: number; 
   );
 
   for (const pair of uniquePairs) {
-    const sales = saleQuery.all(pair.depot_account_id, pair.security_id) as Array<{ id: number; date: string }>;
+    const sales = saleQuery.all(pair.depot_account_id, pair.security_id) as Array<{ id: number; date: string; vorgang: 'Verkauf' | 'Tilgung' }>;
 
     for (const sale of sales) {
       const saleDetails = loadSaleDetailsByBookingId(sale.id);
       const effectivePositions = buildSalePositions({
         id: sale.id,
-        vorgang: 'Verkauf',
+        vorgang: sale.vorgang,
         date: sale.date,
         positions: [],
         saleDetails,
@@ -389,7 +389,7 @@ function loadPurchaseDetails(booking: Booking): PurchaseBookingDetails | undefin
 }
 
 function loadSaleDetails(booking: Booking): SaleBookingDetails | undefined {
-  if (booking.vorgang !== 'Verkauf' || !booking.id) {
+  if ((booking.vorgang !== 'Verkauf' && booking.vorgang !== 'Tilgung') || !booking.id) {
     return undefined;
   }
 
@@ -473,13 +473,13 @@ export const bookings = {
         booking.sender_receiver || null
       );
       const bookingId = result.lastInsertRowid as number;
-      if (booking.vorgang === 'Verkauf' && booking.saleDetails) {
+      if ((booking.vorgang === 'Verkauf' || booking.vorgang === 'Tilgung') && booking.saleDetails) {
         validateSaleDetails(booking.saleDetails);
       }
       const effectivePositions =
         booking.vorgang === 'Kauf'
           ? buildPurchasePositions(booking)
-          : booking.vorgang === 'Verkauf'
+          : booking.vorgang === 'Verkauf' || booking.vorgang === 'Tilgung'
             ? buildSalePositions({ ...booking, id: bookingId })
             : booking.positions;
 
@@ -498,7 +498,7 @@ export const bookings = {
         );
       }
 
-      if (booking.vorgang === 'Verkauf' && booking.saleDetails) {
+      if ((booking.vorgang === 'Verkauf' || booking.vorgang === 'Tilgung') && booking.saleDetails) {
         insertSaleDetails.run(
           bookingId,
           booking.saleDetails.security_id,
@@ -521,7 +521,7 @@ export const bookings = {
         ]);
       }
 
-      if (booking.vorgang === 'Verkauf' && booking.saleDetails) {
+      if ((booking.vorgang === 'Verkauf' || booking.vorgang === 'Tilgung') && booking.saleDetails) {
         recomputeDerivedSalesForPairs([
           {
             depot_account_id: booking.saleDetails.depot_account_id,
@@ -571,13 +571,13 @@ export const bookings = {
       deletePositions.run(id);
       deleteDepotPosition.run(id);
       deleteSaleDetails.run(id);
-      if (booking.vorgang === 'Verkauf' && booking.saleDetails) {
+      if ((booking.vorgang === 'Verkauf' || booking.vorgang === 'Tilgung') && booking.saleDetails) {
         validateSaleDetails(booking.saleDetails);
       }
       const effectivePositions =
         booking.vorgang === 'Kauf'
           ? buildPurchasePositions(booking)
-          : booking.vorgang === 'Verkauf'
+          : booking.vorgang === 'Verkauf' || booking.vorgang === 'Tilgung'
             ? buildSalePositions({ ...booking, id })
             : booking.positions;
 
@@ -596,7 +596,7 @@ export const bookings = {
         );
       }
 
-      if (booking.vorgang === 'Verkauf' && booking.saleDetails) {
+      if ((booking.vorgang === 'Verkauf' || booking.vorgang === 'Tilgung') && booking.saleDetails) {
         insertSaleDetails.run(
           id,
           booking.saleDetails.security_id,
@@ -620,7 +620,7 @@ export const bookings = {
           security_id: booking.purchaseDetails.security_id,
         });
       }
-      if (booking.vorgang === 'Verkauf' && booking.saleDetails) {
+      if ((booking.vorgang === 'Verkauf' || booking.vorgang === 'Tilgung') && booking.saleDetails) {
         affectedPairs.push({
           depot_account_id: booking.saleDetails.depot_account_id,
           security_id: booking.saleDetails.security_id,

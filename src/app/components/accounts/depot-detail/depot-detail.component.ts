@@ -155,7 +155,7 @@ export class DepotDetailComponent implements OnInit {
 
     for (const booking of bookings) {
       if (
-        booking.vorgang !== 'Verkauf'
+        (booking.vorgang !== 'Verkauf' && booking.vorgang !== 'Tilgung')
         || booking.id === undefined
         || booking.saleDetails?.depot_account_id !== depotAccountId
       ) {
@@ -204,7 +204,7 @@ export class DepotDetailComponent implements OnInit {
     const ids = new Set<number>();
 
     for (const booking of bookings) {
-      if (booking.vorgang !== 'Verkauf' || booking.saleDetails?.depot_account_id !== depotAccountId || booking.id === undefined) {
+      if ((booking.vorgang !== 'Verkauf' && booking.vorgang !== 'Tilgung') || booking.saleDetails?.depot_account_id !== depotAccountId || booking.id === undefined) {
         continue;
       }
 

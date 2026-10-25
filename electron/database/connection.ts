@@ -7,7 +7,7 @@ let db: Database.Database;
 const BOOKINGS_TABLE_SQL = `
   CREATE TABLE IF NOT EXISTS bookings (
     id INTEGER PRIMARY KEY AUTOINCREMENT,
-    vorgang TEXT NOT NULL CHECK (vorgang IN ('Buchung', 'Kauf', 'Verkauf')),
+    vorgang TEXT NOT NULL CHECK (vorgang IN ('Buchung', 'Kauf', 'Verkauf', 'Tilgung')),
     date TEXT NOT NULL,
     description TEXT,
     sender_receiver TEXT
@@ -223,7 +223,7 @@ function migrateBookingsSchema(database: Database.Database): void {
     .get() as { sql: string } | undefined;
 
   const bookingsSql = existingBookings?.sql ?? '';
-  const requiresMigration = /CHECK\s*\(\s*vorgang\s+IN\s*\(\s*'Buchung'\s*(?:,\s*'Kauf'\s*)?\)\s*\)/i.test(
+  const requiresMigration = /CHECK\s*\(\s*vorgang\s+IN\s*\(\s*'Buchung'\s*(?:,\s*'Kauf'\s*)?(?:,\s*'Verkauf'\s*)?\)\s*\)/i.test(
     bookingsSql
   );
 

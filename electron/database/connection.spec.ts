@@ -88,6 +88,51 @@ describe('database schema for securities purchases', () => {
     }).not.toThrow();
   });
 
+  it('upgrades existing bookings table from Buchung, Kauf and Verkauf to include Tilgung', () => {
+    const db = new Database(':memory:');
+    db.exec(`
+      CREATE TABLE bookings (
+        id INTEGER PRIMARY KEY AUTOINCREMENT,
+        vorgang TEXT NOT NULL CHECK (vorgang IN ('Buchung', 'Kauf', 'Verkauf')),
+        date TEXT NOT NULL,
+        description TEXT,
+        sender_receiver TEXT
+      )
+    `);
+    db.prepare(`
+      INSERT INTO bookings (vorgang, date, description, sender_receiver)
+      VALUES (?, ?, ?, ?), (?, ?, ?, ?), (?, ?, ?, ?)
+    `).run(
+      'Buchung',
+      '2026-07-31',
+      'Bestehende Buchung',
+      'Bestand',
+      'Kauf',
+      '2026-08-01',
+      'Bestehender Kauf',
+      'Broker',
+      'Verkauf',
+      '2026-08-02',
+      'Bestehender Verkauf',
+      'Broker'
+    );
+
+    initDatabaseSchema(db);
+
+    expect(db.prepare(`SELECT vorgang FROM bookings ORDER BY id`).all()).toEqual([
+      { vorgang: 'Buchung' },
+      { vorgang: 'Kauf' },
+      { vorgang: 'Verkauf' },
+    ]);
+
+    expect(() => {
+      db.prepare(`
+        INSERT INTO bookings (vorgang, date, description, sender_receiver)
+        VALUES (?, ?, ?, ?)
+      `).run('Tilgung', '2026-08-03', 'Testtilgung', 'Emittent');
+    }).not.toThrow();
+  });
+
   it('preserves legacy booking_positions and depot_positions rows during bookings migration', () => {
     const db = new Database(':memory:');
     db.exec(`
