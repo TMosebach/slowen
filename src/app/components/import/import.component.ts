@@ -3,11 +3,13 @@ import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { AccountService } from '../../services/account.service';
 import { BookingService } from '../../services/booking.service';
+import { SecuritiesService } from '../../services/securities.service';
 import { ImportParserService } from '../../services/import/import-parser.service';
 import { addDaysToIso, dateDiffInDays, decodeCsvBuffer, formatIsoToGermanDate } from '../../services/import/csv-utils';
 import { Account } from '../../models/account.model';
-import { Booking } from '../../models/booking.model';
-import { ImportType, Institution } from '../../services/import/import-parser.types';
+import { Booking, PurchaseBookingDetails } from '../../models/booking.model';
+import { Security } from '../../models/security.model';
+import { ImportedBooking, ImportType, Institution } from '../../services/import/import-parser.types';
 
 export interface ImportRowItem {
   id?: number;
@@ -25,6 +27,10 @@ export interface ImportRowItem {
   originalSenderReceiver: string;
   originalDescription: string;
   contraAccountName?: string;
+  // Kauf-specific fields:
+  detectedIsin?: string;
+  detectedSecurityName?: string;
+  purchaseDetails?: PurchaseBookingDetails;
 }
 
 @Component({
@@ -44,6 +50,7 @@ export class ImportComponent implements OnInit {
 
   institutions: Institution[] = ['ING', 'Comdirect', 'Deutsche Bank'];
   accounts: Account[] = [];
+  securities: Security[] = [];
   loadingAccounts = false;
   accountError: string | null = null;
 
@@ -60,12 +67,14 @@ export class ImportComponent implements OnInit {
   constructor(
     private accountService: AccountService,
     private bookingService: BookingService,
+    private securitiesService: SecuritiesService,
     private parserService: ImportParserService,
     private cdr: ChangeDetectorRef
   ) {}
 
   ngOnInit(): void {
     this.loadAccounts();
+    this.loadSecurities();
   }
 
   async loadAccounts(): Promise<void> {
@@ -83,11 +92,23 @@ export class ImportComponent implements OnInit {
     }
   }
 
+  async loadSecurities(): Promise<void> {
+    try {
+      this.securities = await this.securitiesService.getAll();
+    } catch (err) {
+      console.error('Failed to load securities for import:', err);
+    }
+  }
+
   get availableAccounts(): Account[] {
     if (this.importType === 'Depot-Bestand') {
       return this.accounts.filter(acc => acc.subtype === 'Depot');
     }
     return this.accounts.filter(acc => acc.subtype !== 'Depot');
+  }
+
+  get depotAccounts(): Account[] {
+    return this.accounts.filter(acc => acc.subtype === 'Depot');
   }
 
   onImportTypeChange(): void {
@@ -193,9 +214,52 @@ export class ImportComponent implements OnInit {
     }
   }
 
-  async buildTableItems(bookings: Booking[]): Promise<void> {
+  async buildTableItems(bookings: ImportedBooking[]): Promise<void> {
+    // Refresh securities if needed
+    if (this.securities.length === 0) {
+      await this.loadSecurities();
+    }
+
     const importItems: ImportRowItem[] = bookings.map(b => {
       const targetPos = b.positions[0];
+      const isKauf = b.vorgang === 'Kauf';
+
+      let purchaseDetails: PurchaseBookingDetails | undefined;
+      let detectedIsin: string | undefined;
+      let detectedSecurityName: string | undefined;
+
+      if (isKauf) {
+        detectedIsin = b.importMeta?.detectedIsin;
+        detectedSecurityName = b.importMeta?.detectedSecurityName;
+
+        let matchedSecurityId = 0;
+        if (detectedIsin) {
+          const matched = this.securities.find(
+            s => s.isin.toUpperCase() === detectedIsin?.toUpperCase()
+          );
+          if (matched && matched.id) {
+            matchedSecurityId = matched.id;
+          }
+        }
+
+        purchaseDetails = b.purchaseDetails || {
+          settlement_account_id: this.selectedAccountId || 0,
+          depot_account_id: 0,
+          security_id: matchedSecurityId,
+          quantity: 0,
+          price_per_unit: 0,
+          fees: 0,
+          accrued_interest: 0
+        };
+
+        if (matchedSecurityId > 0 && purchaseDetails.security_id === 0) {
+          purchaseDetails.security_id = matchedSecurityId;
+        }
+
+        // Keep booking reference linked
+        b.purchaseDetails = purchaseDetails;
+      }
+
       return {
         source: 'import',
         ignored: false,
@@ -209,7 +273,10 @@ export class ImportComponent implements OnInit {
         originalDate: b.date,
         originalValuta: targetPos?.valuta || b.date,
         originalSenderReceiver: b.sender_receiver || '',
-        originalDescription: b.description || ''
+        originalDescription: b.description || '',
+        detectedIsin,
+        detectedSecurityName,
+        purchaseDetails
       };
     });
 
@@ -240,10 +307,17 @@ export class ImportComponent implements OnInit {
         existingItems = (existingBookings || []).map(b => {
           const targetPos = b.positions.find(p => p.account_id === this.selectedAccountId) || b.positions[0];
           const contraPos = b.positions.find(p => p.account_id !== this.selectedAccountId);
-          const contraAcc = contraPos ? this.accounts.find(a => a.id === contraPos.account_id) : undefined;
-          const contraAccountName = contraAcc
-            ? `${contraAcc.name} (${contraAcc.subtype})`
-            : (contraPos ? `Konto #${contraPos.account_id}` : '-');
+
+          let contraAccountName = '-';
+          if (b.vorgang === 'Kauf' && b.purchaseDetails) {
+            const depotAcc = this.accounts.find(a => a.id === b.purchaseDetails?.depot_account_id);
+            contraAccountName = depotAcc ? `Depot: ${depotAcc.name}` : 'Depot';
+          } else {
+            const contraAcc = contraPos ? this.accounts.find(a => a.id === contraPos.account_id) : undefined;
+            contraAccountName = contraAcc
+              ? `${contraAcc.name} (${contraAcc.subtype})`
+              : (contraPos ? `Konto #${contraPos.account_id}` : '-');
+          }
 
           const valuta = targetPos?.valuta || b.date;
           return {
@@ -261,7 +335,8 @@ export class ImportComponent implements OnInit {
             originalValuta: valuta,
             originalSenderReceiver: b.sender_receiver || '',
             originalDescription: b.description || '',
-            contraAccountName
+            contraAccountName,
+            purchaseDetails: b.purchaseDetails
           };
         });
       } catch (err) {
@@ -301,8 +376,30 @@ export class ImportComponent implements OnInit {
     this.cdr.detectChanges();
   }
 
-  hasMissingContraAccount(booking: Booking): boolean {
-    return !booking.positions[1] || !booking.positions[1].account_id || booking.positions[1].account_id === 0;
+  hasMissingContraAccount(item: ImportRowItem): boolean {
+    if (item.booking.vorgang === 'Kauf') {
+      const d = item.purchaseDetails;
+      return !d || !d.depot_account_id || d.depot_account_id === 0;
+    }
+    return !item.booking.positions[1] || !item.booking.positions[1].account_id || item.booking.positions[1].account_id === 0;
+  }
+
+  hasInvalidPurchaseDetails(item: ImportRowItem): boolean {
+    if (item.booking.vorgang !== 'Kauf') {
+      return false;
+    }
+    const d = item.purchaseDetails;
+    if (!d) return true;
+    return (
+      !d.security_id ||
+      d.security_id <= 0 ||
+      !d.depot_account_id ||
+      d.depot_account_id <= 0 ||
+      !d.quantity ||
+      d.quantity <= 0 ||
+      !d.price_per_unit ||
+      d.price_per_unit <= 0
+    );
   }
 
   async onFinish(): Promise<void> {
@@ -314,9 +411,18 @@ export class ImportComponent implements OnInit {
     }
 
     const activeImports = this.tableItems.filter(item => item.source === 'import' && !item.ignored);
-    const missing = activeImports.filter(item => this.hasMissingContraAccount(item.booking));
-    if (missing.length > 0) {
+
+    // Validate standard Gegenkonto for non-Kauf bookings
+    const missingContra = activeImports.filter(item => item.booking.vorgang !== 'Kauf' && this.hasMissingContraAccount(item));
+    if (missingContra.length > 0) {
       this.saveError = 'Bitte wählen Sie für alle Buchungen ein Gegenkonto aus.';
+      return;
+    }
+
+    // Validate Kauf bookings
+    const invalidPurchases = activeImports.filter(item => item.booking.vorgang === 'Kauf' && this.hasInvalidPurchaseDetails(item));
+    if (invalidPurchases.length > 0) {
+      this.saveError = 'Bitte vervollständigen Sie die Angaben für alle Wertpapierkäufe (Wertpapier, Depot, Stückzahl, Kurs).';
       return;
     }
 
@@ -353,6 +459,14 @@ export class ImportComponent implements OnInit {
 
       // 2. Create active import bookings
       for (const item of activeImports) {
+        if (item.booking.vorgang === 'Kauf' && item.purchaseDetails) {
+          item.booking.purchaseDetails = {
+            ...item.purchaseDetails,
+            settlement_account_id: this.selectedAccountId!,
+            fees: item.purchaseDetails.fees || 0,
+            accrued_interest: item.purchaseDetails.accrued_interest || 0
+          };
+        }
         await this.bookingService.create(item.booking);
       }
 

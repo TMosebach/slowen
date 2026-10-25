@@ -1,6 +1,5 @@
 import { Injectable } from '@angular/core';
-import { Booking } from '../../../models/booking.model';
-import { ImportContext, ImportParser, ImportType, Institution } from '../import-parser.types';
+import { ImportedBooking, ImportContext, ImportParser, ImportType, Institution } from '../import-parser.types';
 import { isValidDateString, parseAmount, parseCsvRows, parseDateToIso } from '../csv-utils';
 
 @Injectable({ providedIn: 'root' })
@@ -12,7 +11,7 @@ export class IngUmsatzParser implements ImportParser {
     return context.importType === this.importType && context.institution === this.institution;
   }
 
-  parse(content: string, context: ImportContext): Booking[] {
+  parse(content: string, context: ImportContext): ImportedBooking[] {
     const rows = parseCsvRows(content);
     if (rows.length === 0) {
       throw new Error('Die Datei enthält keine Daten.');
@@ -47,7 +46,7 @@ export class IngUmsatzParser implements ImportParser {
       throw new Error('Erforderliche Spalten (Buchung, Betrag) im ING-Export nicht gefunden.');
     }
 
-    const bookings: Booking[] = [];
+    const bookings: ImportedBooking[] = [];
     const dataRows = rows.slice(headerRowIndex + 1);
 
     for (const row of dataRows) {
@@ -66,36 +65,91 @@ export class IngUmsatzParser implements ImportParser {
         ? parseDateToIso(row[valutaIdx])
         : date;
       const senderReceiver = senderReceiverIdx !== -1 ? row[senderReceiverIdx]?.trim() : '';
+      const rawBuchungstext = textIdx !== -1 ? row[textIdx]?.trim() || '' : '';
+      const rawPurpose = purposeIdx !== -1 ? row[purposeIdx]?.trim() || '' : '';
 
       const textParts: string[] = [];
-      if (textIdx !== -1 && row[textIdx]?.trim()) {
-        textParts.push(row[textIdx].trim());
+      if (rawBuchungstext) {
+        textParts.push(rawBuchungstext);
       }
-      if (purposeIdx !== -1 && row[purposeIdx]?.trim()) {
-        textParts.push(row[purposeIdx].trim());
+      if (rawPurpose) {
+        textParts.push(rawPurpose);
       }
       const description = textParts.join(' - ');
       const amount = parseAmount(rawAmount);
       const contraAmount = amount === 0 ? 0 : Math.round(-amount * 100) / 100;
 
-      bookings.push({
-        vorgang: 'Buchung',
-        date,
-        sender_receiver: senderReceiver || undefined,
-        description: description || undefined,
-        positions: [
-          {
-            account_id: context.accountId,
-            valuta,
-            amount
-          },
-          {
-            account_id: 0,
-            valuta,
-            amount: contraAmount
+      // Detection for Wertpapierkauf:
+      // Either Buchungstext or Auftraggeber/Empfänger contains "Wertpapierkauf"
+      const isWertpapierkauf =
+        rawBuchungstext.toLowerCase().includes('wertpapierkauf') ||
+        senderReceiver.toLowerCase().includes('wertpapierkauf');
+
+      if (isWertpapierkauf) {
+        // Extract ISIN from Verwendungszweck via Regex (e.g. "Kauf ISIN LU2611732475 AIS AMUNDI...")
+        const isinMatch = rawPurpose.match(/ISIN\s+([A-Z]{2}[A-Z0-9]{9}[0-9])/i);
+        const detectedIsin = isinMatch ? isinMatch[1].toUpperCase() : undefined;
+
+        // Try extracting security name suffix if present behind ISIN
+        let detectedSecurityName: string | undefined;
+        if (isinMatch && isinMatch.index !== undefined) {
+          const afterIsin = rawPurpose.slice(isinMatch.index + isinMatch[0].length).trim();
+          if (afterIsin) {
+            detectedSecurityName = afterIsin;
           }
-        ]
-      });
+        }
+
+        bookings.push({
+          vorgang: 'Kauf',
+          date,
+          sender_receiver: senderReceiver || 'Wertpapierkauf',
+          description: description || undefined,
+          purchaseDetails: {
+            settlement_account_id: context.accountId,
+            depot_account_id: 0,
+            security_id: 0,
+            quantity: 0,
+            price_per_unit: 0,
+            fees: 0,
+            accrued_interest: 0
+          },
+          importMeta: {
+            detectedIsin,
+            detectedSecurityName
+          },
+          positions: [
+            {
+              account_id: context.accountId,
+              valuta,
+              amount
+            },
+            {
+              account_id: 0,
+              valuta,
+              amount: contraAmount
+            }
+          ]
+        });
+      } else {
+        bookings.push({
+          vorgang: 'Buchung',
+          date,
+          sender_receiver: senderReceiver || undefined,
+          description: description || undefined,
+          positions: [
+            {
+              account_id: context.accountId,
+              valuta,
+              amount
+            },
+            {
+              account_id: 0,
+              valuta,
+              amount: contraAmount
+            }
+          ]
+        });
+      }
     }
 
     if (bookings.length === 0) {

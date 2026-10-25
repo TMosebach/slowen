@@ -3,9 +3,11 @@ import { provideRouter } from '@angular/router';
 import { ImportComponent } from './import.component';
 import { AccountService } from '../../services/account.service';
 import { BookingService } from '../../services/booking.service';
+import { SecuritiesService } from '../../services/securities.service';
 import { ImportParserService } from '../../services/import/import-parser.service';
 import { Account } from '../../models/account.model';
 import { Booking } from '../../models/booking.model';
+import { Security } from '../../models/security.model';
 
 describe('ImportComponent', () => {
   let component: ImportComponent;
@@ -16,6 +18,7 @@ describe('ImportComponent', () => {
     update: ReturnType<typeof vi.fn>;
     getByAccountAndPeriod: ReturnType<typeof vi.fn>;
   };
+  let mockSecuritiesService: { getAll: ReturnType<typeof vi.fn> };
   let mockParserService: { parse: ReturnType<typeof vi.fn> };
 
   const mockAccounts: Account[] = [
@@ -23,6 +26,11 @@ describe('ImportComponent', () => {
     { id: 2, name: 'Tagesgeld ING', type: 'Bestand', subtype: 'Tagesgeld' },
     { id: 3, name: 'Depot Comdirect', type: 'Bestand', subtype: 'Depot' },
     { id: 4, name: 'Depot DB', type: 'Bestand', subtype: 'Depot' },
+  ];
+
+  const mockSecurities: Security[] = [
+    { id: 10, name: 'Amundi SDAX ETF', type: 'ETF', isin: 'LU2611732475', wkn: 'ETF123' },
+    { id: 11, name: 'Apple Inc.', type: 'Aktie', isin: 'US0378331005', wkn: '865985' },
   ];
 
   const mockBookings: Booking[] = [
@@ -57,6 +65,9 @@ describe('ImportComponent', () => {
       update: vi.fn().mockImplementation((id: number, b: Booking) => Promise.resolve({ id, ...b })),
       getByAccountAndPeriod: vi.fn().mockResolvedValue([]),
     };
+    mockSecuritiesService = {
+      getAll: vi.fn().mockResolvedValue(mockSecurities),
+    };
     mockParserService = {
       parse: vi.fn().mockReturnValue(mockBookings.map(b => JSON.parse(JSON.stringify(b)))),
     };
@@ -67,6 +78,7 @@ describe('ImportComponent', () => {
         provideRouter([]),
         { provide: AccountService, useValue: mockAccountService },
         { provide: BookingService, useValue: mockBookingService },
+        { provide: SecuritiesService, useValue: mockSecuritiesService },
         { provide: ImportParserService, useValue: mockParserService },
       ],
     }).compileComponents();
@@ -383,5 +395,81 @@ describe('ImportComponent', () => {
     }));
     expect(mockBookingService.create).toHaveBeenCalledTimes(2);
     expect(component.successMessage).toContain('1 vorhandene Buchungen aktualisiert');
+  });
+
+  it('handles Kauf booking: auto-matches ISIN, validates Kauf fields and saves purchaseDetails', async () => {
+    const kaufBooking: Booking = {
+      vorgang: 'Kauf',
+      date: '2026-01-02',
+      sender_receiver: 'Wertpapierkauf',
+      description: 'WP-ABRECHNUNG 0438527477001 Kauf ISIN LU2611732475 AIS AMUNDI SDAX ETF D',
+      purchaseDetails: {
+        settlement_account_id: 1,
+        depot_account_id: 0,
+        security_id: 0,
+        quantity: 0,
+        price_per_unit: 0,
+        fees: 0,
+        accrued_interest: 0
+      },
+      positions: [
+        { account_id: 1, valuta: '2026-01-06', amount: -50 },
+        { account_id: 0, valuta: '2026-01-06', amount: 50 }
+      ]
+    };
+    (kaufBooking as any).importMeta = {
+      detectedIsin: 'LU2611732475',
+      detectedSecurityName: 'AIS AMUNDI SDAX ETF D'
+    };
+
+    mockParserService.parse.mockReturnValue([kaufBooking]);
+
+    const file = new File(['dummy'], 'ing-kauf.csv', { type: 'text/csv' });
+    component.selectedFile = file;
+    component.selectedFileName = 'ing-kauf.csv';
+    component.selectedAccountId = 1;
+    component.institution = 'ING';
+    component.importType = 'Umsatz';
+
+    await component.onLoadCsv();
+
+    expect(component.step).toBe(2);
+    expect(component.tableItems.length).toBe(1);
+
+    const kaufItem = component.tableItems[0];
+    expect(kaufItem.detectedIsin).toBe('LU2611732475');
+    // Matched against mockSecurities: ID 10
+    expect(kaufItem.purchaseDetails?.security_id).toBe(10);
+    expect(kaufItem.purchaseDetails?.depot_account_id).toBe(0);
+
+    // Try finishing without depot, quantity or price -> should fail validation
+    await component.onFinish();
+    expect(component.step).toBe(2);
+    expect(component.saveError).toContain('Wertpapierkäufe');
+
+    // Fill in required purchase fields
+    kaufItem.purchaseDetails!.depot_account_id = 3; // Depot Comdirect
+    kaufItem.purchaseDetails!.quantity = 10;
+    kaufItem.purchaseDetails!.price_per_unit = 5.0;
+    kaufItem.purchaseDetails!.fees = 0;
+
+    await component.onFinish();
+
+    expect(mockBookingService.create).toHaveBeenCalledWith(
+      expect.objectContaining({
+        vorgang: 'Kauf',
+        purchaseDetails: expect.objectContaining({
+          security_id: 10,
+          depot_account_id: 3,
+          settlement_account_id: 1,
+          quantity: 10,
+          price_per_unit: 5.0,
+          fees: 0,
+          accrued_interest: 0
+        })
+      })
+    );
+    expect(component.step).toBe(1);
+    expect(component.successMessage).toContain('1 Buchungen wurden erfolgreich importiert');
   });
 });

@@ -104,4 +104,39 @@ Buchung;Wertstellungsdatum;Auftraggeber/Empfänger;Buchungstext;Verwendungszweck
       parser.parse(csv, { importType: 'Umsatz', institution: 'ING', accountId: 1 })
     ).toThrow('Kopfzeile für ING Umsatz-Export nicht gefunden.');
   });
+
+  it('detects Wertpapierkauf and extracts ISIN and metadata', () => {
+    const csv = `Umsatzanzeige;Datei erstellt am: 18.10.2026 16:20
+
+IBAN;DE77 5001 0517 XXXX XXXX XX
+Kontoname;Girokonto
+Bank;ING
+Kunde;Vorname Zuname
+Zeitraum;02.10.2026 - 02.10.2026
+Saldo;625,09;EUR
+
+Sortierung;Datum absteigend
+
+In der CSV-Datei finden Sie alle bereits gebuchten Umsätze.
+
+Buchung;Wertstellungsdatum;Auftraggeber/Empfänger;Buchungstext;Verwendungszweck;Referenz;Saldo;Währung;Betrag;Währung
+02.01.2026;06.01.2026;;Wertpapierkauf;WP-ABRECHNUNG 0438527477001 Kauf ISIN LU2611732475 AIS AMUNDI SDAX ETF D;;5.204,00;EUR;-50,00;EUR`;
+
+    const bookings = parser.parse(csv, {
+      importType: 'Umsatz',
+      institution: 'ING',
+      accountId: 1
+    });
+
+    expect(bookings.length).toBe(1);
+    const kauf = bookings[0];
+    expect(kauf.vorgang).toBe('Kauf');
+    expect(kauf.date).toBe('2026-01-02');
+    expect(kauf.positions[0].valuta).toBe('2026-01-06');
+    expect(kauf.positions[0].amount).toBe(-50.00);
+    expect(kauf.purchaseDetails).toBeDefined();
+    expect(kauf.purchaseDetails?.settlement_account_id).toBe(1);
+    expect(kauf.importMeta?.detectedIsin).toBe('LU2611732475');
+    expect(kauf.importMeta?.detectedSecurityName).toBe('AIS AMUNDI SDAX ETF D');
+  });
 });

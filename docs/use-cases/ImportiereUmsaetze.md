@@ -119,6 +119,12 @@ Die importierten Umsätze werden anhand institutionsspezifischer Kriterien in un
 ### 2. Wertpapiervorgänge auf dem Verrechnungskonto
 Wertpapiervorgänge entstehen auf dem dem Depot zugeordneten Verrechnungskonto (z. B. Giro- oder Verrechnungskonto).
 
+* **Kauf (`vorgang = 'Kauf'`):**
+  - Kauf eines Wertpapiers mit Belastung des Verrechnungskontos.
+  - Das System erkennt den Vorgang und extrahiert nach Möglichkeit die ISIN.
+  - In der Import-Vorschau werden anstelle der einfachen Gegenkonto-Auswahl die Kauf-Pflichtfelder gemäß [`KaufErfassen.md`](KaufErfassen.md) angezeigt: **Wertpapier**, **Depot-Konto**, **Stückzahl**, **Kurs pro Stück** sowie optional **Gebühren** und **Stückzinsen**.
+  - Fehlt die Stückzahl oder das Wertpapier (z. B. noch nicht in Slowen angelegt), muss der Anwender diese Angaben vor dem Speichern in der Zeile ergänzen.
+  - Werden Gebühren oder Stückzinsen nicht angegeben (leer oder 0), werden keine entsprechenden Provisions-/Stückzinspositionen angelegt.
 * **Tilgung (`vorgang = 'Tilgung'`):**
   - Rückzahlung bzw. Fälligkeit eines Wertpapiers (z. B. Anleihe, Zertifikat) mit Gutschrift des Nennwerts auf dem Verrechnungskonto und Ausbuchung der Bestände aus dem Depot.
 * **Einlieferung (`vorgang = 'Einlieferung'`):**
@@ -127,4 +133,4 @@ Wertpapiervorgänge entstehen auf dem dem Depot zugeordneten Verrechnungskonto (
   - Gutschriften aus Dividenden, Zinsen oder Fondsausschüttungen auf dem Verrechnungskonto, ggf. unter Berücksichtigung einbehaltener Steuern.
 * **Besonderheit bei der Dublettenprüfung:**
   - Die beteiligten Partnerkonten (Depotkonto, Ertrags- oder Steuerkonten) unterliegen keinem separaten Fremdimport.
-  - Daher können bei diesen Vorgängen keine Dubletten aus Gegenbuchungen eines Partnerkonto-Imports entstehen; die Dublettenprüfung gegen vorherige Importe entfällt hier.
+  - Daher können bei diesen Vorgängen keine Dubletten aus Gegenbuchungen eines Partnerkonto-Imports entstehen; die Dublettenprüfung gegen vorherige Importe entfällt hier (bzw. prüft nur manuell vorab erfasste Käufe auf dem Verrechnungskonto).
