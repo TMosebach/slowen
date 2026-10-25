@@ -23,7 +23,7 @@ Um die Spezifikationen lesbar, modular und erweiterbar zu halten, gilt folgende 
 
 | Institut | Datei | Status |
 |---|---|---|
-| **ING** | [`ING.md`](ING.md) | Standard-Umsatz vorhanden; Wertpapiervorgänge in Vorbereitung |
+| **ING** | [`ING.md`](ING.md) | Standard-Umsatz, Kauf und Tilgung produktiv; weitere Vorgänge in Vorbereitung |
 | **Comdirect** | [`Comdirect.md`](Comdirect.md) | Standard-Umsatz vorhanden; Wertpapiervorgänge in Vorbereitung |
 | **Deutsche Bank** | [`DeutscheBank.md`](DeutscheBank.md) | Standard-Umsatz vorhanden; Wertpapiervorgänge in Vorbereitung |
 

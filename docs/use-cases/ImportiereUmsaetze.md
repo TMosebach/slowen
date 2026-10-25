@@ -127,6 +127,10 @@ Wertpapiervorgänge entstehen auf dem dem Depot zugeordneten Verrechnungskonto (
   - Werden Gebühren oder Stückzinsen nicht angegeben (leer oder 0), werden keine entsprechenden Provisions-/Stückzinspositionen angelegt.
 * **Tilgung (`vorgang = 'Tilgung'`):**
   - Rückzahlung bzw. Fälligkeit eines Wertpapiers (z. B. Anleihe, Zertifikat) mit Gutschrift des Nennwerts auf dem Verrechnungskonto und Ausbuchung der Bestände aus dem Depot (siehe auch Use Case [`TilgungErfassen.md`](TilgungErfassen.md)).
+  - Das System erkennt die Tilgung anhand institutsspezifischer Merkmale (z. B. Buchungstext "Wertpapiergutschrift" und Verwendungszweck beginnend mit "Tilgung") und extrahiert die ISIN.
+  - In der Import-Vorschau werden analog zum Kauf die Tilgungs-Pflichtfelder angezeigt: **Wertpapier**, **Depot-Konto**, **Stückzahl**, **Tilgungskurs** (vorbelegt mit 100) sowie optional **Gebühren** und **Steuern** (Kapitalertragsteuer, Solidaritätszuschlag).
+  - Das System schlägt automatisch eine Stückzahl basierend auf Betrag und Tilgungskurs vor, welche vom Anwender angepasst werden kann (auch Teiltilgungen zulässig).
+  - Bei einer rechnerischen Abweichung zwischen berechnetem Nettozufluss und CSV-Betrag wird ein optischer Abweichungshinweis angezeigt.
 * **Einlieferung (`vorgang = 'Einlieferung'`):**
   - Übertrag bzw. Einbuchung von Wertpapierbeständen.
 * **Ertrag (`vorgang = 'Ertrag'`):**

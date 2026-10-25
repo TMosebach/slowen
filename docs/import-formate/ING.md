@@ -27,7 +27,7 @@
 |---|---|---|
 | **Buchung** (Standard) | Fallback / Standard, wenn keine Wertpapier-Schlüsselwörter zutreffen | Produktiv |
 | **Kauf** | `Buchungstext` oder `Auftraggeber/Empfänger` enthält "Wertpapierkauf" (case-insensitive). Die ISIN wird aus dem `Verwendungszweck` per Muster `ISIN\s+([A-Z]{2}[A-Z0-9]{9}[0-9])` extrahiert. | Produktiv |
-| **Tilgung** | `Buchungstext` oder `Verwendungszweck` enthält entsprechende Kennzeichnung (z. B. "Tilgung", "Fälligkeit", "Rückzahlung") | *Format folgt in weiterem Schritt* |
+| **Tilgung** | `Buchungstext` enthält "Wertpapiergutschrift" und `Verwendungszweck` beginnt mit "Tilgung" (case-insensitive). Die ISIN wird aus dem `Verwendungszweck` per Muster `ISIN\s+([A-Z]{2}[A-Z0-9]{9}[0-9])` extrahiert. | Produktiv |
 | **Einlieferung** | `Buchungstext` oder `Verwendungszweck` enthält entsprechende Kennzeichnung (z. B. "Einlieferung", "Depotübertrag") | *Format folgt in weiterem Schritt* |
 | **Ertrag** | `Buchungstext` oder `Verwendungszweck` enthält "Dividende", "Ertragsgutschrift", "Zinsen", "Kupon" | *Format folgt in weiterem Schritt* |
 
@@ -77,7 +77,36 @@
 | `purchaseDetails.fees` | Manuelle Eingabe in Import-Ansicht | Optional, Default 0 |
 | `purchaseDetails.accrued_interest` | Manuelle Eingabe in Import-Ansicht | Optional, Default 0 |
 
-### 4.3 Weitere Wertpapiervorgänge (Tilgung, Einlieferung, Ertrag)
+### 4.3 Vorgang: Tilgung
+
+* **Erkennung:** `Buchungstext` enthält "Wertpapiergutschrift" und `Verwendungszweck` beginnt mit "Tilgung" (case-insensitive).
+* **ISIN-Extraktion:** Aus dem `Verwendungszweck` via Regex `ISIN\s+([A-Z]{2}[A-Z0-9]{9}[0-9])`.
+* **Sender / Empfänger:** Fest vorbelegt mit "Tilgung".
+* **Verrechnungskonto:** Das beim Import ausgewählte Zielkonto (Gutschrift mit dem positiven CSV-Betrag).
+* **Wertpapier:** Wird anhand der extrahierten ISIN automatisch aus den in Slowen angelegten Wertpapieren zugeordnet (`security_id`). Ist das Wertpapier noch nicht angelegt, muss der Anwender es vor dem Import manuell anlegen oder im Dropdown auswählen.
+* **Depot-Konto:** Manuelle Auswahl durch den Anwender in der Import-Ansicht (Pflichtfeld, Typ: `Bestand`, Subtyp: `Depot`).
+* **Tilgungskurs:** Vorbelegt mit 100.
+* **Stückzahl:** Automatisch vorgeschlagen als `(CSV-Betrag + Abzüge) / Tilgungskurs`, editierbar durch den Anwender (Pflichtfeld, > 0; Teiltilgungen möglich).
+* **Gebühren, Steuern (KapESt, Soli):** Optional (Default: 0). Sind sie leer oder 0, werden keine entsprechenden Positionen erzeugt.
+* **Abweichungshinweis:** Weicht der berechnete Nettozufluss (`Stückzahl * Kurs - Abzüge`) vom CSV-Betrag ab, wird ein optischer Hinweistext angezeigt.
+* **Erzeugtes Buchungsmodell:** Buchung mit `vorgang: 'Tilgung'` und `saleDetails` (analog zu Use Case `TilgungErfassen.md`).
+
+| Slowen-Feld | Quelldaten ING | Transformationsregel / Pflicht |
+|---|---|---|
+| `date` | Spalte `Buchung` | ISO 8601 (`YYYY-MM-DD`) |
+| `vorgang` | Fester Wert `'Tilgung'` | Automatisch erkannt |
+| `sender_receiver` | Fester Wert `'Tilgung'` | Vorbelegung |
+| `description` | Spalte `Buchungstext` + Spalte `Verwendungszweck` | Zusammengeführt |
+| `saleDetails.settlement_account_id` | Import-Zielkonto | ID des gewählten Kontos |
+| `saleDetails.security_id` | Extrahiert aus `Verwendungszweck` (ISIN) | Matching gegen `securities.isin`; Pflicht bei Abschluss |
+| `saleDetails.depot_account_id` | Manuelle Auswahl in Import-Ansicht | Pflicht bei Abschluss (Subtyp `Depot`) |
+| `saleDetails.quantity` | Vorschlag: `Betrag / 100`, manuell editierbar | Pflicht bei Abschluss (> 0) |
+| `saleDetails.price_per_unit` | Vorbelegt mit 100 | Pflicht bei Abschluss (> 0) |
+| `saleDetails.fees` | Manuelle Eingabe in Import-Ansicht | Optional, Default 0 |
+| `saleDetails.capital_gains_tax` | Manuelle Eingabe in Import-Ansicht | Optional, Default 0 |
+| `saleDetails.solidarity_surcharge` | Manuelle Eingabe in Import-Ansicht | Optional, Default 0 |
+
+### 4.4 Weitere Wertpapiervorgänge (Einlieferung, Ertrag)
 
 *(Die genaue Kodierung und Feldbelegung aus den ING-CSV-Dateien wird in den folgenden Schritten spezifiziert)*
 
