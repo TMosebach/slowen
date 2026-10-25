@@ -7,7 +7,7 @@ import { SecuritiesService } from '../../services/securities.service';
 import { ImportParserService } from '../../services/import/import-parser.service';
 import { addDaysToIso, dateDiffInDays, decodeCsvBuffer, formatIsoToGermanDate } from '../../services/import/csv-utils';
 import { Account } from '../../models/account.model';
-import { Booking, PurchaseBookingDetails } from '../../models/booking.model';
+import { Booking, PurchaseBookingDetails, SaleBookingDetails } from '../../models/booking.model';
 import { Security } from '../../models/security.model';
 import { ImportedBooking, ImportType, Institution } from '../../services/import/import-parser.types';
 
@@ -27,10 +27,11 @@ export interface ImportRowItem {
   originalSenderReceiver: string;
   originalDescription: string;
   contraAccountName?: string;
-  // Kauf-specific fields:
+  // Wertpapier-spezifische Felder:
   detectedIsin?: string;
   detectedSecurityName?: string;
   purchaseDetails?: PurchaseBookingDetails;
+  saleDetails?: SaleBookingDetails;
 }
 
 @Component({
@@ -223,12 +224,14 @@ export class ImportComponent implements OnInit {
     const importItems: ImportRowItem[] = bookings.map(b => {
       const targetPos = b.positions[0];
       const isKauf = b.vorgang === 'Kauf';
+      const isTilgung = b.vorgang === 'Tilgung';
 
       let purchaseDetails: PurchaseBookingDetails | undefined;
+      let saleDetails: SaleBookingDetails | undefined;
       let detectedIsin: string | undefined;
       let detectedSecurityName: string | undefined;
 
-      if (isKauf) {
+      if (isKauf || isTilgung) {
         detectedIsin = b.importMeta?.detectedIsin;
         detectedSecurityName = b.importMeta?.detectedSecurityName;
 
@@ -242,22 +245,44 @@ export class ImportComponent implements OnInit {
           }
         }
 
-        purchaseDetails = b.purchaseDetails || {
-          settlement_account_id: this.selectedAccountId || 0,
-          depot_account_id: 0,
-          security_id: matchedSecurityId,
-          quantity: 0,
-          price_per_unit: 0,
-          fees: 0,
-          accrued_interest: 0
-        };
+        if (isKauf) {
+          purchaseDetails = b.purchaseDetails || {
+            settlement_account_id: this.selectedAccountId || 0,
+            depot_account_id: 0,
+            security_id: matchedSecurityId,
+            quantity: 0,
+            price_per_unit: 0,
+            fees: 0,
+            accrued_interest: 0
+          };
 
-        if (matchedSecurityId > 0 && purchaseDetails.security_id === 0) {
-          purchaseDetails.security_id = matchedSecurityId;
+          if (matchedSecurityId > 0 && purchaseDetails.security_id === 0) {
+            purchaseDetails.security_id = matchedSecurityId;
+          }
+
+          b.purchaseDetails = purchaseDetails;
+        } else if (isTilgung) {
+          const defaultPrice = 100;
+          const posAmount = targetPos?.amount || 0;
+          const suggestedQuantity = posAmount > 0 ? Math.round((posAmount / defaultPrice) * 10000) / 10000 : 0;
+
+          saleDetails = b.saleDetails || {
+            settlement_account_id: this.selectedAccountId || 0,
+            depot_account_id: 0,
+            security_id: matchedSecurityId,
+            quantity: suggestedQuantity,
+            price_per_unit: defaultPrice,
+            fees: 0,
+            capital_gains_tax: 0,
+            solidarity_surcharge: 0
+          };
+
+          if (matchedSecurityId > 0 && saleDetails.security_id === 0) {
+            saleDetails.security_id = matchedSecurityId;
+          }
+
+          b.saleDetails = saleDetails;
         }
-
-        // Keep booking reference linked
-        b.purchaseDetails = purchaseDetails;
       }
 
       return {
@@ -276,7 +301,8 @@ export class ImportComponent implements OnInit {
         originalDescription: b.description || '',
         detectedIsin,
         detectedSecurityName,
-        purchaseDetails
+        purchaseDetails,
+        saleDetails
       };
     });
 
@@ -309,8 +335,9 @@ export class ImportComponent implements OnInit {
           const contraPos = b.positions.find(p => p.account_id !== this.selectedAccountId);
 
           let contraAccountName = '-';
-          if (b.vorgang === 'Kauf' && b.purchaseDetails) {
-            const depotAcc = this.accounts.find(a => a.id === b.purchaseDetails?.depot_account_id);
+          if ((b.vorgang === 'Kauf' || b.vorgang === 'Tilgung') && (b.purchaseDetails || b.saleDetails)) {
+            const depotId = b.purchaseDetails?.depot_account_id || b.saleDetails?.depot_account_id;
+            const depotAcc = this.accounts.find(a => a.id === depotId);
             contraAccountName = depotAcc ? `Depot: ${depotAcc.name}` : 'Depot';
           } else {
             const contraAcc = contraPos ? this.accounts.find(a => a.id === contraPos.account_id) : undefined;
@@ -381,6 +408,10 @@ export class ImportComponent implements OnInit {
       const d = item.purchaseDetails;
       return !d || !d.depot_account_id || d.depot_account_id === 0;
     }
+    if (item.booking.vorgang === 'Tilgung') {
+      const d = item.saleDetails;
+      return !d || !d.depot_account_id || d.depot_account_id === 0;
+    }
     return !item.booking.positions[1] || !item.booking.positions[1].account_id || item.booking.positions[1].account_id === 0;
   }
 
@@ -402,6 +433,39 @@ export class ImportComponent implements OnInit {
     );
   }
 
+  hasInvalidRedemptionDetails(item: ImportRowItem): boolean {
+    if (item.booking.vorgang !== 'Tilgung') {
+      return false;
+    }
+    const d = item.saleDetails;
+    if (!d) return true;
+    const net = (d.quantity || 0) * (d.price_per_unit || 0) - (d.fees || 0) - (d.capital_gains_tax || 0) - (d.solidarity_surcharge || 0);
+    return (
+      !d.security_id ||
+      d.security_id <= 0 ||
+      !d.depot_account_id ||
+      d.depot_account_id <= 0 ||
+      !d.quantity ||
+      d.quantity <= 0 ||
+      !d.price_per_unit ||
+      d.price_per_unit <= 0 ||
+      net <= 0
+    );
+  }
+
+  getRedemptionNet(item: ImportRowItem): number {
+    const d = item.saleDetails;
+    if (!d) return 0;
+    const gross = (d.quantity || 0) * (d.price_per_unit || 0);
+    const deductions = (d.fees || 0) + (d.capital_gains_tax || 0) + (d.solidarity_surcharge || 0);
+    return gross - deductions;
+  }
+
+  getRedemptionDiff(item: ImportRowItem): number {
+    const net = this.getRedemptionNet(item);
+    return Math.round((net - item.amount) * 100) / 100;
+  }
+
   async onFinish(): Promise<void> {
     this.submitted = true;
     this.saveError = null;
@@ -412,8 +476,8 @@ export class ImportComponent implements OnInit {
 
     const activeImports = this.tableItems.filter(item => item.source === 'import' && !item.ignored);
 
-    // Validate standard Gegenkonto for non-Kauf bookings
-    const missingContra = activeImports.filter(item => item.booking.vorgang !== 'Kauf' && this.hasMissingContraAccount(item));
+    // Validate standard Gegenkonto for non-Kauf and non-Tilgung bookings
+    const missingContra = activeImports.filter(item => item.booking.vorgang !== 'Kauf' && item.booking.vorgang !== 'Tilgung' && this.hasMissingContraAccount(item));
     if (missingContra.length > 0) {
       this.saveError = 'Bitte wählen Sie für alle Buchungen ein Gegenkonto aus.';
       return;
@@ -423,6 +487,13 @@ export class ImportComponent implements OnInit {
     const invalidPurchases = activeImports.filter(item => item.booking.vorgang === 'Kauf' && this.hasInvalidPurchaseDetails(item));
     if (invalidPurchases.length > 0) {
       this.saveError = 'Bitte vervollständigen Sie die Angaben für alle Wertpapierkäufe (Wertpapier, Depot, Stückzahl, Kurs).';
+      return;
+    }
+
+    // Validate Tilgung bookings
+    const invalidRedemptions = activeImports.filter(item => item.booking.vorgang === 'Tilgung' && this.hasInvalidRedemptionDetails(item));
+    if (invalidRedemptions.length > 0) {
+      this.saveError = 'Bitte vervollständigen Sie die Angaben für alle Tilgungen (Wertpapier, Depot, Stückzahl, Kurs > 0, Nettozufluss > 0).';
       return;
     }
 
@@ -465,6 +536,14 @@ export class ImportComponent implements OnInit {
             settlement_account_id: this.selectedAccountId!,
             fees: item.purchaseDetails.fees || 0,
             accrued_interest: item.purchaseDetails.accrued_interest || 0
+          };
+        } else if (item.booking.vorgang === 'Tilgung' && item.saleDetails) {
+          item.booking.saleDetails = {
+            ...item.saleDetails,
+            settlement_account_id: this.selectedAccountId!,
+            fees: item.saleDetails.fees || 0,
+            capital_gains_tax: item.saleDetails.capital_gains_tax || 0,
+            solidarity_surcharge: item.saleDetails.solidarity_surcharge || 0
           };
         }
         await this.bookingService.create(item.booking);

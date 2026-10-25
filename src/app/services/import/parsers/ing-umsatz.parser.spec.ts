@@ -139,4 +139,56 @@ Buchung;Wertstellungsdatum;Auftraggeber/Empfänger;Buchungstext;Verwendungszweck
     expect(kauf.importMeta?.detectedIsin).toBe('LU2611732475');
     expect(kauf.importMeta?.detectedSecurityName).toBe('AIS AMUNDI SDAX ETF D');
   });
+
+  it('detects Tilgung, extracts ISIN and metadata, pre-fills price 100, suggests quantity and sets sender_receiver to Tilgung', () => {
+    const csv = `Umsatzanzeige;Datei erstellt am: 18.10.2026 16:20
+
+IBAN;DE77 5001 0517 XXXX XXXX XX
+Kontoname;Girokonto
+Bank;ING
+Kunde;Vorname Zuname
+Zeitraum;02.10.2026 - 02.10.2026
+Saldo;625,09;EUR
+
+Sortierung;Datum absteigend
+
+In der CSV-Datei finden Sie alle bereits gebuchten Umsätze.
+
+Buchung;Wertstellungsdatum;Auftraggeber/Empfänger;Buchungstext;Verwendungszweck;Referenz;Saldo;Währung;Betrag;Währung
+07.01.2026;07.01.2026;;Wertpapiergutschrift;Tilgung ISIN XS2630524986 GRENKE FI;;7.244,50;EUR;2.000,00;EUR`;
+
+    const bookings = parser.parse(csv, {
+      importType: 'Umsatz',
+      institution: 'ING',
+      accountId: 1
+    });
+
+    expect(bookings.length).toBe(1);
+    const tilgung = bookings[0];
+    expect(tilgung.vorgang).toBe('Tilgung');
+    expect(tilgung.date).toBe('2026-01-07');
+    expect(tilgung.sender_receiver).toBe('Tilgung');
+    expect(tilgung.positions[0].amount).toBe(2000.00);
+    expect(tilgung.positions[0].valuta).toBe('2026-01-07');
+    expect(tilgung.saleDetails).toBeDefined();
+    expect(tilgung.saleDetails?.settlement_account_id).toBe(1);
+    expect(tilgung.saleDetails?.price_per_unit).toBe(100);
+    expect(tilgung.saleDetails?.quantity).toBe(20); // 2000 / 100
+    expect(tilgung.importMeta?.detectedIsin).toBe('XS2630524986');
+    expect(tilgung.importMeta?.detectedSecurityName).toBe('GRENKE FI');
+  });
+
+  it('treats Wertpapiergutschrift without Tilgung in Verwendungszweck as standard Buchung', () => {
+    const csv = `Buchung;Wertstellungsdatum;Auftraggeber/Empfänger;Buchungstext;Verwendungszweck;Saldo;Währung;Betrag;Währung
+07.01.2026;07.01.2026;;Wertpapiergutschrift;Zinsen 2025;;1.000,00;EUR;50,00;EUR`;
+
+    const bookings = parser.parse(csv, {
+      importType: 'Umsatz',
+      institution: 'ING',
+      accountId: 1
+    });
+
+    expect(bookings.length).toBe(1);
+    expect(bookings[0].vorgang).toBe('Buchung');
+  });
 });

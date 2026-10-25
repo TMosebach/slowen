@@ -362,6 +362,24 @@
                         </option>
                       }
                     </select>
+                  } @else if (item.booking.vorgang === 'Tilgung' && item.saleDetails) {
+                    <select
+                      [(ngModel)]="item.saleDetails.depot_account_id"
+                      (ngModelChange)="saveError = null"
+                      [disabled]="item.ignored"
+                      [class.border-red-500]="submitted && !item.ignored && (!item.saleDetails.depot_account_id || item.saleDetails.depot_account_id === 0)"
+                      [class.bg-red-50]="submitted && !item.ignored && (!item.saleDetails.depot_account_id || item.saleDetails.depot_account_id === 0)"
+                      [class.ring-1]="submitted && !item.ignored && (!item.saleDetails.depot_account_id || item.saleDetails.depot_account_id === 0)"
+                      [class.ring-red-400]="submitted && !item.ignored && (!item.saleDetails.depot_account_id || item.saleDetails.depot_account_id === 0)"
+                      class="text-xs px-2 py-1.5 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 bg-white w-full min-w-[180px] disabled:bg-gray-100 disabled:text-gray-400 transition"
+                    >
+                      <option [ngValue]="0">-- Depot wählen --</option>
+                      @for (depot of depotAccounts; track depot.id) {
+                        <option [ngValue]="depot.id">
+                          {{ depot.name }}
+                        </option>
+                      }
+                    </select>
                   } @else {
                     @if (item.booking.positions[1]) {
                       <select
@@ -516,6 +534,139 @@
                             {{ ((item.purchaseDetails.quantity || 0) * (item.purchaseDetails.price_per_unit || 0)) | number:'1.2-2' }} €
                           </strong>
                         </span>
+                      </div>
+                    </div>
+                  </td>
+                </tr>
+              }
+
+              <!-- Tilgung Zusatzzeile (nur für Import-Tilgungsbuchungen) -->
+              @if (item.source === 'import' && item.booking.vorgang === 'Tilgung' && item.saleDetails) {
+                <tr
+                  [class.bg-purple-50]="!item.ignored"
+                  [class.bg-gray-100]="item.ignored"
+                  [class.opacity-60]="item.ignored"
+                  class="border-b border-purple-200 transition"
+                >
+                  <td class="px-3 py-2 text-center text-purple-600 text-xs">↳</td>
+                  <td colspan="8" class="px-3 py-2">
+                    <div class="flex flex-wrap items-center gap-3 text-xs">
+                      <!-- Wertpapier Auswahl & ISIN Hinweis -->
+                      <div class="flex flex-col min-w-[220px]">
+                        <label class="text-gray-600 font-medium mb-0.5">
+                          Wertpapier *
+                          @if (item.detectedIsin) {
+                            <span class="text-purple-600 font-normal ml-1">(ISIN: {{ item.detectedIsin }})</span>
+                          }
+                        </label>
+                        <select
+                          [(ngModel)]="item.saleDetails.security_id"
+                          (ngModelChange)="saveError = null"
+                          [disabled]="item.ignored"
+                          [class.border-red-500]="submitted && !item.ignored && (!item.saleDetails.security_id || item.saleDetails.security_id === 0)"
+                          class="px-2 py-1 border border-gray-300 rounded focus:ring-1 focus:ring-purple-500 bg-white"
+                        >
+                          <option [ngValue]="0">-- Wertpapier auswählen --</option>
+                          @for (sec of securities; track sec.id) {
+                            <option [ngValue]="sec.id">
+                              {{ sec.name }} ({{ sec.isin }})
+                            </option>
+                          }
+                        </select>
+                        @if (!item.saleDetails.security_id && item.detectedIsin) {
+                          <span class="text-amber-700 text-[11px] mt-0.5">
+                            Wertpapier mit ISIN {{ item.detectedIsin }} nicht gefunden. Bitte auswählen oder vorab anlegen.
+                          </span>
+                        }
+                      </div>
+
+                      <!-- Stückzahl -->
+                      <div class="flex flex-col w-28">
+                        <label class="text-gray-600 font-medium mb-0.5">Stückzahl *</label>
+                        <input
+                          type="number"
+                          step="any"
+                          min="0.0001"
+                          [(ngModel)]="item.saleDetails.quantity"
+                          (ngModelChange)="saveError = null"
+                          placeholder="z. B. 20"
+                          [disabled]="item.ignored"
+                          [class.border-red-500]="submitted && !item.ignored && (!item.saleDetails.quantity || item.saleDetails.quantity <= 0)"
+                          class="px-2 py-1 border border-gray-300 rounded focus:ring-1 focus:ring-purple-500 font-mono"
+                        />
+                      </div>
+
+                      <!-- Tilgungskurs -->
+                      <div class="flex flex-col w-28">
+                        <label class="text-gray-600 font-medium mb-0.5">Tilgungskurs *</label>
+                        <input
+                          type="number"
+                          step="0.01"
+                          min="0.01"
+                          [(ngModel)]="item.saleDetails.price_per_unit"
+                          (ngModelChange)="saveError = null"
+                          placeholder="z. B. 100"
+                          [disabled]="item.ignored"
+                          [class.border-red-500]="submitted && !item.ignored && (!item.saleDetails.price_per_unit || item.saleDetails.price_per_unit <= 0)"
+                          class="px-2 py-1 border border-gray-300 rounded focus:ring-1 focus:ring-purple-500 font-mono"
+                        />
+                      </div>
+
+                      <!-- Gebühren -->
+                      <div class="flex flex-col w-24">
+                        <label class="text-gray-600 font-medium mb-0.5">Gebühren</label>
+                        <input
+                          type="number"
+                          step="0.01"
+                          min="0"
+                          [(ngModel)]="item.saleDetails.fees"
+                          placeholder="0,00"
+                          [disabled]="item.ignored"
+                          class="px-2 py-1 border border-gray-300 rounded focus:ring-1 focus:ring-purple-500 font-mono"
+                        />
+                      </div>
+
+                      <!-- Kapitalertragsteuer -->
+                      <div class="flex flex-col w-24">
+                        <label class="text-gray-600 font-medium mb-0.5">KapESt</label>
+                        <input
+                          type="number"
+                          step="0.01"
+                          min="0"
+                          [(ngModel)]="item.saleDetails.capital_gains_tax"
+                          placeholder="0,00"
+                          [disabled]="item.ignored"
+                          class="px-2 py-1 border border-gray-300 rounded focus:ring-1 focus:ring-purple-500 font-mono"
+                        />
+                      </div>
+
+                      <!-- Solidaritätszuschlag -->
+                      <div class="flex flex-col w-24">
+                        <label class="text-gray-600 font-medium mb-0.5">Soli</label>
+                        <input
+                          type="number"
+                          step="0.01"
+                          min="0"
+                          [(ngModel)]="item.saleDetails.solidarity_surcharge"
+                          placeholder="0,00"
+                          [disabled]="item.ignored"
+                          class="px-2 py-1 border border-gray-300 rounded focus:ring-1 focus:ring-purple-500 font-mono"
+                        />
+                      </div>
+
+                      <!-- Nettozufluss & Abweichungshinweis -->
+                      <div class="flex flex-col justify-end text-gray-500 pb-1">
+                        <span>
+                          Nettozufluss:
+                          <strong class="text-gray-700">
+                            {{ getRedemptionNet(item) | number:'1.2-2' }} €
+                          </strong>
+                        </span>
+                        @if (getRedemptionDiff(item) !== 0) {
+                          <span class="text-amber-700 font-medium text-[11px]">
+                            Abweichung zum CSV-Betrag: {{ getRedemptionDiff(item) | number:'1.2-2' }} €
+                          </span>
+                        }
                       </div>
                     </div>
                   </td>

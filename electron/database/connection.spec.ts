@@ -324,4 +324,71 @@ describe('database schema for securities purchases', () => {
       'solidarity_surcharge',
     ]);
   });
+
+  it('repairs corrupted sale_details referencing bookings_legacy and preserves data', () => {
+    const db = new Database(':memory:');
+    db.pragma('foreign_keys = OFF');
+    db.exec(`
+      CREATE TABLE accounts (
+        id INTEGER PRIMARY KEY AUTOINCREMENT,
+        name TEXT NOT NULL,
+        type TEXT NOT NULL,
+        subtype TEXT NOT NULL
+      );
+      CREATE TABLE securities (
+        id INTEGER PRIMARY KEY AUTOINCREMENT,
+        name TEXT NOT NULL,
+        type TEXT NOT NULL,
+        isin TEXT NOT NULL UNIQUE,
+        wkn TEXT NOT NULL UNIQUE
+      );
+      CREATE TABLE bookings (
+        id INTEGER PRIMARY KEY AUTOINCREMENT,
+        vorgang TEXT NOT NULL CHECK (vorgang IN ('Buchung', 'Kauf', 'Verkauf', 'Tilgung')),
+        date TEXT NOT NULL,
+        description TEXT,
+        sender_receiver TEXT
+      );
+      CREATE TABLE sale_details (
+        booking_id INTEGER PRIMARY KEY,
+        security_id INTEGER NOT NULL,
+        depot_account_id INTEGER NOT NULL,
+        settlement_account_id INTEGER NOT NULL,
+        quantity REAL NOT NULL,
+        price_per_unit REAL NOT NULL,
+        fees REAL NOT NULL DEFAULT 0,
+        capital_gains_tax REAL NOT NULL DEFAULT 0,
+        solidarity_surcharge REAL NOT NULL DEFAULT 0,
+        FOREIGN KEY (booking_id) REFERENCES "bookings_legacy"(id) ON DELETE CASCADE,
+        FOREIGN KEY (security_id) REFERENCES securities(id),
+        FOREIGN KEY (depot_account_id) REFERENCES accounts(id),
+        FOREIGN KEY (settlement_account_id) REFERENCES accounts(id)
+      );
+    `);
+
+    db.prepare(`INSERT INTO accounts (id, name, type, subtype) VALUES (1, 'Giro', 'Bestand', 'Giro')`).run();
+    db.prepare(`INSERT INTO accounts (id, name, type, subtype) VALUES (2, 'Depot', 'Bestand', 'Depot')`).run();
+    db.prepare(`INSERT INTO securities (id, name, type, isin, wkn) VALUES (1, 'Aktie', 'Aktie', 'DE0001', '1')`).run();
+    db.prepare(`INSERT INTO bookings (id, vorgang, date) VALUES (10, 'Verkauf', '2026-08-01')`).run();
+    db.prepare(`
+      INSERT INTO sale_details (booking_id, security_id, depot_account_id, settlement_account_id, quantity, price_per_unit)
+      VALUES (10, 1, 2, 1, 5, 50)
+    `).run();
+
+    initDatabaseSchema(db);
+
+    const saleDetailsSql = (
+      db.prepare(`SELECT sql FROM sqlite_master WHERE type = 'table' AND name = 'sale_details'`).get() as { sql: string }
+    ).sql;
+    expect(saleDetailsSql).not.toContain('bookings_legacy');
+    expect(saleDetailsSql).toContain('REFERENCES bookings(id)');
+
+    const rows = db.prepare(`SELECT * FROM sale_details`).all();
+    expect(rows.length).toBe(1);
+    expect(rows[0]).toMatchObject({
+      booking_id: 10,
+      quantity: 5,
+      price_per_unit: 50,
+    });
+  });
 });

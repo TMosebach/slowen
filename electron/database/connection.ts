@@ -90,6 +90,7 @@ export function initDatabaseSchema(database: Database.Database): void {
     )
   `);
 
+  repairLegacyForeignKeyReferences(database);
   migrateBookingsSchema(database);
   database.exec(BOOKINGS_TABLE_SQL);
 
@@ -125,6 +126,7 @@ export function initDatabaseSchema(database: Database.Database): void {
 
   database.exec(SALE_DETAILS_TABLE_SQL);
 
+  repairLegacyForeignKeyReferences(database);
   migrateLegacySaleDetails(database);
 
   database.prepare(
@@ -217,6 +219,51 @@ function migrateLegacySaleDetails(database: Database.Database): void {
   `);
 }
 
+function repairLegacyForeignKeyReferences(database: Database.Database): void {
+  const existingSaleDetails = database
+    .prepare(`SELECT sql FROM sqlite_master WHERE type = 'table' AND name = 'sale_details'`)
+    .get() as { sql: string } | undefined;
+
+  if (existingSaleDetails && existingSaleDetails.sql.includes('bookings_legacy')) {
+    database.exec('PRAGMA foreign_keys = OFF');
+    database.exec('PRAGMA legacy_alter_table = ON');
+    try {
+      database.transaction(() => {
+        database.exec('ALTER TABLE sale_details RENAME TO sale_details_legacy');
+        database.exec(SALE_DETAILS_TABLE_SQL.replace(' IF NOT EXISTS', ''));
+        database.exec(`
+          INSERT INTO sale_details (
+            booking_id,
+            security_id,
+            depot_account_id,
+            settlement_account_id,
+            quantity,
+            price_per_unit,
+            fees,
+            capital_gains_tax,
+            solidarity_surcharge
+          )
+          SELECT
+            booking_id,
+            security_id,
+            depot_account_id,
+            settlement_account_id,
+            quantity,
+            price_per_unit,
+            fees,
+            capital_gains_tax,
+            solidarity_surcharge
+          FROM sale_details_legacy
+        `);
+        database.exec('DROP TABLE sale_details_legacy');
+      })();
+    } finally {
+      database.exec('PRAGMA legacy_alter_table = OFF');
+      database.exec('PRAGMA foreign_keys = ON');
+    }
+  }
+}
+
 function migrateBookingsSchema(database: Database.Database): void {
   const existingBookings = database
     .prepare(`SELECT sql FROM sqlite_master WHERE type = 'table' AND name = 'bookings'`)
@@ -239,7 +286,12 @@ function migrateBookingsSchema(database: Database.Database): void {
     database.prepare(`SELECT 1 FROM sqlite_master WHERE type = 'table' AND name = 'depot_positions'`).get()
   );
 
+  const hasSaleDetails = Boolean(
+    database.prepare(`SELECT 1 FROM sqlite_master WHERE type = 'table' AND name = 'sale_details'`).get()
+  );
+
   database.exec('PRAGMA foreign_keys = OFF');
+  database.exec('PRAGMA legacy_alter_table = ON');
 
   try {
     database.transaction(() => {
@@ -251,10 +303,17 @@ function migrateBookingsSchema(database: Database.Database): void {
         database.exec('ALTER TABLE booking_positions RENAME TO booking_positions_legacy');
       }
 
+      if (hasSaleDetails) {
+        database.exec('ALTER TABLE sale_details RENAME TO sale_details_legacy');
+      }
+
       database.exec('ALTER TABLE bookings RENAME TO bookings_legacy');
       database.exec(BOOKINGS_TABLE_SQL.replace(' IF NOT EXISTS', ''));
       database.exec(BOOKING_POSITIONS_TABLE_SQL.replace(' IF NOT EXISTS', ''));
       database.exec(DEPOT_POSITIONS_TABLE_SQL.replace(' IF NOT EXISTS', ''));
+      if (hasSaleDetails) {
+        database.exec(SALE_DETAILS_TABLE_SQL.replace(' IF NOT EXISTS', ''));
+      }
 
       database.exec(`
         INSERT INTO bookings (id, vorgang, date, description, sender_receiver)
@@ -286,6 +345,33 @@ function migrateBookingsSchema(database: Database.Database): void {
         `);
       }
 
+      if (hasSaleDetails) {
+        database.exec(`
+          INSERT INTO sale_details (
+            booking_id,
+            security_id,
+            depot_account_id,
+            settlement_account_id,
+            quantity,
+            price_per_unit,
+            fees,
+            capital_gains_tax,
+            solidarity_surcharge
+          )
+          SELECT
+            booking_id,
+            security_id,
+            depot_account_id,
+            settlement_account_id,
+            quantity,
+            price_per_unit,
+            fees,
+            capital_gains_tax,
+            solidarity_surcharge
+          FROM sale_details_legacy
+        `);
+      }
+
       if (hasDepotPositions) {
         database.exec('DROP TABLE depot_positions_legacy');
       }
@@ -294,9 +380,14 @@ function migrateBookingsSchema(database: Database.Database): void {
         database.exec('DROP TABLE booking_positions_legacy');
       }
 
+      if (hasSaleDetails) {
+        database.exec('DROP TABLE sale_details_legacy');
+      }
+
       database.exec('DROP TABLE bookings_legacy');
     })();
   } finally {
+    database.exec('PRAGMA legacy_alter_table = OFF');
     database.exec('PRAGMA foreign_keys = ON');
   }
 }

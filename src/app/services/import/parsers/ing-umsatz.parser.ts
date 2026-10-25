@@ -85,6 +85,12 @@ export class IngUmsatzParser implements ImportParser {
         rawBuchungstext.toLowerCase().includes('wertpapierkauf') ||
         senderReceiver.toLowerCase().includes('wertpapierkauf');
 
+      // Detection for Tilgung:
+      // Buchungstext contains "wertpapiergutschrift" and Verwendungszweck starts with "tilgung" (trimmed)
+      const isTilgung =
+        rawBuchungstext.toLowerCase().includes('wertpapiergutschrift') &&
+        rawPurpose.trim().toLowerCase().startsWith('tilgung');
+
       if (isWertpapierkauf) {
         // Extract ISIN from Verwendungszweck via Regex (e.g. "Kauf ISIN LU2611732475 AIS AMUNDI...")
         const isinMatch = rawPurpose.match(/ISIN\s+([A-Z]{2}[A-Z0-9]{9}[0-9])/i);
@@ -112,6 +118,55 @@ export class IngUmsatzParser implements ImportParser {
             price_per_unit: 0,
             fees: 0,
             accrued_interest: 0
+          },
+          importMeta: {
+            detectedIsin,
+            detectedSecurityName
+          },
+          positions: [
+            {
+              account_id: context.accountId,
+              valuta,
+              amount
+            },
+            {
+              account_id: 0,
+              valuta,
+              amount: contraAmount
+            }
+          ]
+        });
+      } else if (isTilgung) {
+        // Extract ISIN from Verwendungszweck via Regex (e.g. "Tilgung ISIN XS2630524986 GRENKE FI...")
+        const isinMatch = rawPurpose.match(/ISIN\s+([A-Z]{2}[A-Z0-9]{9}[0-9])/i);
+        const detectedIsin = isinMatch ? isinMatch[1].toUpperCase() : undefined;
+
+        let detectedSecurityName: string | undefined;
+        if (isinMatch && isinMatch.index !== undefined) {
+          const afterIsin = rawPurpose.slice(isinMatch.index + isinMatch[0].length).trim();
+          if (afterIsin) {
+            detectedSecurityName = afterIsin;
+          }
+        }
+
+        // Suggested quantity based on amount and default price 100
+        const defaultPrice = 100;
+        const suggestedQuantity = amount > 0 ? Math.round((amount / defaultPrice) * 10000) / 10000 : 0;
+
+        bookings.push({
+          vorgang: 'Tilgung',
+          date,
+          sender_receiver: 'Tilgung',
+          description: description || undefined,
+          saleDetails: {
+            settlement_account_id: context.accountId,
+            depot_account_id: 0,
+            security_id: 0,
+            quantity: suggestedQuantity,
+            price_per_unit: defaultPrice,
+            fees: 0,
+            capital_gains_tax: 0,
+            solidarity_surcharge: 0
           },
           importMeta: {
             detectedIsin,

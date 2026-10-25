@@ -31,6 +31,7 @@ describe('ImportComponent', () => {
   const mockSecurities: Security[] = [
     { id: 10, name: 'Amundi SDAX ETF', type: 'ETF', isin: 'LU2611732475', wkn: 'ETF123' },
     { id: 11, name: 'Apple Inc.', type: 'Aktie', isin: 'US0378331005', wkn: '865985' },
+    { id: 12, name: 'GRENKE Anleihe', type: 'Anleihe', isin: 'XS2630524986', wkn: 'A3L0U0' },
   ];
 
   const mockBookings: Booking[] = [
@@ -466,6 +467,90 @@ describe('ImportComponent', () => {
           price_per_unit: 5.0,
           fees: 0,
           accrued_interest: 0
+        })
+      })
+    );
+    expect(component.step).toBe(1);
+    expect(component.successMessage).toContain('1 Buchungen wurden erfolgreich importiert');
+  });
+
+  it('handles Tilgung booking: auto-matches ISIN, pre-fills price 100 & quantity, validates and saves saleDetails', async () => {
+    const tilgungBooking: Booking = {
+      vorgang: 'Tilgung',
+      date: '2026-01-07',
+      sender_receiver: 'Tilgung',
+      description: 'WP-ABRECHNUNG Tilgung ISIN XS2630524986 GRENKE FI',
+      saleDetails: {
+        settlement_account_id: 1,
+        depot_account_id: 0,
+        security_id: 0,
+        quantity: 20, // 2000 / 100
+        price_per_unit: 100,
+        fees: 0,
+        capital_gains_tax: 0,
+        solidarity_surcharge: 0
+      },
+      positions: [
+        { account_id: 1, valuta: '2026-01-07', amount: 2000 },
+        { account_id: 0, valuta: '2026-01-07', amount: -2000 }
+      ]
+    };
+    (tilgungBooking as any).importMeta = {
+      detectedIsin: 'XS2630524986',
+      detectedSecurityName: 'GRENKE FI'
+    };
+
+    mockParserService.parse.mockReturnValue([tilgungBooking]);
+
+    const file = new File(['dummy'], 'ing-tilgung.csv', { type: 'text/csv' });
+    component.selectedFile = file;
+    component.selectedFileName = 'ing-tilgung.csv';
+    component.selectedAccountId = 1;
+    component.institution = 'ING';
+    component.importType = 'Umsatz';
+
+    await component.onLoadCsv();
+
+    expect(component.step).toBe(2);
+    expect(component.tableItems.length).toBe(1);
+
+    const tilgungItem = component.tableItems[0];
+    expect(tilgungItem.detectedIsin).toBe('XS2630524986');
+    // Matched against mockSecurities: ID 12
+    expect(tilgungItem.saleDetails?.security_id).toBe(12);
+    expect(tilgungItem.saleDetails?.quantity).toBe(20);
+    expect(tilgungItem.saleDetails?.price_per_unit).toBe(100);
+    expect(tilgungItem.saleDetails?.depot_account_id).toBe(0);
+
+    // Try finishing without depot -> should fail validation
+    await component.onFinish();
+    expect(component.step).toBe(2);
+    expect(component.saveError).toContain('Tilgungen');
+
+    // Fill in required depot
+    tilgungItem.saleDetails!.depot_account_id = 3; // Depot Comdirect
+    tilgungItem.saleDetails!.fees = 5;
+    tilgungItem.saleDetails!.capital_gains_tax = 10;
+    tilgungItem.saleDetails!.solidarity_surcharge = 0.55;
+
+    // Check redemption net and difference calculation
+    expect(component.getRedemptionNet(tilgungItem)).toBe(2000 - 15.55);
+    expect(component.getRedemptionDiff(tilgungItem)).toBe(-15.55);
+
+    await component.onFinish();
+
+    expect(mockBookingService.create).toHaveBeenCalledWith(
+      expect.objectContaining({
+        vorgang: 'Tilgung',
+        saleDetails: expect.objectContaining({
+          security_id: 12,
+          depot_account_id: 3,
+          settlement_account_id: 1,
+          quantity: 20,
+          price_per_unit: 100,
+          fees: 5,
+          capital_gains_tax: 10,
+          solidarity_surcharge: 0.55
         })
       })
     );
