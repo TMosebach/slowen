@@ -5,7 +5,7 @@
 Desktop-Applikation "Slowen" zur persönlichen Finanzverwaltung mit:
 - Kontenverwaltung (Bestand & GuV)
 - Transaktions- und Buchungsverwaltung
-- Wertpapierverwaltung (Kauf, Verkauf, FIFO-Bestandsführung, Kurspflege)
+- Wertpapierverwaltung (Kauf, Verkauf, Tilgung, FIFO-Bestandsführung, Kurspflege)
 - CSV-Import (Umsätze und Depot-Bestände externer Banken wie ING, Comdirect, Deutsche Bank)
 - Reports und Auswertungen
 
@@ -127,7 +127,7 @@ Slowen folgt dem Architekturprinzip einer **strikten Trennung zwischen internen 
 | Feld | Typ | Constraints | Beschreibung |
 |------|-----|-------------|--------------|
 | id | INTEGER | PK, AUTOINCREMENT | Eindeutige ID |
-| vorgang | TEXT | NOT NULL, IN ('Buchung', 'Kauf', 'Verkauf') | Buchungsvorgang |
+| vorgang | TEXT | NOT NULL, IN ('Buchung', 'Kauf', 'Verkauf', 'Tilgung') | Buchungsvorgang |
 | date | TEXT | NOT NULL | Buchungsdatum (ISO 8601: YYYY-MM-DD) |
 | description | TEXT | OPTIONAL | Verwendungszweck / Buchungstext |
 | sender_receiver | TEXT | OPTIONAL | Beteiligte Gegenstelle |

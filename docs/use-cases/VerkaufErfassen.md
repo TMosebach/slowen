@@ -119,3 +119,4 @@ Der Anwender hat den Use Case „Buchungsliste anzeigen“ ausgeführt und befin
 - Live-Berechnung von Verkaufserlös, Abzügen, Nettozufluss, geschätztem FIFO-Einstand und Kursgewinn/-verlust.
 - Live-Validierung und optische Warnmeldung bei unzureichendem Bestand.
 - Abbrechen-Button: Verwirft Eingaben und navigiert zurück zur Buchungsliste.
+- Hinweis: Für emittentenseitig initiierte Tilgungen existiert der analoge Use Case [`TilgungErfassen.md`](TilgungErfassen.md). Beide Vorgänge teilen sich dieselbe FIFO-Bestandslogik und -Abgangsrechnung.

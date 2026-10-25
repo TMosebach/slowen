@@ -126,7 +126,7 @@ Wertpapiervorgänge entstehen auf dem dem Depot zugeordneten Verrechnungskonto (
   - Fehlt die Stückzahl oder das Wertpapier (z. B. noch nicht in Slowen angelegt), muss der Anwender diese Angaben vor dem Speichern in der Zeile ergänzen.
   - Werden Gebühren oder Stückzinsen nicht angegeben (leer oder 0), werden keine entsprechenden Provisions-/Stückzinspositionen angelegt.
 * **Tilgung (`vorgang = 'Tilgung'`):**
-  - Rückzahlung bzw. Fälligkeit eines Wertpapiers (z. B. Anleihe, Zertifikat) mit Gutschrift des Nennwerts auf dem Verrechnungskonto und Ausbuchung der Bestände aus dem Depot.
+  - Rückzahlung bzw. Fälligkeit eines Wertpapiers (z. B. Anleihe, Zertifikat) mit Gutschrift des Nennwerts auf dem Verrechnungskonto und Ausbuchung der Bestände aus dem Depot (siehe auch Use Case [`TilgungErfassen.md`](TilgungErfassen.md)).
 * **Einlieferung (`vorgang = 'Einlieferung'`):**
   - Übertrag bzw. Einbuchung von Wertpapierbeständen.
 * **Ertrag (`vorgang = 'Ertrag'`):**
