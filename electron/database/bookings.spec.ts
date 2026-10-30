@@ -28,7 +28,7 @@ async function seedPurchaseReferences() {
       (2, 'Brokerkonto', 'Bestand', 'Giro'),
       (3, 'Depot A', 'Bestand', 'Depot')
   `).run();
-  db.prepare(`INSERT INTO accounts (name, type, subtype) VALUES (?, ?, ?), (?, ?, ?), (?, ?, ?), (?, ?, ?), (?, ?, ?), (?, ?, ?)`).run(
+  db.prepare(`INSERT INTO accounts (name, type, subtype) VALUES (?, ?, ?), (?, ?, ?), (?, ?, ?), (?, ?, ?), (?, ?, ?), (?, ?, ?), (?, ?, ?), (?, ?, ?), (?, ?, ?)`).run(
     'Wertpapierprovision',
     'GuV',
     'Aufwand',
@@ -46,7 +46,16 @@ async function seedPurchaseReferences() {
     'Aufwand',
     'Solidaritätszuschlag',
     'GuV',
-    'Aufwand'
+    'Aufwand',
+    'Dividende',
+    'GuV',
+    'Ertrag',
+    'Zins',
+    'GuV',
+    'Ertrag',
+    'Fondsertrag',
+    'GuV',
+    'Ertrag'
   );
   db.prepare(`
     INSERT INTO securities (id, name, type, isin, wkn)
@@ -890,6 +899,107 @@ describe('purchase bookings', () => {
           },
         })
       ).rejects.toThrow('Nicht genügend Bestand');
+    });
+  });
+
+  describe('Ertrag bookings', () => {
+    it('creates Ertrag booking with balanced positions and depot_position of quantity 0', async () => {
+      await seedPurchaseReferences();
+
+      const dividendeAcc = db.prepare(`SELECT id FROM accounts WHERE name = 'Dividende'`).get() as { id: number };
+
+      const ertrag = await bookings.create({
+        vorgang: 'Ertrag',
+        date: '2026-08-20',
+        description: 'Dividende ETF World',
+        sender_receiver: 'Fondsgesellschaft',
+        positions: [],
+        incomeDetails: {
+          security_id: 1, // ETF World
+          depot_account_id: 3,
+          settlement_account_id: 1,
+          income_account_id: dividendeAcc.id,
+          gross_amount: 150.0,
+          capital_gains_tax: 25.0,
+          solidarity_surcharge: 1.37,
+        },
+      });
+
+      expect(ertrag.id).toBeTruthy();
+      expect(ertrag.vorgang).toBe('Ertrag');
+
+      // Net = 150 - 25 - 1.37 = 123.63
+      const settlementPos = ertrag.positions.find((p) => p.account_id === 1);
+      const incomePos = ertrag.positions.find((p) => p.account_id === dividendeAcc.id);
+      const taxPos = ertrag.positions.find((p) => p.amount === 25.0);
+      const soliPos = ertrag.positions.find((p) => p.amount === 1.37);
+
+      expect(settlementPos?.amount).toBe(123.63);
+      expect(incomePos?.amount).toBe(-150.0);
+      expect(taxPos).toBeDefined();
+      expect(soliPos).toBeDefined();
+
+      const sum = ertrag.positions.reduce((acc, pos) => acc + pos.amount, 0);
+      expect(Math.abs(sum)).toBeLessThan(1e-9);
+
+      // Verify depot_position with quantity 0
+      const depotPosRow = db
+        .prepare('SELECT * FROM depot_positions WHERE booking_id = ?')
+        .get(ertrag.id) as { quantity: number; price_per_unit: number; depot_account_id: number; security_id: number };
+
+      expect(depotPosRow).toBeDefined();
+      expect(depotPosRow.quantity).toBe(0);
+      expect(depotPosRow.price_per_unit).toBe(0);
+      expect(depotPosRow.depot_account_id).toBe(3);
+      expect(depotPosRow.security_id).toBe(1);
+
+      // Reload and verify incomeDetails
+      const reloaded = await bookings.getById(ertrag.id!);
+      expect(reloaded?.vorgang).toBe('Ertrag');
+      expect(reloaded?.incomeDetails).toBeDefined();
+      expect(reloaded?.incomeDetails?.security_id).toBe(1);
+      expect(reloaded?.incomeDetails?.depot_account_id).toBe(3);
+      expect(reloaded?.incomeDetails?.settlement_account_id).toBe(1);
+      expect(reloaded?.incomeDetails?.income_account_id).toBe(dividendeAcc.id);
+      expect(reloaded?.incomeDetails?.gross_amount).toBe(150.0);
+      expect(reloaded?.incomeDetails?.capital_gains_tax).toBe(25.0);
+      expect(reloaded?.incomeDetails?.solidarity_surcharge).toBe(1.37);
+    });
+
+    it('rejects Ertrag if gross amount <= 0 or taxes exceed gross amount', async () => {
+      await seedPurchaseReferences();
+      const dividendeAcc = db.prepare(`SELECT id FROM accounts WHERE name = 'Dividende'`).get() as { id: number };
+
+      await expect(
+        bookings.create({
+          vorgang: 'Ertrag',
+          date: '2026-08-20',
+          positions: [],
+          incomeDetails: {
+            security_id: 1,
+            depot_account_id: 3,
+            settlement_account_id: 1,
+            income_account_id: dividendeAcc.id,
+            gross_amount: 0,
+          },
+        })
+      ).rejects.toThrow('Bruttobetrag muss größer 0 sein');
+
+      await expect(
+        bookings.create({
+          vorgang: 'Ertrag',
+          date: '2026-08-20',
+          positions: [],
+          incomeDetails: {
+            security_id: 1,
+            depot_account_id: 3,
+            settlement_account_id: 1,
+            income_account_id: dividendeAcc.id,
+            gross_amount: 50,
+            capital_gains_tax: 60, // Exceeds 50
+          },
+        })
+      ).rejects.toThrow('Nettozufluss muss größer 0 sein');
     });
   });
 

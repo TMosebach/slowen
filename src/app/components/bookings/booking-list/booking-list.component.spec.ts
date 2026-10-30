@@ -73,6 +73,24 @@ describe('BookingListComponent', () => {
     expect(navigate).toHaveBeenCalledWith(['/bookings/new/sale']);
   });
 
+  it('navigates to dedicated redemption entry point', () => {
+    const router = TestBed.inject(Router);
+    const navigate = vi.spyOn(router, 'navigate').mockResolvedValue(true);
+
+    component.createRedemption();
+
+    expect(navigate).toHaveBeenCalledWith(['/bookings/new/redemption']);
+  });
+
+  it('navigates to dedicated income entry point', () => {
+    const router = TestBed.inject(Router);
+    const navigate = vi.spyOn(router, 'navigate').mockResolvedValue(true);
+
+    component.createIncome();
+
+    expect(navigate).toHaveBeenCalledWith(['/bookings/new/income']);
+  });
+
   it('renders table with table-fixed, zebra rows, and text-wrapping cells', () => {
     const table = (fixture.nativeElement as HTMLElement).querySelector('table');
     expect(table?.classList.contains('table-fixed')).toBe(true);

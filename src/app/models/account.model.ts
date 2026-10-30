@@ -15,6 +15,9 @@ export const SYSTEM_ACCOUNT_NAMES = [
   'Kursverlust',
   'Kapitalertragsteuer',
   'Solidaritätszuschlag',
+  'Dividende',
+  'Zins',
+  'Fondsertrag',
 ] as const;
 
 export const ACCOUNT_SUBTYPES = {
@@ -33,7 +36,7 @@ export function isSystemAccount(account: Pick<Account, 'name' | 'type' | 'subtyp
     return false;
   }
 
-  if (account.name === 'Kursgewinn') {
+  if (['Kursgewinn', 'Dividende', 'Zins', 'Fondsertrag'].includes(account.name)) {
     return account.subtype === 'Ertrag';
   }
 

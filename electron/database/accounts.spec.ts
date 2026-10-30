@@ -95,6 +95,18 @@ describe('accounts database protection', () => {
     ).rejects.toThrow('Systemkonto darf nicht angelegt werden: Solidaritätszuschlag');
   });
 
+  it('rejects creating duplicate income system accounts', async () => {
+    for (const name of ['Dividende', 'Zins', 'Fondsertrag'] as const) {
+      await expect(
+        accounts.create({
+          name,
+          type: 'GuV',
+          subtype: 'Ertrag',
+        })
+      ).rejects.toThrow(`Systemkonto darf nicht angelegt werden: ${name}`);
+    }
+  });
+
   it('rejects renaming a normal account into a system account', async () => {
     const created = await accounts.create({
       name: 'Mein Girokonto',

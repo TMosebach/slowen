@@ -5,7 +5,7 @@ import { Router, ActivatedRoute, RouterModule } from '@angular/router';
 import { BookingService } from '../../../services/booking.service';
 import { AccountService } from '../../../services/account.service';
 import { SecuritiesService } from '../../../services/securities.service';
-import { Booking, BookingPosition, PurchaseBookingDetails, SaleBookingDetails, VORGANG_OPTIONS } from '../../../models/booking.model';
+import { Booking, BookingPosition, IncomeBookingDetails, PurchaseBookingDetails, SaleBookingDetails, VORGANG_OPTIONS } from '../../../models/booking.model';
 import { Account } from '../../../models/account.model';
 import { Security } from '../../../models/security.model';
 
@@ -32,6 +32,7 @@ export class BookingFormComponent implements OnInit {
   accounts: Account[] = [];
   depotAccounts: Account[] = [];
   settlementAccounts: Account[] = [];
+  incomeAccounts: Account[] = [];
   securities: Security[] = [];
   vorgangOptions = VORGANG_OPTIONS;
   isEditing = false;
@@ -69,6 +70,17 @@ export class BookingFormComponent implements OnInit {
       this.booking.vorgang = 'Tilgung';
       this.booking.saleDetails = this.createEmptySaleDetails();
       this.booking.saleDetails.price_per_unit = 100;
+    } else if (this.route.snapshot.data['vorgang'] === 'Ertrag') {
+      this.booking.vorgang = 'Ertrag';
+      this.booking.incomeDetails = this.createEmptyIncomeDetails();
+      const depotId = this.route.snapshot.queryParamMap.get('depotId');
+      const securityId = this.route.snapshot.queryParamMap.get('securityId');
+      if (depotId) {
+        this.booking.incomeDetails.depot_account_id = parseInt(depotId, 10);
+      }
+      if (securityId) {
+        this.booking.incomeDetails.security_id = parseInt(securityId, 10);
+      }
     }
 
     const id = this.route.snapshot.paramMap.get('id');
@@ -84,6 +96,8 @@ export class BookingFormComponent implements OnInit {
       this.accounts = await this.accountService.getAll();
       this.depotAccounts = this.accounts.filter((account) => account.subtype === 'Depot');
       this.settlementAccounts = this.accounts.filter((account) => account.type === 'Bestand' && account.subtype !== 'Depot');
+      this.incomeAccounts = this.accounts.filter((account) => account.type === 'GuV' && account.subtype === 'Ertrag');
+      this.preselectIncomeAccount();
     } catch (err) {
       console.error('Failed to load accounts:', err);
     } finally {
@@ -94,6 +108,7 @@ export class BookingFormComponent implements OnInit {
   async loadSecurities() {
     try {
       this.securities = await this.securitiesService.getAll();
+      this.preselectIncomeAccount();
     } catch (err) {
       console.error('Failed to load securities:', err);
     } finally {
@@ -111,6 +126,9 @@ export class BookingFormComponent implements OnInit {
         }
         if (this.isSale() && !this.booking.saleDetails) {
           this.booking.saleDetails = this.createEmptySaleDetails();
+        }
+        if (this.isIncome() && !this.booking.incomeDetails) {
+          this.booking.incomeDetails = this.createEmptyIncomeDetails();
         }
       }
       this.cdr.detectChanges();
@@ -153,6 +171,18 @@ export class BookingFormComponent implements OnInit {
     };
   }
 
+  createEmptyIncomeDetails(): IncomeBookingDetails {
+    return {
+      security_id: 0,
+      depot_account_id: 0,
+      settlement_account_id: 0,
+      income_account_id: 0,
+      gross_amount: 0,
+      capital_gains_tax: 0,
+      solidarity_surcharge: 0,
+    };
+  }
+
   createEmptyPosition(): BookingPosition {
     return {
       account_id: 0,
@@ -188,6 +218,10 @@ export class BookingFormComponent implements OnInit {
         this.booking.saleDetails.price_per_unit = 100;
       }
     }
+
+    if (this.isIncome() && !this.booking.incomeDetails) {
+      this.booking.incomeDetails = this.createEmptyIncomeDetails();
+    }
   }
 
   isPurchase(): boolean {
@@ -202,6 +236,10 @@ export class BookingFormComponent implements OnInit {
     return this.booking.vorgang === 'Tilgung';
   }
 
+  isIncome(): boolean {
+    return this.booking.vorgang === 'Ertrag';
+  }
+
   onSecurityChange() {
     if (this.isRedemption() && this.booking.saleDetails?.security_id) {
       const sec = this.securities.find(s => s.id === Number(this.booking.saleDetails?.security_id));
@@ -213,6 +251,59 @@ export class BookingFormComponent implements OnInit {
         this.booking.saleDetails.price_per_unit = 100;
       }
     }
+  }
+
+  onIncomeSecurityChange() {
+    this.preselectIncomeAccount();
+  }
+
+  preselectIncomeAccount() {
+    if (!this.isIncome() || !this.booking.incomeDetails?.security_id) {
+      return;
+    }
+    const sec = this.securities.find(s => s.id === Number(this.booking.incomeDetails?.security_id));
+    if (!sec) {
+      return;
+    }
+    let targetName = 'Dividende';
+    if (sec.type === 'Aktie') {
+      targetName = 'Dividende';
+    } else if (sec.type === 'Anleihe' || sec.type === 'Zertifikat') {
+      targetName = 'Zins';
+    } else if (sec.type === 'Fonds' || sec.type === 'ETF') {
+      targetName = 'Fondsertrag';
+    }
+
+    const found = this.incomeAccounts.find(a => a.name === targetName);
+    if (found?.id) {
+      this.booking.incomeDetails.income_account_id = found.id;
+    }
+  }
+
+  getIncomeDeductions(): number {
+    const details = this.booking.incomeDetails;
+    if (!details) {
+      return 0;
+    }
+    return (details.capital_gains_tax ?? 0) + (details.solidarity_surcharge ?? 0);
+  }
+
+  getIncomeNet(): number {
+    const details = this.booking.incomeDetails;
+    if (!details) {
+      return 0;
+    }
+    return (details.gross_amount ?? 0) - this.getIncomeDeductions();
+  }
+
+  hasHoldingsForIncome(): boolean {
+    const details = this.booking.incomeDetails;
+    if (!details || !details.depot_account_id || !details.security_id) {
+      return true;
+    }
+    const lots = this.buildSaleFifoState(details.depot_account_id, details.security_id);
+    const available = lots.reduce((sum, lot) => sum + lot.remaining, 0);
+    return available > 0;
   }
 
   getPurchaseValue(): number {
@@ -418,6 +509,27 @@ export class BookingFormComponent implements OnInit {
 
       if (!this.hasEnoughHoldingsForSale()) {
         alert(`Nicht genügend Bestand für ${this.isRedemption() ? 'die Tilgung' : 'den Verkauf'}.`);
+        return;
+      }
+    } else if (this.isIncome()) {
+      const details = this.booking.incomeDetails;
+      if (!details || !details.security_id || !details.depot_account_id || !details.settlement_account_id || !details.income_account_id) {
+        alert('Alle Pflichtfelder des Ertrags müssen ausgefüllt sein.');
+        return;
+      }
+
+      if (details.depot_account_id === details.settlement_account_id) {
+        alert('Depot-Konto und Verrechnungskonto müssen unterschiedlich sein.');
+        return;
+      }
+
+      if (details.gross_amount <= 0 || (details.capital_gains_tax ?? 0) < 0 || (details.solidarity_surcharge ?? 0) < 0) {
+        alert('Bruttobetrag muss größer 0 sein. Steuern dürfen nicht negativ sein.');
+        return;
+      }
+
+      if (this.getIncomeNet() <= 0) {
+        alert('Nettozufluss muss größer 0 sein.');
         return;
       }
     } else {

@@ -7,7 +7,7 @@ let db: Database.Database;
 const BOOKINGS_TABLE_SQL = `
   CREATE TABLE IF NOT EXISTS bookings (
     id INTEGER PRIMARY KEY AUTOINCREMENT,
-    vorgang TEXT NOT NULL CHECK (vorgang IN ('Buchung', 'Kauf', 'Verkauf', 'Tilgung')),
+    vorgang TEXT NOT NULL CHECK (vorgang IN ('Buchung', 'Kauf', 'Verkauf', 'Tilgung', 'Ertrag')),
     date TEXT NOT NULL,
     description TEXT,
     sender_receiver TEXT
@@ -164,6 +164,24 @@ export function initDatabaseSchema(database: Database.Database): void {
      SELECT ?, ?, ?
      WHERE NOT EXISTS (SELECT 1 FROM accounts WHERE name = ?)`
   ).run('Solidaritätszuschlag', 'GuV', 'Aufwand', 'Solidaritätszuschlag');
+
+  database.prepare(
+    `INSERT INTO accounts (name, type, subtype)
+     SELECT ?, ?, ?
+     WHERE NOT EXISTS (SELECT 1 FROM accounts WHERE name = ?)`
+  ).run('Dividende', 'GuV', 'Ertrag', 'Dividende');
+
+  database.prepare(
+    `INSERT INTO accounts (name, type, subtype)
+     SELECT ?, ?, ?
+     WHERE NOT EXISTS (SELECT 1 FROM accounts WHERE name = ?)`
+  ).run('Zins', 'GuV', 'Ertrag', 'Zins');
+
+  database.prepare(
+    `INSERT INTO accounts (name, type, subtype)
+     SELECT ?, ?, ?
+     WHERE NOT EXISTS (SELECT 1 FROM accounts WHERE name = ?)`
+  ).run('Fondsertrag', 'GuV', 'Ertrag', 'Fondsertrag');
 }
 
 function migrateLegacySaleDetails(database: Database.Database): void {
@@ -270,9 +288,9 @@ function migrateBookingsSchema(database: Database.Database): void {
     .get() as { sql: string } | undefined;
 
   const bookingsSql = existingBookings?.sql ?? '';
-  const requiresMigration = /CHECK\s*\(\s*vorgang\s+IN\s*\(\s*'Buchung'\s*(?:,\s*'Kauf'\s*)?(?:,\s*'Verkauf'\s*)?\)\s*\)/i.test(
-    bookingsSql
-  );
+  const requiresMigration =
+    /CHECK\s*\(\s*vorgang\s+IN\s*\(\s*'Buchung'/i.test(bookingsSql) &&
+    !bookingsSql.includes("'Ertrag'");
 
   if (!requiresMigration) {
     return;

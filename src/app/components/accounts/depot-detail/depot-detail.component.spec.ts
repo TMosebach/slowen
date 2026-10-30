@@ -247,4 +247,20 @@ describe('DepotDetailComponent', () => {
     expect(routerSpy).toHaveBeenCalledWith(['/accounts']);
     expect(component.summaryRows).toEqual([]);
   });
+
+  it('renders "Ertrag erfassen" action link with query params for holding', async () => {
+    mockDepotPositionsService.getByDepot.mockResolvedValue([
+      { booking_id: 1, depot_account_id: 2, security_id: 7, quantity: 5, price_per_unit: 100, purchase_date: '2026-08-01' }
+    ]);
+    mockSecuritiesService.getAll.mockResolvedValue([
+      { id: 7, name: 'ETF World', type: 'ETF', isin: 'IE00TEST0001', wkn: 'TEST01' }
+    ]);
+
+    await component.loadDepot();
+    fixture.detectChanges();
+
+    const link = fixture.nativeElement.querySelector('a[href*="/bookings/new/income"]');
+    expect(link).toBeTruthy();
+    expect(link.textContent).toContain('Ertrag erfassen');
+  });
 });

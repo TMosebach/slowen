@@ -36,6 +36,29 @@ describe('purchase related booking models', () => {
     expect(VORGANG_OPTIONS).toContain('Tilgung');
   });
 
+  it('exposes Ertrag as valid booking vorgang', () => {
+    expect(VORGANG_OPTIONS).toContain('Ertrag');
+  });
+
+  it('supports income details on bookings', () => {
+    const booking: Booking = {
+      vorgang: 'Ertrag',
+      date: '2026-08-15',
+      positions: [],
+      incomeDetails: {
+        security_id: 1,
+        depot_account_id: 3,
+        settlement_account_id: 2,
+        income_account_id: 10,
+        gross_amount: 100,
+        capital_gains_tax: 25,
+        solidarity_surcharge: 1.37,
+      },
+    };
+
+    expect(booking.incomeDetails?.gross_amount).toBe(100);
+  });
+
   it('supports sale details on bookings', () => {
     const booking: Booking = {
       vorgang: 'Verkauf',

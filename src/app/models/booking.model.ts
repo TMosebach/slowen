@@ -1,4 +1,4 @@
-export const VORGANG_OPTIONS = ['Buchung', 'Kauf', 'Verkauf', 'Tilgung'] as const;
+export const VORGANG_OPTIONS = ['Buchung', 'Kauf', 'Verkauf', 'Tilgung', 'Ertrag'] as const;
 
 export type BookingVorgang = (typeof VORGANG_OPTIONS)[number];
 
@@ -23,6 +23,16 @@ export interface SaleBookingDetails {
   solidarity_surcharge?: number;
 }
 
+export interface IncomeBookingDetails {
+  security_id: number;
+  depot_account_id: number;
+  settlement_account_id: number;
+  income_account_id: number;
+  gross_amount: number;
+  capital_gains_tax?: number;
+  solidarity_surcharge?: number;
+}
+
 export interface Booking {
   id?: number;
   vorgang: BookingVorgang;
@@ -32,6 +42,7 @@ export interface Booking {
   positions: BookingPosition[];
   purchaseDetails?: PurchaseBookingDetails;
   saleDetails?: SaleBookingDetails;
+  incomeDetails?: IncomeBookingDetails;
 }
 
 export interface BookingPosition {

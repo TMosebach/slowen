@@ -491,4 +491,112 @@ describe('BookingFormComponent', () => {
       expect(component.booking.saleDetails.price_per_unit).toBe(100);
     });
   });
+
+  describe('Ertrag (income) handling', () => {
+    it('initializes Ertrag mode when routing with vorgang Ertrag and supports queryParam preselection', async () => {
+      TestBed.resetTestingModule();
+      await TestBed.configureTestingModule({
+        imports: [BookingFormComponent],
+        providers: [
+          provideRouter([{ path: 'bookings', component: DummyBookingsComponent }]),
+          { provide: BookingService, useValue: mockBookingService },
+          { provide: AccountService, useValue: mockAccountService },
+          { provide: SecuritiesService, useValue: mockSecuritiesService },
+          {
+            provide: ActivatedRoute,
+            useValue: {
+              snapshot: {
+                data: { vorgang: 'Ertrag' },
+                paramMap: new Map(),
+                queryParamMap: new Map([
+                  ['depotId', '3'],
+                  ['securityId', '10'],
+                ]),
+              },
+            },
+          },
+        ],
+      }).compileComponents();
+
+      const incomeFixture = TestBed.createComponent(BookingFormComponent);
+      const incomeComp = incomeFixture.componentInstance;
+      incomeFixture.detectChanges();
+
+      expect(incomeComp.booking.vorgang).toBe('Ertrag');
+      expect(incomeComp.isIncome()).toBe(true);
+      expect(incomeComp.booking.incomeDetails?.depot_account_id).toBe(3);
+      expect(incomeComp.booking.incomeDetails?.security_id).toBe(10);
+    });
+
+    it('preselects income account based on security type (Aktie -> Dividende, Anleihe -> Zins, ETF -> Fondsertrag)', () => {
+      component.booking.vorgang = 'Ertrag';
+      component.booking.incomeDetails = component.createEmptyIncomeDetails();
+      component.incomeAccounts = [
+        { id: 101, name: 'Dividende', type: 'GuV', subtype: 'Ertrag' },
+        { id: 102, name: 'Zins', type: 'GuV', subtype: 'Ertrag' },
+        { id: 103, name: 'Fondsertrag', type: 'GuV', subtype: 'Ertrag' },
+      ];
+      component.securities = [
+        { id: 1, name: 'Apple', type: 'Aktie', isin: 'US1', wkn: '1' },
+        { id: 2, name: 'Bundesanleihe', type: 'Anleihe', isin: 'DE1', wkn: '2' },
+        { id: 3, name: 'MSCI World', type: 'ETF', isin: 'IE1', wkn: '3' },
+      ];
+
+      // 1. Aktie
+      component.booking.incomeDetails.security_id = 1;
+      component.onIncomeSecurityChange();
+      expect(component.booking.incomeDetails.income_account_id).toBe(101);
+
+      // 2. Anleihe
+      component.booking.incomeDetails.security_id = 2;
+      component.onIncomeSecurityChange();
+      expect(component.booking.incomeDetails.income_account_id).toBe(102);
+
+      // 3. ETF
+      component.booking.incomeDetails.security_id = 3;
+      component.onIncomeSecurityChange();
+      expect(component.booking.incomeDetails.income_account_id).toBe(103);
+    });
+
+    it('calculates deductions and net income', () => {
+      component.booking.vorgang = 'Ertrag';
+      component.booking.incomeDetails = {
+        depot_account_id: 3,
+        security_id: 1,
+        settlement_account_id: 1,
+        income_account_id: 101,
+        gross_amount: 100,
+        capital_gains_tax: 25,
+        solidarity_surcharge: 1.37,
+      };
+
+      expect(component.getIncomeDeductions()).toBe(26.37);
+      expect(component.getIncomeNet()).toBe(73.63);
+    });
+
+    it('submits valid Ertrag booking through bookingService.create', async () => {
+      const router = TestBed.inject(Router);
+      const navSpy = vi.spyOn(router, 'navigateByUrl').mockResolvedValue(true);
+
+      component.booking = {
+        vorgang: 'Ertrag',
+        date: '2026-08-20',
+        positions: [],
+        incomeDetails: {
+          depot_account_id: 3,
+          security_id: 1,
+          settlement_account_id: 1,
+          income_account_id: 101,
+          gross_amount: 100,
+          capital_gains_tax: 25,
+          solidarity_surcharge: 1.37,
+        },
+      };
+
+      await component.onSubmit();
+
+      expect(mockBookingService.create).toHaveBeenCalledWith(component.booking);
+      expect(navSpy).toHaveBeenCalledWith('/bookings');
+    });
+  });
 });

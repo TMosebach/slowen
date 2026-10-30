@@ -1,6 +1,12 @@
 import { getDatabase } from './connection';
 import { computeSaleCostBasis, FifoEvent } from './sale-fifo';
-import { Booking, BookingPosition, PurchaseBookingDetails, SaleBookingDetails } from '../../src/app/models/booking.model';
+import {
+  Booking,
+  BookingPosition,
+  IncomeBookingDetails,
+  PurchaseBookingDetails,
+  SaleBookingDetails,
+} from '../../src/app/models/booking.model';
 import { isSystemAccount } from '../../src/app/models/account.model';
 
 function requireSystemAccount(name: string): number {
@@ -354,6 +360,101 @@ function buildSalePositions(booking: Booking): BookingPosition[] {
   return positions;
 }
 
+function validateIncomeDetails(details: IncomeBookingDetails): void {
+  if (!details.security_id || !details.depot_account_id || !details.settlement_account_id || !details.income_account_id) {
+    throw new Error('Alle Pflichtfelder des Ertrags müssen ausgefüllt sein.');
+  }
+
+  if (details.depot_account_id === details.settlement_account_id) {
+    throw new Error('Depot-Konto und Verrechnungskonto müssen unterschiedlich sein.');
+  }
+
+  if (details.gross_amount <= 0) {
+    throw new Error('Bruttobetrag muss größer 0 sein.');
+  }
+
+  const tax = details.capital_gains_tax ?? 0;
+  const soli = details.solidarity_surcharge ?? 0;
+
+  if (tax < 0 || soli < 0) {
+    throw new Error('Steuern dürfen nicht negativ sein.');
+  }
+
+  const net = details.gross_amount - tax - soli;
+  if (net <= 0) {
+    throw new Error('Nettozufluss muss größer 0 sein.');
+  }
+
+  const db = getDatabase();
+  const accounts = db
+    .prepare('SELECT id, type, subtype FROM accounts WHERE id IN (?, ?, ?)')
+    .all(details.depot_account_id, details.settlement_account_id, details.income_account_id) as Array<{
+    id: number;
+    type: string;
+    subtype: string;
+  }>;
+  const accountById = new Map(accounts.map((account) => [account.id, account]));
+  const depotAccount = accountById.get(details.depot_account_id);
+  const settlementAccount = accountById.get(details.settlement_account_id);
+  const incomeAccount = accountById.get(details.income_account_id);
+
+  if (!depotAccount || depotAccount.type !== 'Bestand' || depotAccount.subtype !== 'Depot') {
+    throw new Error('Das Depot-Konto muss ein bestehendes Konto vom Typ Bestand mit Untertyp Depot sein.');
+  }
+
+  if (!settlementAccount || settlementAccount.type !== 'Bestand' || settlementAccount.subtype === 'Depot') {
+    throw new Error(
+      'Das Verrechnungskonto muss ein bestehendes Konto vom Typ Bestand mit einem Untertyp ungleich Depot sein.'
+    );
+  }
+
+  if (!incomeAccount || incomeAccount.type !== 'GuV' || incomeAccount.subtype !== 'Ertrag') {
+    throw new Error('Das Ertragskonto muss ein bestehendes GuV-Konto vom Untertyp Ertrag sein.');
+  }
+}
+
+function buildIncomePositions(booking: Booking): BookingPosition[] {
+  if (!booking.incomeDetails) {
+    throw new Error('Ertragsdetails fehlen.');
+  }
+
+  const details = booking.incomeDetails;
+  const tax = details.capital_gains_tax ?? 0;
+  const soli = details.solidarity_surcharge ?? 0;
+  const net = Math.round((details.gross_amount - tax - soli) * 100) / 100;
+
+  const positions: BookingPosition[] = [
+    {
+      account_id: details.settlement_account_id,
+      valuta: booking.date,
+      amount: net,
+    },
+    {
+      account_id: details.income_account_id,
+      valuta: booking.date,
+      amount: -details.gross_amount,
+    },
+  ];
+
+  if (tax > 0) {
+    positions.push({
+      account_id: requireSystemAccount('Kapitalertragsteuer'),
+      valuta: booking.date,
+      amount: tax,
+    });
+  }
+
+  if (soli > 0) {
+    positions.push({
+      account_id: requireSystemAccount('Solidaritätszuschlag'),
+      valuta: booking.date,
+      amount: soli,
+    });
+  }
+
+  return positions;
+}
+
 function loadPurchaseDetails(booking: Booking): PurchaseBookingDetails | undefined {
   if (booking.vorgang !== 'Kauf' || !booking.id) {
     return undefined;
@@ -396,11 +497,74 @@ function loadSaleDetails(booking: Booking): SaleBookingDetails | undefined {
   return loadSaleDetailsByBookingId(booking.id);
 }
 
+function loadIncomeDetails(booking: Booking): IncomeBookingDetails | undefined {
+  if (booking.vorgang !== 'Ertrag' || !booking.id) {
+    return undefined;
+  }
+
+  const db = getDatabase();
+  const depotRow = db
+    .prepare('SELECT depot_account_id, security_id FROM depot_positions WHERE booking_id = ?')
+    .get(booking.id) as { depot_account_id: number; security_id: number } | undefined;
+
+  if (!depotRow) {
+    return undefined;
+  }
+
+  const positions = booking.positions ?? [];
+  const accounts = db
+    .prepare(
+      `SELECT a.id, a.name, a.type, a.subtype
+       FROM accounts a
+       WHERE a.id IN (${positions.map(() => '?').join(',') || '0'})`
+    )
+    .all(...positions.map((p) => p.account_id)) as Array<{
+    id: number;
+    name: string;
+    type: 'Bestand' | 'GuV';
+    subtype: string;
+  }>;
+  const accountById = new Map(accounts.map((a) => [a.id, a]));
+
+  let settlement_account_id = 0;
+  let income_account_id = 0;
+  let gross_amount = 0;
+  let capital_gains_tax = 0;
+  let solidarity_surcharge = 0;
+
+  for (const pos of positions) {
+    const acc = accountById.get(pos.account_id);
+    if (!acc) continue;
+
+    if (acc.name === 'Kapitalertragsteuer') {
+      capital_gains_tax = pos.amount;
+    } else if (acc.name === 'Solidaritätszuschlag') {
+      solidarity_surcharge = pos.amount;
+    } else if (acc.type === 'Bestand' && acc.subtype !== 'Depot') {
+      settlement_account_id = pos.account_id;
+    } else if (acc.type === 'GuV' && acc.subtype === 'Ertrag') {
+      income_account_id = pos.account_id;
+      gross_amount = Math.abs(pos.amount);
+    }
+  }
+
+  return {
+    security_id: depotRow.security_id,
+    depot_account_id: depotRow.depot_account_id,
+    settlement_account_id,
+    income_account_id,
+    gross_amount,
+    capital_gains_tax,
+    solidarity_surcharge,
+  };
+}
+
 function loadBookingRelations(booking: Booking): Booking {
   const db = getDatabase();
   booking.positions = db.prepare('SELECT * FROM booking_positions WHERE booking_id = ?').all(booking.id!) as BookingPosition[];
   booking.purchaseDetails = loadPurchaseDetails(booking);
   booking.saleDetails = loadSaleDetails(booking);
+  booking.incomeDetails = loadIncomeDetails(booking);
   return booking;
 }
 
@@ -476,12 +640,17 @@ export const bookings = {
       if ((booking.vorgang === 'Verkauf' || booking.vorgang === 'Tilgung') && booking.saleDetails) {
         validateSaleDetails(booking.saleDetails);
       }
+      if (booking.vorgang === 'Ertrag' && booking.incomeDetails) {
+        validateIncomeDetails(booking.incomeDetails);
+      }
       const effectivePositions =
         booking.vorgang === 'Kauf'
           ? buildPurchasePositions(booking)
           : booking.vorgang === 'Verkauf' || booking.vorgang === 'Tilgung'
             ? buildSalePositions({ ...booking, id: bookingId })
-            : booking.positions;
+            : booking.vorgang === 'Ertrag'
+              ? buildIncomePositions(booking)
+              : booking.positions;
 
       for (const pos of effectivePositions) {
         insertPosition.run(bookingId, pos.account_id, pos.valuta, pos.amount);
@@ -494,6 +663,17 @@ export const bookings = {
           booking.purchaseDetails.security_id,
           booking.purchaseDetails.quantity,
           booking.purchaseDetails.price_per_unit,
+          booking.date
+        );
+      }
+
+      if (booking.vorgang === 'Ertrag' && booking.incomeDetails) {
+        insertDepotPosition.run(
+          bookingId,
+          booking.incomeDetails.depot_account_id,
+          booking.incomeDetails.security_id,
+          0,
+          0,
           booking.date
         );
       }
@@ -574,12 +754,17 @@ export const bookings = {
       if ((booking.vorgang === 'Verkauf' || booking.vorgang === 'Tilgung') && booking.saleDetails) {
         validateSaleDetails(booking.saleDetails);
       }
+      if (booking.vorgang === 'Ertrag' && booking.incomeDetails) {
+        validateIncomeDetails(booking.incomeDetails);
+      }
       const effectivePositions =
         booking.vorgang === 'Kauf'
           ? buildPurchasePositions(booking)
           : booking.vorgang === 'Verkauf' || booking.vorgang === 'Tilgung'
             ? buildSalePositions({ ...booking, id })
-            : booking.positions;
+            : booking.vorgang === 'Ertrag'
+              ? buildIncomePositions(booking)
+              : booking.positions;
 
       for (const pos of effectivePositions) {
         insertPosition.run(id, pos.account_id, pos.valuta, pos.amount);
@@ -592,6 +777,17 @@ export const bookings = {
           booking.purchaseDetails.security_id,
           booking.purchaseDetails.quantity,
           booking.purchaseDetails.price_per_unit,
+          booking.date
+        );
+      }
+
+      if (booking.vorgang === 'Ertrag' && booking.incomeDetails) {
+        insertDepotPosition.run(
+          id,
+          booking.incomeDetails.depot_account_id,
+          booking.incomeDetails.security_id,
+          0,
+          0,
           booking.date
         );
       }

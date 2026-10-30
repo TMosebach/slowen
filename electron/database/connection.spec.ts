@@ -131,6 +131,13 @@ describe('database schema for securities purchases', () => {
         VALUES (?, ?, ?, ?)
       `).run('Tilgung', '2026-08-03', 'Testtilgung', 'Emittent');
     }).not.toThrow();
+
+    expect(() => {
+      db.prepare(`
+        INSERT INTO bookings (vorgang, date, description, sender_receiver)
+        VALUES (?, ?, ?, ?)
+      `).run('Ertrag', '2026-08-04', 'Testertrag', 'Emittent');
+    }).not.toThrow();
   });
 
   it('preserves legacy booking_positions and depot_positions rows during bookings migration', () => {
@@ -304,6 +311,24 @@ describe('database schema for securities purchases', () => {
       { name: 'Kursgewinn', type: 'GuV', subtype: 'Ertrag' },
       { name: 'Kursverlust', type: 'GuV', subtype: 'Aufwand' },
       { name: 'Solidaritätszuschlag', type: 'GuV', subtype: 'Aufwand' },
+    ]);
+  });
+
+  it('creates income system accounts in schema initialization', () => {
+    const db = new Database(':memory:');
+    initDatabaseSchema(db);
+
+    const rows = db.prepare(`
+      SELECT name, type, subtype
+      FROM accounts
+      WHERE name IN ('Dividende', 'Zins', 'Fondsertrag')
+      ORDER BY name
+    `).all();
+
+    expect(rows).toEqual([
+      { name: 'Dividende', type: 'GuV', subtype: 'Ertrag' },
+      { name: 'Fondsertrag', type: 'GuV', subtype: 'Ertrag' },
+      { name: 'Zins', type: 'GuV', subtype: 'Ertrag' },
     ]);
   });
 
