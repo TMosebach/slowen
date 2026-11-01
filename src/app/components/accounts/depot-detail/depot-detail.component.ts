@@ -220,18 +220,34 @@ export class DepotDetailComponent implements OnInit {
     securityMap: Map<number, Security>
   ): DepotPurchaseHistoryItem[] {
     return bookings
-      .filter((booking) => booking.vorgang === 'Kauf' && booking.purchaseDetails?.depot_account_id === accountId)
-      .map((booking) => ({
-        booking_id: booking.id!,
-        booking_date: booking.date,
-        security_name: securityMap.get(booking.purchaseDetails!.security_id)?.name ?? '-',
-        quantity: booking.purchaseDetails!.quantity,
-        price_per_unit: booking.purchaseDetails!.price_per_unit,
-        total_amount:
-          booking.purchaseDetails!.quantity * booking.purchaseDetails!.price_per_unit +
-          (booking.purchaseDetails!.fees ?? 0) +
-          (booking.purchaseDetails!.accrued_interest ?? 0)
-      }))
+      .filter(
+        (booking) =>
+          (booking.vorgang === 'Kauf' && booking.purchaseDetails?.depot_account_id === accountId) ||
+          (booking.vorgang === 'Einlieferung' && booking.deliveryDetails?.depot_account_id === accountId)
+      )
+      .map((booking) => {
+        if (booking.vorgang === 'Kauf') {
+          return {
+            booking_id: booking.id!,
+            booking_date: booking.date,
+            security_name: securityMap.get(booking.purchaseDetails!.security_id)?.name ?? '-',
+            quantity: booking.purchaseDetails!.quantity,
+            price_per_unit: booking.purchaseDetails!.price_per_unit,
+            total_amount:
+              booking.purchaseDetails!.quantity * booking.purchaseDetails!.price_per_unit +
+              (booking.purchaseDetails!.fees ?? 0) +
+              (booking.purchaseDetails!.accrued_interest ?? 0)
+          };
+        }
+        return {
+          booking_id: booking.id!,
+          booking_date: booking.date,
+          security_name: securityMap.get(booking.deliveryDetails!.security_id)?.name ?? '-',
+          quantity: booking.deliveryDetails!.quantity,
+          price_per_unit: booking.deliveryDetails!.price_per_unit ?? 0,
+          total_amount: booking.deliveryDetails!.quantity * (booking.deliveryDetails!.price_per_unit ?? 0)
+        };
+      })
       .sort((left, right) => right.booking_date.localeCompare(left.booking_date));
   }
 }

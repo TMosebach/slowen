@@ -3,6 +3,7 @@ import { computeSaleCostBasis, FifoEvent } from './sale-fifo';
 import {
   Booking,
   BookingPosition,
+  DeliveryBookingDetails,
   IncomeBookingDetails,
   PurchaseBookingDetails,
   SaleBookingDetails,
@@ -71,6 +72,50 @@ function buildPurchasePositions(booking: Booking): BookingPosition[] {
   return positions;
 }
 
+function validateDeliveryDetails(details: DeliveryBookingDetails): void {
+  if (!details.security_id || !details.depot_account_id) {
+    throw new Error('Wertpapier und Zieldepot sind Pflichtfelder.');
+  }
+
+  if (details.quantity <= 0) {
+    throw new Error('Stückzahl muss größer 0 sein.');
+  }
+
+  if ((details.price_per_unit ?? 0) < 0) {
+    throw new Error('Einstandspreis darf nicht negativ sein.');
+  }
+
+  const db = getDatabase();
+  const depotAccount = db
+    .prepare('SELECT id, type, subtype FROM accounts WHERE id = ?')
+    .get(details.depot_account_id) as { id: number; type: string; subtype: string } | undefined;
+
+  if (!depotAccount || depotAccount.type !== 'Bestand' || depotAccount.subtype !== 'Depot') {
+    throw new Error('Zieldepot muss ein Bestandskonto mit Subtyp Depot sein.');
+  }
+}
+
+function buildDeliveryPositions(booking: Booking): BookingPosition[] {
+  if (!booking.deliveryDetails) {
+    throw new Error('Einlieferungsdetails fehlen.');
+  }
+
+  const { depot_account_id, quantity, price_per_unit = 0 } = booking.deliveryDetails;
+  const deliveryValue = quantity * price_per_unit;
+
+  if (deliveryValue > 0) {
+    return [
+      {
+        account_id: depot_account_id,
+        valuta: booking.date,
+        amount: deliveryValue,
+      },
+    ];
+  }
+
+  return [];
+}
+
 function loadFifoCostBasisForSale(booking: Booking, quantity: number): number {
   if (!booking.saleDetails) {
     throw new Error('Verkaufsdetails fehlen.');
@@ -90,7 +135,7 @@ function loadFifoCostBasisForSale(booking: Booking, quantity: number): number {
           d.price_per_unit
         FROM bookings b
         INNER JOIN depot_positions d ON d.booking_id = b.id
-        WHERE b.vorgang = 'Kauf'
+        WHERE b.vorgang IN ('Kauf', 'Einlieferung')
           AND d.depot_account_id = ?
           AND d.security_id = ?
 
@@ -559,12 +604,40 @@ function loadIncomeDetails(booking: Booking): IncomeBookingDetails | undefined {
   };
 }
 
+function loadDeliveryDetails(booking: Booking): DeliveryBookingDetails | undefined {
+  if (booking.vorgang !== 'Einlieferung' || !booking.id) {
+    return undefined;
+  }
+
+  const db = getDatabase();
+  const depotPosition = db.prepare('SELECT * FROM depot_positions WHERE booking_id = ?').get(booking.id) as
+    | {
+        security_id: number;
+        depot_account_id: number;
+        quantity: number;
+        price_per_unit: number;
+      }
+    | undefined;
+
+  if (!depotPosition) {
+    return undefined;
+  }
+
+  return {
+    security_id: depotPosition.security_id,
+    depot_account_id: depotPosition.depot_account_id,
+    quantity: depotPosition.quantity,
+    price_per_unit: depotPosition.price_per_unit,
+  };
+}
+
 function loadBookingRelations(booking: Booking): Booking {
   const db = getDatabase();
   booking.positions = db.prepare('SELECT * FROM booking_positions WHERE booking_id = ?').all(booking.id!) as BookingPosition[];
   booking.purchaseDetails = loadPurchaseDetails(booking);
   booking.saleDetails = loadSaleDetails(booking);
   booking.incomeDetails = loadIncomeDetails(booking);
+  booking.deliveryDetails = loadDeliveryDetails(booking);
   return booking;
 }
 
@@ -643,6 +716,9 @@ export const bookings = {
       if (booking.vorgang === 'Ertrag' && booking.incomeDetails) {
         validateIncomeDetails(booking.incomeDetails);
       }
+      if (booking.vorgang === 'Einlieferung' && booking.deliveryDetails) {
+        validateDeliveryDetails(booking.deliveryDetails);
+      }
       const effectivePositions =
         booking.vorgang === 'Kauf'
           ? buildPurchasePositions(booking)
@@ -650,7 +726,9 @@ export const bookings = {
             ? buildSalePositions({ ...booking, id: bookingId })
             : booking.vorgang === 'Ertrag'
               ? buildIncomePositions(booking)
-              : booking.positions;
+              : booking.vorgang === 'Einlieferung'
+                ? buildDeliveryPositions(booking)
+                : booking.positions;
 
       for (const pos of effectivePositions) {
         insertPosition.run(bookingId, pos.account_id, pos.valuta, pos.amount);
@@ -678,6 +756,17 @@ export const bookings = {
         );
       }
 
+      if (booking.vorgang === 'Einlieferung' && booking.deliveryDetails) {
+        insertDepotPosition.run(
+          bookingId,
+          booking.deliveryDetails.depot_account_id,
+          booking.deliveryDetails.security_id,
+          booking.deliveryDetails.quantity,
+          booking.deliveryDetails.price_per_unit ?? 0,
+          booking.date
+        );
+      }
+
       if ((booking.vorgang === 'Verkauf' || booking.vorgang === 'Tilgung') && booking.saleDetails) {
         insertSaleDetails.run(
           bookingId,
@@ -697,6 +786,15 @@ export const bookings = {
           {
             depot_account_id: booking.purchaseDetails.depot_account_id,
             security_id: booking.purchaseDetails.security_id,
+          },
+        ]);
+      }
+
+      if (booking.vorgang === 'Einlieferung' && booking.deliveryDetails) {
+        recomputeDerivedSalesForPairs([
+          {
+            depot_account_id: booking.deliveryDetails.depot_account_id,
+            security_id: booking.deliveryDetails.security_id,
           },
         ]);
       }
@@ -757,6 +855,9 @@ export const bookings = {
       if (booking.vorgang === 'Ertrag' && booking.incomeDetails) {
         validateIncomeDetails(booking.incomeDetails);
       }
+      if (booking.vorgang === 'Einlieferung' && booking.deliveryDetails) {
+        validateDeliveryDetails(booking.deliveryDetails);
+      }
       const effectivePositions =
         booking.vorgang === 'Kauf'
           ? buildPurchasePositions(booking)
@@ -764,7 +865,9 @@ export const bookings = {
             ? buildSalePositions({ ...booking, id })
             : booking.vorgang === 'Ertrag'
               ? buildIncomePositions(booking)
-              : booking.positions;
+              : booking.vorgang === 'Einlieferung'
+                ? buildDeliveryPositions(booking)
+                : booking.positions;
 
       for (const pos of effectivePositions) {
         insertPosition.run(id, pos.account_id, pos.valuta, pos.amount);
@@ -792,6 +895,17 @@ export const bookings = {
         );
       }
 
+      if (booking.vorgang === 'Einlieferung' && booking.deliveryDetails) {
+        insertDepotPosition.run(
+          id,
+          booking.deliveryDetails.depot_account_id,
+          booking.deliveryDetails.security_id,
+          booking.deliveryDetails.quantity,
+          booking.deliveryDetails.price_per_unit ?? 0,
+          booking.date
+        );
+      }
+
       if ((booking.vorgang === 'Verkauf' || booking.vorgang === 'Tilgung') && booking.saleDetails) {
         insertSaleDetails.run(
           id,
@@ -814,6 +928,12 @@ export const bookings = {
         affectedPairs.push({
           depot_account_id: booking.purchaseDetails.depot_account_id,
           security_id: booking.purchaseDetails.security_id,
+        });
+      }
+      if (booking.vorgang === 'Einlieferung' && booking.deliveryDetails) {
+        affectedPairs.push({
+          depot_account_id: booking.deliveryDetails.depot_account_id,
+          security_id: booking.deliveryDetails.security_id,
         });
       }
       if ((booking.vorgang === 'Verkauf' || booking.vorgang === 'Tilgung') && booking.saleDetails) {

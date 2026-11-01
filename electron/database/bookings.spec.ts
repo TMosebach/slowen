@@ -1076,4 +1076,150 @@ describe('purchase bookings', () => {
       expect(results[0].positions?.length).toBe(2);
     });
   });
+
+  describe('Einlieferung', () => {
+    it('creates Einlieferung booking with depot_position and depot booking position when Einstandswert > 0', async () => {
+      await seedPurchaseReferences();
+
+      const created = await bookings.create({
+        vorgang: 'Einlieferung',
+        date: '2026-08-10',
+        description: 'Depotübertrag',
+        positions: [],
+        deliveryDetails: {
+          security_id: 1,
+          depot_account_id: 3,
+          quantity: 20,
+          price_per_unit: 50,
+        },
+      });
+
+      expect(created.vorgang).toBe('Einlieferung');
+      expect(created.positions.length).toBe(1);
+      expect(created.positions[0].account_id).toBe(3);
+      expect(created.positions[0].amount).toBe(1000);
+
+      const reloaded = await bookings.getById(created.id!);
+      expect(reloaded?.vorgang).toBe('Einlieferung');
+      expect(reloaded?.deliveryDetails).toEqual({
+        security_id: 1,
+        depot_account_id: 3,
+        quantity: 20,
+        price_per_unit: 50,
+      });
+
+      const depotPos = db.prepare('SELECT * FROM depot_positions WHERE booking_id = ?').get(created.id!) as any;
+      expect(depotPos).toBeDefined();
+      expect(depotPos.quantity).toBe(20);
+      expect(depotPos.price_per_unit).toBe(50);
+      expect(depotPos.purchase_date).toBe('2026-08-10');
+    });
+
+    it('creates Einlieferung with 0 price_per_unit and empty booking positions when no price is provided', async () => {
+      await seedPurchaseReferences();
+
+      const created = await bookings.create({
+        vorgang: 'Einlieferung',
+        date: '2026-08-11',
+        description: 'Einlieferung ohne Wert',
+        positions: [],
+        deliveryDetails: {
+          security_id: 1,
+          depot_account_id: 3,
+          quantity: 15,
+        },
+      });
+
+      expect(created.positions.length).toBe(0);
+      const reloaded = await bookings.getById(created.id!);
+      expect(reloaded?.deliveryDetails?.price_per_unit).toBe(0);
+      expect(reloaded?.deliveryDetails?.quantity).toBe(15);
+    });
+
+    it('allows selling stock that originated from an Einlieferung with correct FIFO cost basis', async () => {
+      await seedPurchaseReferences();
+
+      // Einlieferung: 10 @ 40 = 400
+      await bookings.create({
+        vorgang: 'Einlieferung',
+        date: '2026-08-01',
+        positions: [],
+        deliveryDetails: {
+          security_id: 1,
+          depot_account_id: 3,
+          quantity: 10,
+          price_per_unit: 40,
+        },
+      });
+
+      // Kauf: 10 @ 60 = 600
+      await bookings.create({
+        vorgang: 'Kauf',
+        date: '2026-08-05',
+        positions: [],
+        purchaseDetails: {
+          security_id: 1,
+          depot_account_id: 3,
+          settlement_account_id: 1,
+          quantity: 10,
+          price_per_unit: 60,
+        },
+      });
+
+      // Verkauf: 15 @ 70 on 2026-08-10.
+      // FIFO: 10 @ 40 (Einlieferung) + 5 @ 60 (Kauf) = 400 + 300 = 700 cost basis.
+      // Proceeds: 15 * 70 = 1050. Net: 1050. Gain: 1050 - 700 = 350.
+      const sale = await bookings.create({
+        vorgang: 'Verkauf',
+        date: '2026-08-10',
+        positions: [],
+        saleDetails: {
+          security_id: 1,
+          depot_account_id: 3,
+          settlement_account_id: 1,
+          quantity: 15,
+          price_per_unit: 70,
+        },
+      });
+
+      const depotBookingPos = sale.positions.find((p) => p.account_id === 3);
+      expect(depotBookingPos?.amount).toBe(-700);
+
+      const gainAcc = db.prepare(`SELECT id FROM accounts WHERE name = 'Kursgewinn'`).get() as { id: number };
+      const gainPos = sale.positions.find((p) => p.account_id === gainAcc.id);
+      expect(gainPos?.amount).toBe(350);
+    });
+
+    it('rejects invalid quantity or negative price on Einlieferung', async () => {
+      await seedPurchaseReferences();
+
+      await expect(
+        bookings.create({
+          vorgang: 'Einlieferung',
+          date: '2026-08-15',
+          positions: [],
+          deliveryDetails: {
+            security_id: 1,
+            depot_account_id: 3,
+            quantity: 0,
+            price_per_unit: 50,
+          },
+        })
+      ).rejects.toThrow('Stückzahl muss größer 0 sein');
+
+      await expect(
+        bookings.create({
+          vorgang: 'Einlieferung',
+          date: '2026-08-15',
+          positions: [],
+          deliveryDetails: {
+            security_id: 1,
+            depot_account_id: 3,
+            quantity: 10,
+            price_per_unit: -5,
+          },
+        })
+      ).rejects.toThrow('Einstandspreis darf nicht negativ sein');
+    });
+  });
 });

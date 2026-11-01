@@ -334,6 +334,76 @@
           </div>
         }
       </div>
+    } @else if (isDelivery()) {
+      <div class="grid grid-cols-2 gap-4 mb-6">
+        <div>
+          <label class="block text-sm font-medium text-gray-700 mb-1">Wertpapier *</label>
+          <select [(ngModel)]="booking.deliveryDetails!.security_id"
+                  name="delivery_security_id"
+                  required
+                  class="w-full border border-gray-300 rounded px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500">
+            <option [value]="0">Bitte wählen...</option>
+            @for (security of securities; track security.id) {
+              <option [value]="security.id">{{ security.name }}</option>
+            }
+          </select>
+        </div>
+
+        <div>
+          <label class="block text-sm font-medium text-gray-700 mb-1">Zieldepot *</label>
+          <select [(ngModel)]="booking.deliveryDetails!.depot_account_id"
+                  name="delivery_depot_account_id"
+                  required
+                  class="w-full border border-gray-300 rounded px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500">
+            <option [value]="0">Bitte wählen...</option>
+            @for (account of depotAccounts; track account.id) {
+              <option [value]="account.id">{{ account.name }}</option>
+            }
+          </select>
+        </div>
+
+        <div>
+          <label class="block text-sm font-medium text-gray-700 mb-1">Menge / Stückzahl *</label>
+          <input type="number"
+                 [(ngModel)]="booking.deliveryDetails!.quantity"
+                 name="delivery_quantity"
+                 (ngModelChange)="onDeliveryQuantityChange()"
+                 step="any"
+                 min="0.000001"
+                 required
+                 class="w-full border border-gray-300 rounded px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500">
+        </div>
+
+        <div>
+          <label class="block text-sm font-medium text-gray-700 mb-1">Einstandspreis pro Stück</label>
+          <input type="number"
+                 [(ngModel)]="booking.deliveryDetails!.price_per_unit"
+                 name="delivery_price_per_unit"
+                 (ngModelChange)="onDeliveryPricePerUnitChange()"
+                 step="any"
+                 min="0"
+                 placeholder="0.00"
+                 class="w-full border border-gray-300 rounded px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500">
+        </div>
+
+        <div>
+          <label class="block text-sm font-medium text-gray-700 mb-1">Einstandswert gesamt</label>
+          <input type="number"
+                 [(ngModel)]="deliveryTotalValue"
+                 name="delivery_total_value"
+                 (ngModelChange)="onDeliveryTotalValueChange()"
+                 step="any"
+                 min="0"
+                 placeholder="0.00"
+                 class="w-full border border-gray-300 rounded px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500">
+        </div>
+      </div>
+
+      <div class="rounded bg-gray-50 p-3 text-sm text-gray-700 mb-6">
+        <div>Eingelieferte Menge: {{ (booking.deliveryDetails?.quantity || 0) | number:'1.0-6' }}</div>
+        <div>Einstandspreis pro Stück: {{ (booking.deliveryDetails?.price_per_unit || 0) | number:'1.2-4' }} €</div>
+        <div>Einstandswert gesamt: {{ deliveryTotalValue | number:'1.2-2' }} €</div>
+      </div>
     } @else {
     <div class="mb-6">
       <div class="flex justify-between items-center mb-3">

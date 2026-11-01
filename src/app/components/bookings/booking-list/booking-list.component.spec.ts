@@ -91,6 +91,15 @@ describe('BookingListComponent', () => {
     expect(navigate).toHaveBeenCalledWith(['/bookings/new/income']);
   });
 
+  it('navigates to dedicated delivery entry point', () => {
+    const router = TestBed.inject(Router);
+    const navigate = vi.spyOn(router, 'navigate').mockResolvedValue(true);
+
+    component.createDelivery();
+
+    expect(navigate).toHaveBeenCalledWith(['/bookings/new/delivery']);
+  });
+
   it('renders table with table-fixed, zebra rows, and text-wrapping cells', () => {
     const table = (fixture.nativeElement as HTMLElement).querySelector('table');
     expect(table?.classList.contains('table-fixed')).toBe(true);

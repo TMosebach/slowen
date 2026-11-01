@@ -599,4 +599,78 @@ describe('BookingFormComponent', () => {
       expect(navSpy).toHaveBeenCalledWith('/bookings');
     });
   });
+
+  describe('Einlieferung mode', () => {
+    it('switches into delivery mode when vorgang is Einlieferung', () => {
+      component.booking.vorgang = 'Einlieferung';
+      component.onVorgangChange();
+
+      expect(component.isDelivery()).toBe(true);
+      expect(component.booking.deliveryDetails).toBeDefined();
+    });
+
+    it('synchronizes price per unit and total value bidirectionally', () => {
+      component.booking.vorgang = 'Einlieferung';
+      component.booking.deliveryDetails = {
+        security_id: 1,
+        depot_account_id: 2,
+        quantity: 10,
+        price_per_unit: 50,
+      };
+
+      component.onDeliveryQuantityChange();
+      expect(component.deliveryTotalValue).toBe(500);
+
+      // Now change total value to 600 -> price per unit becomes 60
+      component.deliveryTotalValue = 600;
+      component.onDeliveryTotalValueChange();
+      expect(component.booking.deliveryDetails.price_per_unit).toBe(60);
+    });
+
+    it('submits valid Einlieferung booking through bookingService.create', async () => {
+      const router = TestBed.inject(Router);
+      const navSpy = vi.spyOn(router, 'navigateByUrl').mockResolvedValue(true);
+
+      component.booking = {
+        vorgang: 'Einlieferung',
+        date: '2026-08-15',
+        positions: [],
+        deliveryDetails: {
+          security_id: 1,
+          depot_account_id: 2,
+          quantity: 25,
+          price_per_unit: 40,
+        },
+      };
+
+      await component.onSubmit();
+
+      expect(mockBookingService.create).toHaveBeenCalledWith(component.booking);
+      expect(navSpy).toHaveBeenCalledWith('/bookings');
+    });
+
+    it('validates required fields on Einlieferung submit', async () => {
+      const alertSpy = vi.spyOn(window, 'alert').mockImplementation(() => {});
+
+      component.booking = {
+        vorgang: 'Einlieferung',
+        date: '2026-08-15',
+        positions: [],
+        deliveryDetails: {
+          security_id: 0,
+          depot_account_id: 2,
+          quantity: 25,
+        },
+      };
+
+      await component.onSubmit();
+      expect(alertSpy).toHaveBeenCalledWith('Alle Pflichtfelder der Einlieferung müssen ausgefüllt sein.');
+      expect(mockBookingService.create).not.toHaveBeenCalled();
+
+      component.booking.deliveryDetails!.security_id = 1;
+      component.booking.deliveryDetails!.quantity = 0;
+      await component.onSubmit();
+      expect(alertSpy).toHaveBeenCalledWith('Stückzahl muss größer 0 sein.');
+    });
+  });
 });

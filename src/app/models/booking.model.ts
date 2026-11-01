@@ -1,6 +1,13 @@
-export const VORGANG_OPTIONS = ['Buchung', 'Kauf', 'Verkauf', 'Tilgung', 'Ertrag'] as const;
+export const VORGANG_OPTIONS = ['Buchung', 'Kauf', 'Verkauf', 'Tilgung', 'Ertrag', 'Einlieferung'] as const;
 
 export type BookingVorgang = (typeof VORGANG_OPTIONS)[number];
+
+export interface DeliveryBookingDetails {
+  security_id: number;
+  depot_account_id: number;
+  quantity: number;
+  price_per_unit?: number;
+}
 
 export interface PurchaseBookingDetails {
   security_id: number;
@@ -43,6 +50,7 @@ export interface Booking {
   purchaseDetails?: PurchaseBookingDetails;
   saleDetails?: SaleBookingDetails;
   incomeDetails?: IncomeBookingDetails;
+  deliveryDetails?: DeliveryBookingDetails;
 }
 
 export interface BookingPosition {

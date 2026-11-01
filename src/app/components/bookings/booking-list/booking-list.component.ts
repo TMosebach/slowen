@@ -66,4 +66,8 @@ export class BookingListComponent implements OnInit {
   createIncome() {
     this.router.navigate(['/bookings/new/income']);
   }
+
+  createDelivery() {
+    this.router.navigate(['/bookings/new/delivery']);
+  }
 }

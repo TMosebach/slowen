@@ -5,7 +5,7 @@ import { Router, ActivatedRoute, RouterModule } from '@angular/router';
 import { BookingService } from '../../../services/booking.service';
 import { AccountService } from '../../../services/account.service';
 import { SecuritiesService } from '../../../services/securities.service';
-import { Booking, BookingPosition, IncomeBookingDetails, PurchaseBookingDetails, SaleBookingDetails, VORGANG_OPTIONS } from '../../../models/booking.model';
+import { Booking, BookingPosition, DeliveryBookingDetails, IncomeBookingDetails, PurchaseBookingDetails, SaleBookingDetails, VORGANG_OPTIONS } from '../../../models/booking.model';
 import { Account } from '../../../models/account.model';
 import { Security } from '../../../models/security.model';
 
@@ -40,6 +40,7 @@ export class BookingFormComponent implements OnInit {
   saving = false;
   errorMessage: string | null = null;
   returnTo = '/bookings';
+  deliveryTotalValue = 0;
   private allBookings: Booking[] = [];
 
   constructor(
@@ -80,6 +81,17 @@ export class BookingFormComponent implements OnInit {
       }
       if (securityId) {
         this.booking.incomeDetails.security_id = parseInt(securityId, 10);
+      }
+    } else if (this.route.snapshot.data['vorgang'] === 'Einlieferung') {
+      this.booking.vorgang = 'Einlieferung';
+      this.booking.deliveryDetails = this.createEmptyDeliveryDetails();
+      const depotId = this.route.snapshot.queryParamMap.get('depotId');
+      const securityId = this.route.snapshot.queryParamMap.get('securityId');
+      if (depotId) {
+        this.booking.deliveryDetails.depot_account_id = parseInt(depotId, 10);
+      }
+      if (securityId) {
+        this.booking.deliveryDetails.security_id = parseInt(securityId, 10);
       }
     }
 
@@ -130,6 +142,12 @@ export class BookingFormComponent implements OnInit {
         if (this.isIncome() && !this.booking.incomeDetails) {
           this.booking.incomeDetails = this.createEmptyIncomeDetails();
         }
+        if (this.isDelivery() && !this.booking.deliveryDetails) {
+          this.booking.deliveryDetails = this.createEmptyDeliveryDetails();
+        }
+        if (this.isDelivery()) {
+          this.updateDeliveryTotalFromUnit();
+        }
       }
       this.cdr.detectChanges();
     }
@@ -144,6 +162,15 @@ export class BookingFormComponent implements OnInit {
     } finally {
       this.cdr.detectChanges();
     }
+  }
+
+  createEmptyDeliveryDetails(): DeliveryBookingDetails {
+    return {
+      security_id: 0,
+      depot_account_id: 0,
+      quantity: 0,
+      price_per_unit: 0,
+    };
   }
 
   createEmptyPurchaseDetails(): PurchaseBookingDetails {
@@ -222,6 +249,10 @@ export class BookingFormComponent implements OnInit {
     if (this.isIncome() && !this.booking.incomeDetails) {
       this.booking.incomeDetails = this.createEmptyIncomeDetails();
     }
+
+    if (this.isDelivery() && !this.booking.deliveryDetails) {
+      this.booking.deliveryDetails = this.createEmptyDeliveryDetails();
+    }
   }
 
   isPurchase(): boolean {
@@ -238,6 +269,32 @@ export class BookingFormComponent implements OnInit {
 
   isIncome(): boolean {
     return this.booking.vorgang === 'Ertrag';
+  }
+
+  isDelivery(): boolean {
+    return this.booking.vorgang === 'Einlieferung';
+  }
+
+  onDeliveryQuantityChange() {
+    this.updateDeliveryTotalFromUnit();
+  }
+
+  onDeliveryPricePerUnitChange() {
+    this.updateDeliveryTotalFromUnit();
+  }
+
+  onDeliveryTotalValueChange() {
+    const details = this.booking.deliveryDetails;
+    if (!details || !details.quantity || details.quantity <= 0) {
+      return;
+    }
+    details.price_per_unit = Math.round((this.deliveryTotalValue / details.quantity) * 10000) / 10000;
+  }
+
+  private updateDeliveryTotalFromUnit() {
+    const details = this.booking.deliveryDetails;
+    if (!details) return;
+    this.deliveryTotalValue = Math.round((details.quantity * (details.price_per_unit ?? 0)) * 100) / 100;
   }
 
   onSecurityChange() {
@@ -419,6 +476,13 @@ export class BookingFormComponent implements OnInit {
           );
         }
 
+        if (booking.vorgang === 'Einlieferung') {
+          return (
+            booking.deliveryDetails?.depot_account_id === depotAccountId
+            && booking.deliveryDetails.security_id === securityId
+          );
+        }
+
         if (booking.vorgang === 'Verkauf' || booking.vorgang === 'Tilgung') {
           return (
             booking.saleDetails?.depot_account_id === depotAccountId
@@ -436,6 +500,14 @@ export class BookingFormComponent implements OnInit {
         lots.push({
           remaining: booking.purchaseDetails.quantity,
           price: booking.purchaseDetails.price_per_unit,
+        });
+        continue;
+      }
+
+      if (booking.vorgang === 'Einlieferung' && booking.deliveryDetails) {
+        lots.push({
+          remaining: booking.deliveryDetails.quantity,
+          price: booking.deliveryDetails.price_per_unit ?? 0,
         });
         continue;
       }
@@ -530,6 +602,22 @@ export class BookingFormComponent implements OnInit {
 
       if (this.getIncomeNet() <= 0) {
         alert('Nettozufluss muss größer 0 sein.');
+        return;
+      }
+    } else if (this.isDelivery()) {
+      const details = this.booking.deliveryDetails;
+      if (!details || !details.security_id || !details.depot_account_id) {
+        alert('Alle Pflichtfelder der Einlieferung müssen ausgefüllt sein.');
+        return;
+      }
+
+      if (details.quantity <= 0) {
+        alert('Stückzahl muss größer 0 sein.');
+        return;
+      }
+
+      if ((details.price_per_unit ?? 0) < 0) {
+        alert('Einstandspreis darf nicht negativ sein.');
         return;
       }
     } else {

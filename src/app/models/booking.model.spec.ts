@@ -40,6 +40,27 @@ describe('purchase related booking models', () => {
     expect(VORGANG_OPTIONS).toContain('Ertrag');
   });
 
+  it('exposes Einlieferung as valid booking vorgang', () => {
+    expect(VORGANG_OPTIONS).toContain('Einlieferung');
+  });
+
+  it('supports delivery details on bookings', () => {
+    const booking: Booking = {
+      vorgang: 'Einlieferung',
+      date: '2026-08-20',
+      positions: [],
+      deliveryDetails: {
+        security_id: 4,
+        depot_account_id: 3,
+        quantity: 50,
+        price_per_unit: 100,
+      },
+    };
+
+    expect(booking.deliveryDetails?.depot_account_id).toBe(3);
+    expect(booking.deliveryDetails?.quantity).toBe(50);
+  });
+
   it('supports income details on bookings', () => {
     const booking: Booking = {
       vorgang: 'Ertrag',
