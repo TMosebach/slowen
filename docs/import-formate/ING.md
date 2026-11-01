@@ -28,8 +28,8 @@
 | **Buchung** (Standard) | Fallback / Standard, wenn keine Wertpapier-Schlüsselwörter zutreffen | Produktiv |
 | **Kauf** | `Buchungstext` oder `Auftraggeber/Empfänger` enthält "Wertpapierkauf" (case-insensitive). Die ISIN wird aus dem `Verwendungszweck` per Muster `ISIN\s+([A-Z]{2}[A-Z0-9]{9}[0-9])` extrahiert. | Produktiv |
 | **Tilgung** | `Buchungstext` enthält "Wertpapiergutschrift" und `Verwendungszweck` beginnt mit "Tilgung" (case-insensitive). Die ISIN wird aus dem `Verwendungszweck` per Muster `ISIN\s+([A-Z]{2}[A-Z0-9]{9}[0-9])` extrahiert. | Produktiv |
+| **Ertrag** | `Buchungstext` enthält "Zins" oder "Dividende" und `Verwendungszweck` beginnt mit "Zins" oder "Dividende" (case-insensitive) UND enthält eine ISIN. Die ISIN wird aus dem `Verwendungszweck` extrahiert. | Produktiv |
 | **Einlieferung** | `Buchungstext` oder `Verwendungszweck` enthält entsprechende Kennzeichnung (z. B. "Einlieferung", "Depotübertrag") | *Format folgt in weiterem Schritt* |
-| **Ertrag** | `Buchungstext` oder `Verwendungszweck` enthält "Dividende", "Ertragsgutschrift", "Zinsen", "Kupon" | *Format folgt in weiterem Schritt* |
 
 ## 4. Feld-Mappings je Vorgangsart
 
@@ -106,7 +106,35 @@
 | `saleDetails.capital_gains_tax` | Manuelle Eingabe in Import-Ansicht | Optional, Default 0 |
 | `saleDetails.solidarity_surcharge` | Manuelle Eingabe in Import-Ansicht | Optional, Default 0 |
 
-### 4.4 Weitere Wertpapiervorgänge (Einlieferung, Ertrag)
+### 4.4 Vorgang: Ertrag (Dividende / Zins / Fondsertrag)
+
+* **Erkennung:** `Buchungstext` enthält "Zins" oder "Dividende" (case-insensitive), `Verwendungszweck` beginnt mit "Zins" oder "Dividende" (case-insensitive) UND enthält ein Muster `ISIN\s+([A-Z]{2}[A-Z0-9]{9}[0-9])`.
+* **ISIN-Extraktion:** Aus dem `Verwendungszweck` via Regex `ISIN\s+([A-Z]{2}[A-Z0-9]{9}[0-9])`.
+* **Sender / Empfänger:** Aus der CSV extrahierter Wertpapiername (z. B. "PCC SE"), Fallback "Ertrag".
+* **Verrechnungskonto:** Das beim Import ausgewählte Zielkonto (Gutschrift mit dem Nettozufluss laut CSV-Betrag).
+* **Wertpapier:** Wird anhand der extrahierten ISIN automatisch aus den in Slowen angelegten Wertpapieren zugeordnet (`security_id`). Ist das Wertpapier noch nicht angelegt, muss der Anwender es vor dem Import manuell anlegen oder im Dropdown auswählen.
+* **Depot-Konto:** Manuelle Auswahl durch den Anwender in der Import-Ansicht (Pflichtfeld, Typ: `Bestand`, Subtyp: `Depot`).
+* **Ertragskonto:** Automatisch vorausgewählt anhand der Wertpapierart (`Aktie` $\rightarrow$ `Dividende`, `Anleihe`/`Zertifikat` $\rightarrow$ `Zins`, `Fonds`/`ETF` $\rightarrow$ `Fondsertrag`), vom Anwender im Dropdown änderbar.
+* **Bruttobetrag:** Vorbelegt mit dem positiven CSV-Betrag. Werden Steuern erfasst, wird der Bruttobetrag automatisch als `CSV-Betrag + Steuern` nachgeführt, damit der Nettozufluss dem CSV-Gutschriftsbetrag entspricht (manuell editierbar).
+* **Steuern (KapESt, Soli):** Optional (Default: 0). Sind sie leer oder 0, werden keine entsprechenden Steuerpositionen erzeugt.
+* **Abweichungshinweis:** Weicht der berechnete Nettozufluss (`Brutto - Steuern`) vom CSV-Betrag ab, wird ein optischer Hinweistext angezeigt.
+* **Erzeugtes Buchungsmodell:** Buchung mit `vorgang: 'Ertrag'`, Eintrag in `depot_positions` mit Menge 0 und `incomeDetails` (analog zu Use Case `ErtragErfassen.md`).
+
+| Slowen-Feld | Quelldaten ING | Transformationsregel / Pflicht |
+|---|---|---|
+| `date` | Spalte `Buchung` | ISO 8601 (`YYYY-MM-DD`) |
+| `vorgang` | Fester Wert `'Ertrag'` | Automatisch erkannt |
+| `sender_receiver` | Name hinter ISIN aus `Verwendungszweck` | Fallback "Ertrag" |
+| `description` | Spalte `Buchungstext` + Spalte `Verwendungszweck` | Zusammengeführt |
+| `incomeDetails.settlement_account_id` | Import-Zielkonto | ID des gewählten Kontos |
+| `incomeDetails.security_id` | Extrahiert aus `Verwendungszweck` (ISIN) | Matching gegen `securities.isin`; Pflicht bei Abschluss |
+| `incomeDetails.depot_account_id` | Manuelle Auswahl in Import-Ansicht | Pflicht bei Abschluss (Subtyp `Depot`) |
+| `incomeDetails.income_account_id` | Vorauswahl nach Wertpapierart | Pflicht bei Abschluss (Typ `GuV`, Subtyp `Ertrag`), änderbar |
+| `incomeDetails.gross_amount` | CSV-Betrag + Steuern (automatische Nachführung) | Pflicht bei Abschluss (> 0) |
+| `incomeDetails.capital_gains_tax` | Manuelle Eingabe in Import-Ansicht | Optional, Default 0 |
+| `incomeDetails.solidarity_surcharge` | Manuelle Eingabe in Import-Ansicht | Optional, Default 0 |
+
+### 4.5 Weitere Wertpapiervorgänge (Einlieferung)
 
 *(Die genaue Kodierung und Feldbelegung aus den ING-CSV-Dateien wird in den folgenden Schritten spezifiziert)*
 

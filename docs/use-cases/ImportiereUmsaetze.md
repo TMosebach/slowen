@@ -135,6 +135,10 @@ Wertpapiervorgänge entstehen auf dem dem Depot zugeordneten Verrechnungskonto (
   - Übertrag bzw. Einbuchung von Wertpapierbeständen.
 * **Ertrag (`vorgang = 'Ertrag'`):**
   - Gutschriften aus Dividenden, Zinsen oder Fondsausschüttungen auf dem Verrechnungskonto, ggf. unter Berücksichtigung einbehaltener Steuern (siehe auch Use Case [`ErtragErfassen.md`](ErtragErfassen.md)).
+  - Das System erkennt den Ertrag anhand institutsspezifischer Merkmale (z. B. Buchungstext und Verwendungszweck mit "Zins" bzw. "Dividende" und vorhandener ISIN) und extrahiert die ISIN sowie den Namen.
+  - In der Import-Vorschau werden analog zu Kauf und Tilgung die Ertrags-Pflichtfelder angezeigt: **Wertpapier**, **Depot-Konto**, **Ertragskonto** (vorausgewählt anhand der Wertpapierart: `Dividende`, `Zins` oder `Fondsertrag`, änderbar), **Bruttobetrag** und optional **Steuern** (Kapitalertragsteuer, Solidaritätszuschlag).
+  - Der Bruttobetrag wird initial mit dem CSV-Gutschriftsbetrag vorbelegt und bei Eingabe von Steuern automatisch um diese erhöht (`Brutto = Netto + Steuern`), damit der Nettozufluss dem CSV-Betrag entspricht.
+  - Das System führt beim Speichern eine Ertragsbuchung mit einem `depot_positions`-Eintrag mit Menge 0 durch (Zurechnung zum Wertpapier ohne Bestandsänderung).
 * **Besonderheit bei der Dublettenprüfung:**
   - Die beteiligten Partnerkonten (Depotkonto, Ertrags- oder Steuerkonten) unterliegen keinem separaten Fremdimport.
   - Daher können bei diesen Vorgängen keine Dubletten aus Gegenbuchungen eines Partnerkonto-Imports entstehen; die Dublettenprüfung gegen vorherige Importe entfällt hier (bzw. prüft nur manuell vorab erfasste Käufe auf dem Verrechnungskonto).

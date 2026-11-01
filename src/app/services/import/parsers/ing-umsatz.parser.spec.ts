@@ -191,4 +191,55 @@ Buchung;Wertstellungsdatum;Auftraggeber/Empfänger;Buchungstext;Verwendungszweck
     expect(bookings.length).toBe(1);
     expect(bookings[0].vorgang).toBe('Buchung');
   });
+
+  it('detects Ertrag, extracts ISIN and metadata, pre-fills gross_amount and sets sender_receiver to security name', () => {
+    const csv = `Umsatzanzeige;Datei erstellt am: 18.10.2026 16:20
+
+IBAN;DE77 5001 0517 XXXX XXXX XX
+Kontoname;Girokonto
+Bank;ING
+Kunde;Vorname Zuname
+Zeitraum;02.09.2026 - 02.09.2026
+Saldo;625,09;EUR
+
+Sortierung;Datum absteigend
+
+In der CSV-Datei finden Sie alle bereits gebuchten Umsätze.
+
+Buchung;Wertstellungsdatum;Auftraggeber/Empfänger;Buchungstext;Verwendungszweck;Referenz;Saldo;Währung;Betrag;Währung
+02.01.2026;02.01.2026;;Zins / Dividende WP;Zins/Dividende ISIN DE000A4DFWY7 PCC SE;;5.244,50;EUR;40,50;EUR`;
+
+    const bookings = parser.parse(csv, {
+      importType: 'Umsatz',
+      institution: 'ING',
+      accountId: 1
+    });
+
+    expect(bookings.length).toBe(1);
+    const ertrag = bookings[0];
+    expect(ertrag.vorgang).toBe('Ertrag');
+    expect(ertrag.date).toBe('2026-01-02');
+    expect(ertrag.sender_receiver).toBe('PCC SE');
+    expect(ertrag.positions[0].amount).toBe(40.50);
+    expect(ertrag.positions[0].valuta).toBe('2026-01-02');
+    expect(ertrag.incomeDetails).toBeDefined();
+    expect(ertrag.incomeDetails?.settlement_account_id).toBe(1);
+    expect(ertrag.incomeDetails?.gross_amount).toBe(40.50);
+    expect(ertrag.importMeta?.detectedIsin).toBe('DE000A4DFWY7');
+    expect(ertrag.importMeta?.detectedSecurityName).toBe('PCC SE');
+  });
+
+  it('treats Zins text without ISIN in Verwendungszweck as standard Buchung', () => {
+    const csv = `Buchung;Wertstellungsdatum;Auftraggeber/Empfänger;Buchungstext;Verwendungszweck;Saldo;Währung;Betrag;Währung
+02.01.2026;02.01.2026;;Zins / Dividende;Zinsgutschrift Extra-Konto;;5.244,50;EUR;12,30;EUR`;
+
+    const bookings = parser.parse(csv, {
+      importType: 'Umsatz',
+      institution: 'ING',
+      accountId: 1
+    });
+
+    expect(bookings.length).toBe(1);
+    expect(bookings[0].vorgang).toBe('Buchung');
+  });
 });

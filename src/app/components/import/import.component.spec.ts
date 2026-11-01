@@ -26,12 +26,16 @@ describe('ImportComponent', () => {
     { id: 2, name: 'Tagesgeld ING', type: 'Bestand', subtype: 'Tagesgeld' },
     { id: 3, name: 'Depot Comdirect', type: 'Bestand', subtype: 'Depot' },
     { id: 4, name: 'Depot DB', type: 'Bestand', subtype: 'Depot' },
+    { id: 101, name: 'Dividende', type: 'GuV', subtype: 'Ertrag' },
+    { id: 102, name: 'Zins', type: 'GuV', subtype: 'Ertrag' },
+    { id: 103, name: 'Fondsertrag', type: 'GuV', subtype: 'Ertrag' },
   ];
 
   const mockSecurities: Security[] = [
     { id: 10, name: 'Amundi SDAX ETF', type: 'ETF', isin: 'LU2611732475', wkn: 'ETF123' },
     { id: 11, name: 'Apple Inc.', type: 'Aktie', isin: 'US0378331005', wkn: '865985' },
     { id: 12, name: 'GRENKE Anleihe', type: 'Anleihe', isin: 'XS2630524986', wkn: 'A3L0U0' },
+    { id: 13, name: 'PCC SE', type: 'Anleihe', isin: 'DE000A4DFWY7', wkn: 'A4DFWY' },
   ];
 
   const mockBookings: Booking[] = [
@@ -94,7 +98,7 @@ describe('ImportComponent', () => {
   it('should create and load accounts on init', () => {
     expect(component).toBeTruthy();
     expect(component.step).toBe(1);
-    expect(component.accounts.length).toBe(4);
+    expect(component.accounts.length).toBe(7);
     expect(mockAccountService.getAll).toHaveBeenCalled();
   });
 
@@ -550,6 +554,90 @@ describe('ImportComponent', () => {
           price_per_unit: 100,
           fees: 5,
           capital_gains_tax: 10,
+          solidarity_surcharge: 0.55
+        })
+      })
+    );
+    expect(component.step).toBe(1);
+    expect(component.successMessage).toContain('1 Buchungen wurden erfolgreich importiert');
+  });
+
+  it('handles Ertrag booking: auto-matches ISIN, preselects income account based on security type, updates gross on tax change and saves incomeDetails', async () => {
+    const ertragBooking: Booking = {
+      vorgang: 'Ertrag',
+      date: '2026-01-02',
+      sender_receiver: 'PCC SE',
+      description: 'Zins/Dividende ISIN DE000A4DFWY7 PCC SE',
+      incomeDetails: {
+        settlement_account_id: 1,
+        depot_account_id: 0,
+        security_id: 0,
+        income_account_id: 0,
+        gross_amount: 40.50,
+        capital_gains_tax: 0,
+        solidarity_surcharge: 0
+      },
+      positions: [
+        { account_id: 1, valuta: '2026-01-02', amount: 40.50 },
+        { account_id: 0, valuta: '2026-01-02', amount: -40.50 }
+      ]
+    };
+    (ertragBooking as any).importMeta = {
+      detectedIsin: 'DE000A4DFWY7',
+      detectedSecurityName: 'PCC SE'
+    };
+
+    mockParserService.parse.mockReturnValue([ertragBooking]);
+
+    const file = new File(['dummy'], 'ing-ertrag.csv', { type: 'text/csv' });
+    component.selectedFile = file;
+    component.selectedFileName = 'ing-ertrag.csv';
+    component.selectedAccountId = 1;
+    component.institution = 'ING';
+    component.importType = 'Umsatz';
+
+    await component.onLoadCsv();
+
+    expect(component.step).toBe(2);
+    expect(component.tableItems.length).toBe(1);
+
+    const ertragItem = component.tableItems[0];
+    expect(ertragItem.detectedIsin).toBe('DE000A4DFWY7');
+    // Matched against mockSecurities: ID 13 (Anleihe)
+    expect(ertragItem.incomeDetails?.security_id).toBe(13);
+    // Auto-selected income account for Anleihe: Zins (id 102)
+    expect(ertragItem.incomeDetails?.income_account_id).toBe(102);
+    expect(ertragItem.incomeDetails?.gross_amount).toBe(40.50);
+    expect(ertragItem.incomeDetails?.depot_account_id).toBe(0);
+
+    // Try finishing without depot -> should fail validation
+    await component.onFinish();
+    expect(component.step).toBe(2);
+    expect(component.saveError).toContain('Erträge');
+
+    // Fill in required depot
+    ertragItem.incomeDetails!.depot_account_id = 3; // Depot Comdirect
+    ertragItem.incomeDetails!.capital_gains_tax = 10.0;
+    ertragItem.incomeDetails!.solidarity_surcharge = 0.55;
+
+    // Trigger tax change -> automatic gross update: 40.50 + 10.0 + 0.55 = 51.05
+    component.onIncomeTaxChange(ertragItem);
+    expect(ertragItem.incomeDetails?.gross_amount).toBe(51.05);
+    expect(component.getIncomeNet(ertragItem)).toBe(40.50);
+    expect(component.getIncomeDiff(ertragItem)).toBe(0);
+
+    await component.onFinish();
+
+    expect(mockBookingService.create).toHaveBeenCalledWith(
+      expect.objectContaining({
+        vorgang: 'Ertrag',
+        incomeDetails: expect.objectContaining({
+          security_id: 13,
+          depot_account_id: 3,
+          settlement_account_id: 1,
+          income_account_id: 102,
+          gross_amount: 51.05,
+          capital_gains_tax: 10.0,
           solidarity_surcharge: 0.55
         })
       })

@@ -7,7 +7,7 @@ import { SecuritiesService } from '../../services/securities.service';
 import { ImportParserService } from '../../services/import/import-parser.service';
 import { addDaysToIso, dateDiffInDays, decodeCsvBuffer, formatIsoToGermanDate } from '../../services/import/csv-utils';
 import { Account } from '../../models/account.model';
-import { Booking, PurchaseBookingDetails, SaleBookingDetails } from '../../models/booking.model';
+import { Booking, IncomeBookingDetails, PurchaseBookingDetails, SaleBookingDetails } from '../../models/booking.model';
 import { Security } from '../../models/security.model';
 import { ImportedBooking, ImportType, Institution } from '../../services/import/import-parser.types';
 
@@ -32,6 +32,7 @@ export interface ImportRowItem {
   detectedSecurityName?: string;
   purchaseDetails?: PurchaseBookingDetails;
   saleDetails?: SaleBookingDetails;
+  incomeDetails?: IncomeBookingDetails;
 }
 
 @Component({
@@ -105,11 +106,28 @@ export class ImportComponent implements OnInit {
     if (this.importType === 'Depot-Bestand') {
       return this.accounts.filter(acc => acc.subtype === 'Depot');
     }
-    return this.accounts.filter(acc => acc.subtype !== 'Depot');
+    return this.accounts.filter(acc => acc.type === 'Bestand' && acc.subtype !== 'Depot');
   }
 
   get depotAccounts(): Account[] {
     return this.accounts.filter(acc => acc.subtype === 'Depot');
+  }
+
+  get incomeAccounts(): Account[] {
+    return this.accounts.filter(acc => acc.type === 'GuV' && acc.subtype === 'Ertrag');
+  }
+
+  getDefaultIncomeAccountId(securityType: string): number {
+    let targetName = 'Dividende';
+    if (securityType === 'Aktie') {
+      targetName = 'Dividende';
+    } else if (securityType === 'Anleihe' || securityType === 'Zertifikat') {
+      targetName = 'Zins';
+    } else if (securityType === 'Fonds' || securityType === 'ETF') {
+      targetName = 'Fondsertrag';
+    }
+    const acc = this.incomeAccounts.find(a => a.name === targetName);
+    return acc?.id || 0;
   }
 
   onImportTypeChange(): void {
@@ -225,23 +243,26 @@ export class ImportComponent implements OnInit {
       const targetPos = b.positions[0];
       const isKauf = b.vorgang === 'Kauf';
       const isTilgung = b.vorgang === 'Tilgung';
+      const isErtrag = b.vorgang === 'Ertrag';
 
       let purchaseDetails: PurchaseBookingDetails | undefined;
       let saleDetails: SaleBookingDetails | undefined;
+      let incomeDetails: IncomeBookingDetails | undefined;
       let detectedIsin: string | undefined;
       let detectedSecurityName: string | undefined;
 
-      if (isKauf || isTilgung) {
+      if (isKauf || isTilgung || isErtrag) {
         detectedIsin = b.importMeta?.detectedIsin;
         detectedSecurityName = b.importMeta?.detectedSecurityName;
 
         let matchedSecurityId = 0;
+        let matchedSecurity: Security | undefined;
         if (detectedIsin) {
-          const matched = this.securities.find(
+          matchedSecurity = this.securities.find(
             s => s.isin.toUpperCase() === detectedIsin?.toUpperCase()
           );
-          if (matched && matched.id) {
-            matchedSecurityId = matched.id;
+          if (matchedSecurity && matchedSecurity.id) {
+            matchedSecurityId = matchedSecurity.id;
           }
         }
 
@@ -282,6 +303,28 @@ export class ImportComponent implements OnInit {
           }
 
           b.saleDetails = saleDetails;
+        } else if (isErtrag) {
+          const defaultIncomeAccountId = matchedSecurity ? this.getDefaultIncomeAccountId(matchedSecurity.type) : 0;
+          const posAmount = targetPos?.amount || 0;
+
+          incomeDetails = b.incomeDetails || {
+            settlement_account_id: this.selectedAccountId || 0,
+            depot_account_id: 0,
+            security_id: matchedSecurityId,
+            income_account_id: defaultIncomeAccountId,
+            gross_amount: posAmount > 0 ? posAmount : 0,
+            capital_gains_tax: 0,
+            solidarity_surcharge: 0
+          };
+
+          if (matchedSecurityId > 0 && incomeDetails.security_id === 0) {
+            incomeDetails.security_id = matchedSecurityId;
+          }
+          if (defaultIncomeAccountId > 0 && incomeDetails.income_account_id === 0) {
+            incomeDetails.income_account_id = defaultIncomeAccountId;
+          }
+
+          b.incomeDetails = incomeDetails;
         }
       }
 
@@ -302,7 +345,8 @@ export class ImportComponent implements OnInit {
         detectedIsin,
         detectedSecurityName,
         purchaseDetails,
-        saleDetails
+        saleDetails,
+        incomeDetails
       };
     });
 
@@ -335,8 +379,8 @@ export class ImportComponent implements OnInit {
           const contraPos = b.positions.find(p => p.account_id !== this.selectedAccountId);
 
           let contraAccountName = '-';
-          if ((b.vorgang === 'Kauf' || b.vorgang === 'Tilgung') && (b.purchaseDetails || b.saleDetails)) {
-            const depotId = b.purchaseDetails?.depot_account_id || b.saleDetails?.depot_account_id;
+          if ((b.vorgang === 'Kauf' || b.vorgang === 'Tilgung' || b.vorgang === 'Ertrag') && (b.purchaseDetails || b.saleDetails || b.incomeDetails)) {
+            const depotId = b.purchaseDetails?.depot_account_id || b.saleDetails?.depot_account_id || b.incomeDetails?.depot_account_id;
             const depotAcc = this.accounts.find(a => a.id === depotId);
             contraAccountName = depotAcc ? `Depot: ${depotAcc.name}` : 'Depot';
           } else {
@@ -363,7 +407,9 @@ export class ImportComponent implements OnInit {
             originalSenderReceiver: b.sender_receiver || '',
             originalDescription: b.description || '',
             contraAccountName,
-            purchaseDetails: b.purchaseDetails
+            purchaseDetails: b.purchaseDetails,
+            saleDetails: b.saleDetails,
+            incomeDetails: b.incomeDetails
           };
         });
       } catch (err) {
@@ -412,6 +458,10 @@ export class ImportComponent implements OnInit {
       const d = item.saleDetails;
       return !d || !d.depot_account_id || d.depot_account_id === 0;
     }
+    if (item.booking.vorgang === 'Ertrag') {
+      const d = item.incomeDetails;
+      return !d || !d.depot_account_id || d.depot_account_id === 0;
+    }
     return !item.booking.positions[1] || !item.booking.positions[1].account_id || item.booking.positions[1].account_id === 0;
   }
 
@@ -453,6 +503,57 @@ export class ImportComponent implements OnInit {
     );
   }
 
+  hasInvalidIncomeDetails(item: ImportRowItem): boolean {
+    if (item.booking.vorgang !== 'Ertrag') {
+      return false;
+    }
+    const d = item.incomeDetails;
+    if (!d) return true;
+    const net = (d.gross_amount || 0) - (d.capital_gains_tax || 0) - (d.solidarity_surcharge || 0);
+    return (
+      !d.security_id ||
+      d.security_id <= 0 ||
+      !d.depot_account_id ||
+      d.depot_account_id <= 0 ||
+      !d.income_account_id ||
+      d.income_account_id <= 0 ||
+      !d.gross_amount ||
+      d.gross_amount <= 0 ||
+      (d.capital_gains_tax ?? 0) < 0 ||
+      (d.solidarity_surcharge ?? 0) < 0 ||
+      net <= 0
+    );
+  }
+
+  onIncomeSecurityChange(item: ImportRowItem): void {
+    if (item.incomeDetails?.security_id) {
+      const sec = this.securities.find(s => s.id === item.incomeDetails?.security_id);
+      if (sec) {
+        item.incomeDetails.income_account_id = this.getDefaultIncomeAccountId(sec.type);
+      }
+    }
+  }
+
+  onIncomeTaxChange(item: ImportRowItem): void {
+    if (item.incomeDetails) {
+      const tax = item.incomeDetails.capital_gains_tax || 0;
+      const soli = item.incomeDetails.solidarity_surcharge || 0;
+      item.incomeDetails.gross_amount = Math.round((item.amount + tax + soli) * 100) / 100;
+    }
+  }
+
+  getIncomeNet(item: ImportRowItem): number {
+    const d = item.incomeDetails;
+    if (!d) return 0;
+    const deductions = (d.capital_gains_tax || 0) + (d.solidarity_surcharge || 0);
+    return Math.round(((d.gross_amount || 0) - deductions) * 100) / 100;
+  }
+
+  getIncomeDiff(item: ImportRowItem): number {
+    const net = this.getIncomeNet(item);
+    return Math.round((net - item.amount) * 100) / 100;
+  }
+
   getRedemptionNet(item: ImportRowItem): number {
     const d = item.saleDetails;
     if (!d) return 0;
@@ -476,8 +577,14 @@ export class ImportComponent implements OnInit {
 
     const activeImports = this.tableItems.filter(item => item.source === 'import' && !item.ignored);
 
-    // Validate standard Gegenkonto for non-Kauf and non-Tilgung bookings
-    const missingContra = activeImports.filter(item => item.booking.vorgang !== 'Kauf' && item.booking.vorgang !== 'Tilgung' && this.hasMissingContraAccount(item));
+    // Validate standard Gegenkonto for non-Kauf, non-Tilgung, non-Ertrag bookings
+    const missingContra = activeImports.filter(
+      item =>
+        item.booking.vorgang !== 'Kauf' &&
+        item.booking.vorgang !== 'Tilgung' &&
+        item.booking.vorgang !== 'Ertrag' &&
+        this.hasMissingContraAccount(item)
+    );
     if (missingContra.length > 0) {
       this.saveError = 'Bitte wählen Sie für alle Buchungen ein Gegenkonto aus.';
       return;
@@ -494,6 +601,13 @@ export class ImportComponent implements OnInit {
     const invalidRedemptions = activeImports.filter(item => item.booking.vorgang === 'Tilgung' && this.hasInvalidRedemptionDetails(item));
     if (invalidRedemptions.length > 0) {
       this.saveError = 'Bitte vervollständigen Sie die Angaben für alle Tilgungen (Wertpapier, Depot, Stückzahl, Kurs > 0, Nettozufluss > 0).';
+      return;
+    }
+
+    // Validate Ertrag bookings
+    const invalidIncomes = activeImports.filter(item => item.booking.vorgang === 'Ertrag' && this.hasInvalidIncomeDetails(item));
+    if (invalidIncomes.length > 0) {
+      this.saveError = 'Bitte vervollständigen Sie die Angaben für alle Erträge (Wertpapier, Depot, Ertragskonto, Brutto > 0, Nettozufluss > 0).';
       return;
     }
 
@@ -544,6 +658,13 @@ export class ImportComponent implements OnInit {
             fees: item.saleDetails.fees || 0,
             capital_gains_tax: item.saleDetails.capital_gains_tax || 0,
             solidarity_surcharge: item.saleDetails.solidarity_surcharge || 0
+          };
+        } else if (item.booking.vorgang === 'Ertrag' && item.incomeDetails) {
+          item.booking.incomeDetails = {
+            ...item.incomeDetails,
+            settlement_account_id: this.selectedAccountId!,
+            capital_gains_tax: item.incomeDetails.capital_gains_tax || 0,
+            solidarity_surcharge: item.incomeDetails.solidarity_surcharge || 0
           };
         }
         await this.bookingService.create(item.booking);

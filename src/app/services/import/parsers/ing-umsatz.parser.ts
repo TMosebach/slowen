@@ -91,6 +91,17 @@ export class IngUmsatzParser implements ImportParser {
         rawBuchungstext.toLowerCase().includes('wertpapiergutschrift') &&
         rawPurpose.trim().toLowerCase().startsWith('tilgung');
 
+      // Detection for Ertrag:
+      // Buchungstext contains "zins" or "dividende", Verwendungszweck starts with "zins" or "dividende" and contains an ISIN
+      const rawPurposeTrimmedLower = rawPurpose.trim().toLowerCase();
+      const hasZinsOrDividendeInText =
+        rawBuchungstext.toLowerCase().includes('zins') || rawBuchungstext.toLowerCase().includes('dividende');
+      const startsWithZinsOrDividendeInPurpose =
+        rawPurposeTrimmedLower.startsWith('zins') || rawPurposeTrimmedLower.startsWith('dividende');
+      const hasIsinInPurpose = /ISIN\s+([A-Z]{2}[A-Z0-9]{9}[0-9])/i.test(rawPurpose);
+
+      const isErtrag = hasZinsOrDividendeInText && startsWithZinsOrDividendeInPurpose && hasIsinInPurpose;
+
       if (isWertpapierkauf) {
         // Extract ISIN from Verwendungszweck via Regex (e.g. "Kauf ISIN LU2611732475 AIS AMUNDI...")
         const isinMatch = rawPurpose.match(/ISIN\s+([A-Z]{2}[A-Z0-9]{9}[0-9])/i);
@@ -165,6 +176,50 @@ export class IngUmsatzParser implements ImportParser {
             quantity: suggestedQuantity,
             price_per_unit: defaultPrice,
             fees: 0,
+            capital_gains_tax: 0,
+            solidarity_surcharge: 0
+          },
+          importMeta: {
+            detectedIsin,
+            detectedSecurityName
+          },
+          positions: [
+            {
+              account_id: context.accountId,
+              valuta,
+              amount
+            },
+            {
+              account_id: 0,
+              valuta,
+              amount: contraAmount
+            }
+          ]
+        });
+      } else if (isErtrag) {
+        // Extract ISIN from Verwendungszweck via Regex (e.g. "Zins/Dividende ISIN DE000A4DFWY7 PCC SE...")
+        const isinMatch = rawPurpose.match(/ISIN\s+([A-Z]{2}[A-Z0-9]{9}[0-9])/i);
+        const detectedIsin = isinMatch ? isinMatch[1].toUpperCase() : undefined;
+
+        let detectedSecurityName: string | undefined;
+        if (isinMatch && isinMatch.index !== undefined) {
+          const afterIsin = rawPurpose.slice(isinMatch.index + isinMatch[0].length).trim();
+          if (afterIsin) {
+            detectedSecurityName = afterIsin;
+          }
+        }
+
+        bookings.push({
+          vorgang: 'Ertrag',
+          date,
+          sender_receiver: detectedSecurityName || 'Ertrag',
+          description: description || undefined,
+          incomeDetails: {
+            settlement_account_id: context.accountId,
+            depot_account_id: 0,
+            security_id: 0,
+            income_account_id: 0,
+            gross_amount: amount > 0 ? amount : 0,
             capital_gains_tax: 0,
             solidarity_surcharge: 0
           },

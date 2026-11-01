@@ -1,0 +1,15 @@
+Umsatzanzeige;Datei erstellt am: 18.10.2026 16:20
+
+IBAN;DE77 5001 0517 XXXX XXXX XX
+Kontoname;Girokonto
+Bank;ING
+Kunde;Vorname Zuname
+Zeitraum;02.09.2026 - 02.09.2026
+Saldo;625,09;EUR
+
+Sortierung;Datum absteigend
+
+In der CSV-Datei finden Sie alle bereits gebuchten Ums�tze. Die vorgemerkten Ums�tze werden nicht aufgenommen, auch wenn sie in Ihrem Internetbanking angezeigt werden.
+
+Buchung;Wertstellungsdatum;Auftraggeber/Empf�nger;Buchungstext;Verwendungszweck;Referenz;Saldo;W�hrung;Betrag;W�hrung
+02.01.2026;02.01.2026;;Zins / Dividende WP;Zins/Dividende ISIN DE000A4DFWY7 PCC SE;;5.244,50;EUR;40,50;EUR
