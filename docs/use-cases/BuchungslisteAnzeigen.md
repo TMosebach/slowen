@@ -13,7 +13,7 @@ Der Anwender öffnet die Buchungsübersicht, um alle erfassten Buchungen mit Vor
 
 1. Der Anwender wählt den Eintrag „Buchungen“ in der Navigationsleiste.
 2. Das System zeigt die Buchungsliste an mit:
-    * Vorgang (Buchung, Kauf, Verkauf)
+    * Vorgang (Buchung, Kauf, Verkauf, Tilgung, Ertrag, Einlieferung)
     * Buchungsdatum
     * Beschreibung
     * Sender / Empfänger
@@ -29,6 +29,9 @@ Der Anwender öffnet die Buchungsübersicht, um alle erfassten Buchungen mit Vor
     * „Neue Buchung“ (Einstieg in den Use Case „Buchung erfassen“)
     * „Neuer Kauf“ (Einstieg in den Use Case „Kauf erfassen“)
     * „Neuer Verkauf“ (Einstieg in den Use Case „Verkauf erfassen“)
+    * „Neue Tilgung“ (Einstieg in den Use Case „Tilgung erfassen“)
+    * „Neuer Ertrag“ (Einstieg in den Use Case „Ertrag erfassen“)
+    * „Neue Einlieferung“ (Einstieg in den Use Case „Einlieferung erfassen“)
 - Pro Tabellenzeile werden die Aktionen Ändern und Löschen nebeneinander in einer Spalte angeboten:
     * Ändern-Icon (Stift): Einstieg in den Use Case „Buchung ändern“.
     * „Löschen“-Button: Entfernt die Buchung nach Bestätigung.

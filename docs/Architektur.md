@@ -127,7 +127,7 @@ Slowen folgt dem Architekturprinzip einer **strikten Trennung zwischen internen 
 | Feld | Typ | Constraints | Beschreibung |
 |------|-----|-------------|--------------|
 | id | INTEGER | PK, AUTOINCREMENT | Eindeutige ID |
-| vorgang | TEXT | NOT NULL, IN ('Buchung', 'Kauf', 'Verkauf', 'Tilgung', 'Ertrag') | Buchungsvorgang |
+| vorgang | TEXT | NOT NULL, IN ('Buchung', 'Kauf', 'Verkauf', 'Tilgung', 'Ertrag', 'Einlieferung') | Buchungsvorgang |
 | date | TEXT | NOT NULL | Buchungsdatum (ISO 8601: YYYY-MM-DD) |
 | description | TEXT | OPTIONAL | Verwendungszweck / Buchungstext |
 | sender_receiver | TEXT | OPTIONAL | Beteiligte Gegenstelle |
