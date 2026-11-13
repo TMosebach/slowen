@@ -11,15 +11,15 @@
 
   <form (ngSubmit)="onSubmit()" class="bg-white shadow rounded-lg p-6">
     <div class="mb-4">
-      <label class="block text-sm font-medium text-gray-700">Name *</label>
-      <input [(ngModel)]="security.name" name="name" type="text" 
+      <label for="security-name" class="block text-sm font-medium text-gray-700">Name *</label>
+      <input id="security-name" [(ngModel)]="security.name" name="name" type="text" 
              class="mt-1 block w-full border border-gray-300 rounded-md p-2"
              placeholder="z.B. Apple Inc." />
     </div>
 
     <div class="mb-4">
-      <label class="block text-sm font-medium text-gray-700">Typ *</label>
-      <select [(ngModel)]="security.type" (change)="updateFaelligkeitVisibility()" 
+      <label for="security-type" class="block text-sm font-medium text-gray-700">Typ *</label>
+      <select id="security-type" [(ngModel)]="security.type" (change)="updateFaelligkeitVisibility()" 
               name="type" class="mt-1 block w-full border border-gray-300 rounded-md p-2">
         @for (type of securityTypes; track type) {
           <option [value]="type">{{ type }}</option>
@@ -28,8 +28,8 @@
     </div>
 
     <div class="mb-4">
-      <label class="block text-sm font-medium text-gray-700">ISIN *</label>
-      <input [(ngModel)]="security.isin" (change)="security.isin = formatISIN(security.isin)" 
+      <label for="security-isin" class="block text-sm font-medium text-gray-700">ISIN *</label>
+      <input id="security-isin" [(ngModel)]="security.isin" (change)="security.isin = formatISIN(security.isin)" 
              name="isin" type="text" maxlength="12"
              class="mt-1 block w-full border border-gray-300 rounded-md p-2 uppercase"
              placeholder="z.B. US0378331005" />
@@ -37,8 +37,8 @@
     </div>
 
     <div class="mb-4">
-      <label class="block text-sm font-medium text-gray-700">WKN *</label>
-      <input [(ngModel)]="security.wkn" (change)="security.wkn = formatWKN(security.wkn)" 
+      <label for="security-wkn" class="block text-sm font-medium text-gray-700">WKN *</label>
+      <input id="security-wkn" [(ngModel)]="security.wkn" (change)="security.wkn = formatWKN(security.wkn)" 
              name="wkn" type="text" maxlength="6"
              class="mt-1 block w-full border border-gray-300 rounded-md p-2 uppercase"
              placeholder="z.B. 865985" />
@@ -47,8 +47,8 @@
 
     @if (showFaelligkeit) {
       <div class="mb-4">
-        <label class="block text-sm font-medium text-gray-700">Fälligkeit</label>
-        <input [(ngModel)]="security.faelligkeit" name="faelligkeit" type="date"
+        <label for="security-faelligkeit" class="block text-sm font-medium text-gray-700">Fälligkeit</label>
+        <input id="security-faelligkeit" [(ngModel)]="security.faelligkeit" name="faelligkeit" type="date"
                class="mt-1 block w-full border border-gray-300 rounded-md p-2" />
         <p class="text-xs text-gray-500 mt-1">Optional, nur für Anleihen und Zertifikate (bei endloser Laufzeit leer lassen)</p>
       </div>
