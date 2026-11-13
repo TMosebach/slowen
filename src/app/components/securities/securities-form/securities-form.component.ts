@@ -59,6 +59,9 @@ export class SecuritiesFormComponent implements OnInit {
 
   updateFaelligkeitVisibility() {
     this.showFaelligkeit = FAELLIGKEIT_TYPES.includes(this.security.type);
+    if (!this.showFaelligkeit) {
+      this.security.faelligkeit = '';
+    }
   }
 
   formatISIN(value: string): string {
@@ -87,18 +90,18 @@ export class SecuritiesFormComponent implements OnInit {
       return;
     }
 
-    if (this.showFaelligkeit && !this.security.faelligkeit) {
-      this.errorMessage = 'Fälligkeit ist erforderlich.';
-      return;
-    }
+    const payload: Security = {
+      ...this.security,
+      faelligkeit: this.showFaelligkeit && this.security.faelligkeit ? this.security.faelligkeit : ''
+    };
 
     this.saving = true;
     try {
       if (this.isEditing && this.securityId) {
-        await this.securitiesService.update(this.securityId, this.security);
+        await this.securitiesService.update(this.securityId, payload);
         alert('Wertpapier aktualisiert');
       } else {
-        await this.securitiesService.create(this.security);
+        await this.securitiesService.create(payload);
         alert('Wertpapier erstellt');
       }
       this.router.navigate(['/securities']);

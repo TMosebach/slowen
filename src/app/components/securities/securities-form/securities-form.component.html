@@ -47,12 +47,10 @@
 
     @if (showFaelligkeit) {
       <div class="mb-4">
-        <label class="block text-sm font-medium text-gray-700">
-          Fälligkeit @if (showFaelligkeit) { <span class="text-red-500">*</span> }
-        </label>
+        <label class="block text-sm font-medium text-gray-700">Fälligkeit</label>
         <input [(ngModel)]="security.faelligkeit" name="faelligkeit" type="date"
                class="mt-1 block w-full border border-gray-300 rounded-md p-2" />
-        <p class="text-xs text-gray-500 mt-1">Nur für Anleihen und Zertifikate</p>
+        <p class="text-xs text-gray-500 mt-1">Optional, nur für Anleihen und Zertifikate (bei endloser Laufzeit leer lassen)</p>
       </div>
     }
 
