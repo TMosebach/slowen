@@ -23,11 +23,11 @@ Der Anwender hat die Anwendung gestartet und befindet sich in der Navigation ode
     * **Typ:** Pflichtfeld, Enum { `Aktie`, `Anleihe`, `Fonds`, `ETF`, `Zertifikat` }, Vorbelegung: `Aktie`
     * **ISIN:** Pflichtfeld, 12-stellig alphanumerisch, systemweit eindeutig
     * **WKN:** Pflichtfeld, 6-stellig alphanumerisch, systemweit eindeutig
-    * **Fälligkeit:** Bedingtes Pflichtfeld (nur bei Typ `Anleihe` und `Zertifikat` sichtbar und erforderlich; bei `Aktie`, `Fonds` und `ETF` ausgeblendet)
+    * **Fälligkeit:** Optionales Feld, nur bei Typ `Anleihe` und `Zertifikat` sichtbar (für endfällige Papiere; bei endlos laufenden Anleihen/Perpetuals oder Open-End-Zertifikaten bleibt das Feld leer). Bei `Aktie`, `Fonds` und `ETF` ausgeblendet.
 5. Der Anwender wählt den Typ aus:
-    * Wählt der Anwender `Anleihe` oder `Zertifikat`, blendet das System das Feld **Fälligkeit** als Pflichtfeld ein.
+    * Wählt der Anwender `Anleihe` oder `Zertifikat`, blendet das System das Feld **Fälligkeit** als optionales Feld ein.
     * Wählt der Anwender `Aktie`, `Fonds` oder `ETF`, wird das Feld **Fälligkeit** ausgeblendet.
-6. Der Anwender füllt die Pflichtfelder aus.
+6. Der Anwender füllt die Felder aus.
 7. Der Anwender klickt auf "Speichern" (oder bricht mit "Abbrechen" ab).
 8. Das System validiert die Eingaben:
     * Sind Pflichtfelder nicht befüllt, ISIN/WKN unvollständig oder nicht formgerecht, zeigt das System entsprechende Fehlermeldungen an.
@@ -43,17 +43,17 @@ Der Anwender hat die Anwendung gestartet und befindet sich in der Navigation ode
 | Typ | Pflichtfeld, Enum: `Aktie`, `Anleihe`, `Fonds`, `ETF`, `Zertifikat` |
 | ISIN | Pflichtfeld, genau 12 alphanumerische Zeichen (A–Z, 0–9), systemweit eindeutig |
 | WKN | Pflichtfeld, genau 6 alphanumerische Zeichen (A–Z, 0–9), systemweit eindeutig |
-| Fälligkeit | Pflichtfeld, wenn Typ = `Anleihe` oder `Zertifikat`. Format: ISO 8601 (`YYYY-MM-DD`). Nicht zulässig / ausgeblendet für `Aktie`, `Fonds`, `ETF`. |
+| Fälligkeit | Optional. Nur sichtbar und eingebbar für `Anleihe` und `Zertifikat`. Wenn befüllt: Format ISO 8601 (`YYYY-MM-DD`). Bei `Aktie`, `Fonds`, `ETF` ausgeblendet. |
 
 ## Typ-Definitionen und Fälligkeit
 
-| Wertpapiertyp | Fälligkeitsdatum erforderlich? | Typische Anwendungsfälle |
+| Wertpapiertyp | Fälligkeitsdatum | Typische Anwendungsfälle / Erläuterung |
 |---|---|---|
-| `Aktie` | Nein (ausgeblendet) | Dividendenaktien, Stamm- und Vorzugsaktien |
-| `Anleihe` | **Ja (Pflichtfeld)** | Staats- und Unternehmensanleihen mit festem Endfälligkeitsdatum |
-| `Fonds` | Nein (ausgeblendet) | Offene Investmentfonds, Geldmarktfonds |
-| `ETF` | Nein (ausgeblendet) | Exchange Traded Funds (Indexfonds) |
-| `Zertifikat` | **Ja (Pflichtfeld)** | Strukturierte Produkte, Discount-/Bonus-Zertifikate mit Fälligkeit |
+| `Aktie` | Ausgeblendet | Dividendenaktien, Stamm- und Vorzugsaktien |
+| `Anleihe` | **Optional** | Staats- und Unternehmensanleihen mit Fälligkeit; **bleibt leer bei Perpetual Bonds / Endlosanleihen** |
+| `Fonds` | Ausgeblendet | Offene Investmentfonds, Geldmarktfonds |
+| `ETF` | Ausgeblendet | Exchange Traded Funds (Indexfonds) |
+| `Zertifikat` | **Optional** | Endfällige strukturierte Produkte / Bonus-Zertifikate; **bleibt leer bei Open-End-Zertifikaten** |
 
 ## Datenmodell
 
@@ -66,7 +66,7 @@ Der Anwender hat die Anwendung gestartet und befindet sich in der Navigation ode
 | type | TEXT | ja | Wertpapierart (`Aktie`, `Anleihe`, `Fonds`, `ETF`, `Zertifikat`) |
 | isin | TEXT | ja | Internationale Wertpapierkennnummer (12 Stellen, `UNIQUE`) |
 | wkn | TEXT | ja | Deutsche Wertpapierkennnummer (6 Stellen, `UNIQUE`) |
-| faelligkeit | TEXT | bedingt | Fälligkeitsdatum im ISO-Format (`YYYY-MM-DD`), `NULL` bei Typen ohne Fälligkeit |
+| faelligkeit | TEXT | nein | Optionales Fälligkeitsdatum im ISO-Format (`YYYY-MM-DD`), `NULL` bei endlosen Laufzeiten sowie Typen ohne Fälligkeit |
 | created_at | TEXT | auto | Erstellungszeitpunkt (`CURRENT_TIMESTAMP`) |
 | updated_at | TEXT | auto | Letzter Aktualisierungszeitpunkt (`CURRENT_TIMESTAMP`) |
 
@@ -79,6 +79,7 @@ Der Anwender hat die Anwendung gestartet und befindet sich in der Navigation ode
 - **Fälligkeitsfeld:**
   - Technische Realisierung via `<input type="date">` mit bidirektionaler Bindung an den ISO-Datumsstring (`YYYY-MM-DD`).
   - Dynamische Sichtbarkeit gekoppelt an die Wertpapierart (`FAELLIGKEIT_TYPES`).
+  - Keine Pflichtfeld-Kennzeichnung (`*`); das Formular kann für Anleihen und Zertifikate auch ohne Fälligkeitsdatum gespeichert werden.
 - **Abbrechen:**
   - Die Schaltfläche "Abbrechen" verwirft alle Eingaben und navigiert zurück zur Wertpapierliste (`/securities`).
 
